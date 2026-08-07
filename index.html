@@ -11,7 +11,563 @@
         -webkit-user-select: none;
     }
     body {
+        background-color: #1e1e24;<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>2248 Merge Puzzle - 多數字版</title>
+<style>
+    * {
+        box-sizing: border-box;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+    body {
         background-color: #1e1e24;
+        color: #ffffff;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 10px;
+        touch-action: none;
+        overscroll-behavior: none;
+    }
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        max-width: 350px;
+        margin-bottom: 12px;
+    }
+    .title-box {
+        display: flex;
+        flex-direction: column;
+    }
+    .title {
+        font-size: 28px;
+        font-weight: 900;
+        color: #f4d03f;
+        letter-spacing: 1px;
+    }
+    .coin-box {
+        font-size: 14px;
+        color: #f1c40f;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 2px;
+    }
+    .score-container {
+        display: flex;
+        gap: 8px;
+    }
+    .score-box {
+        background-color: #2b2d42;
+        padding: 6px 10px;
+        border-radius: 10px;
+        text-align: center;
+        min-width: 70px;
+    }
+    .score-label {
+        font-size: 10px;
+        color: #8d99ae;
+    }
+    .score-value {
+        font-size: 16px;
+        font-weight: bold;
+        color: #edf2f4;
+    }
+    .game-container {
+        position: relative;
+        background-color: #2b2d42;
+        padding: 10px;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+    #line-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 10;
+    }
+    #game-board {
+        display: grid;
+        grid-template-columns: repeat(5, 60px);
+        grid-template-rows: repeat(7, 60px);
+        gap: 8px;
+        position: relative;
+        z-index: 5;
+    }
+    .cell {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 20px;
+        font-weight: 800;
+        color: #ffffff;
+        transition: transform 0.1s ease;
+        box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2);
+        position: relative;
+    }
+    .cell.selected {
+        transform: scale(0.85);
+        box-shadow: 0 0 12px #ffffff;
+    }
+
+    /* 最高數字皇冠與金框樣式 */
+    .cell.max-value {
+        border: 3px solid #ffd700;
+        box-shadow: 0 0 12px #ffd700, inset 0 0 8px #ffd700;
+        animation: pulse-glow 1.5s infinite alternate;
+    }
+    .cell.max-value::before {
+        content: '👑';
+        position: absolute;
+        top: -6px;
+        right: -4px;
+        font-size: 14px;
+        filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+    }
+    @keyframes pulse-glow {
+        0% { box-shadow: 0 0 8px #ffd700; }
+        100% { box-shadow: 0 0 16px #ffe600; }
+    }
+
+    /* 道具工具欄 */
+    .tools-bar {
+        display: flex;
+        gap: 12px;
+        margin-top: 15px;
+        width: 100%;
+        max-width: 350px;
+        justify-content: center;
+    }
+    .tool-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        background-color: #2b2d42;
+        border: 2px solid #3d405b;
+        color: #ffffff;
+        padding: 10px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .tool-btn:active {
+        transform: scale(0.95);
+    }
+    .tool-btn.active {
+        border-color: #e74c3c;
+        background-color: #c0392b;
+    }
+    .tool-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+    .tool-cost {
+        background-color: #f1c40f;
+        color: #000;
+        padding: 2px 6px;
+        border-radius: 8px;
+        font-size: 12px;
+    }
+
+    /* 提示訊息 */
+    #status-msg {
+        margin-top: 8px;
+        height: 18px;
+        font-size: 13px;
+        color: #f39c12;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div class="title-box">
+        <div class="title">2248</div>
+        <div class="coin-box">🪙 金幣: <span id="coins">0</span></div>
+    </div>
+    <div class="score-container">
+        <div class="score-box">
+            <div class="score-label">分數</div>
+            <div class="score-value" id="score">0</div>
+        </div>
+        <div class="score-box">
+            <div class="score-label">最高</div>
+            <div class="score-value" id="best-score">0</div>
+        </div>
+    </div>
+</div>
+
+<div class="game-container">
+    <canvas id="line-canvas"></canvas>
+    <div id="game-board"></div>
+</div>
+
+<div id="status-msg"></div>
+
+<div class="tools-bar">
+    <button class="tool-btn" id="btn-shuffle" onclick="useShuffle()">
+        🔄 洗牌 <span class="tool-cost">150</span>
+    </button>
+    <button class="tool-btn" id="btn-hammer" onclick="toggleHammer()">
+        🔨 鐵錘 <span class="tool-cost">100</span>
+    </button>
+</div>
+
+<script>
+    const ROWS = 7;
+    const COLS = 5;
+    const boardElement = document.getElementById('game-board');
+    const canvas = document.getElementById('line-canvas');
+    const ctx = canvas.getContext('2d');
+    const scoreElement = document.getElementById('score');
+    const bestScoreElement = document.getElementById('best-score');
+    const coinsElement = document.getElementById('coins');
+    const statusMsg = document.getElementById('status-msg');
+
+    let board = [];
+    let score = 0;
+    let coins = 100;
+    let bestScore = localStorage.getItem('2248_best') || 0;
+    let isDragging = false;
+    let selectedCells = [];
+    let isHammerMode = false;
+
+    bestScoreElement.textContent = bestScore;
+    coinsElement.textContent = coins;
+
+    const colors = {
+        2: '#8bc34a', 4: '#f4a261', 8: '#4dd0e1', 16: '#5c6bc0',
+        32: '#ef6c00', 64: '#7e57c2', 128: '#7209b7', 256: '#3f37c9',
+        512: '#27ae60', 1024: '#4cc9f0', 2048: '#f15bb5', 4096: '#00f5d4'
+    };
+
+    function getCellColor(val) {
+        return colors[val] || '#ff0054';
+    }
+
+    function initBoard() {
+        score = 0;
+        scoreElement.textContent = score;
+        board = [];
+        for (let r = 0; r < ROWS; r++) {
+            let row = [];
+            for (let c = 0; c < COLS; c++) {
+                row.push(generateRandomBlock());
+            }
+            board.push(row);
+        }
+        renderBoard();
+        resizeCanvas();
+        updateToolsState();
+    }
+
+    // 隨機生成 2 到 64 之間的 2 的冪次方偶數
+    function generateRandomBlock() {
+        // 設定權重：數字越小機率越高，維護遊戲連線流暢度
+        const pool = [
+            2, 2, 2, 2, 2, 2,    // 2 (最高機率)
+            4, 4, 4, 4, 4,       // 4
+            8, 8, 8, 8,          // 8
+            16, 16, 16,          // 16
+            32, 32,              // 32
+            64                   // 64
+        ];
+        return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    function resizeCanvas() {
+        const rect = boardElement.getBoundingClientRect();
+        canvas.width = rect.width + 20;
+        canvas.height = rect.height + 20;
+    }
+
+    function getBoardMaxValue() {
+        let max = 0;
+        for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < COLS; c++) {
+                if (board[r][c] > max) max = board[r][c];
+            }
+        }
+        return max;
+    }
+
+    function renderBoard() {
+        boardElement.innerHTML = '';
+        const maxValue = getBoardMaxValue();
+
+        for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < COLS; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                const val = board[r][c];
+                cell.textContent = val;
+                cell.style.backgroundColor = getCellColor(val);
+                cell.dataset.r = r;
+                cell.dataset.c = c;
+
+                if (val === maxValue && val >= 16) {
+                    cell.classList.add('max-value');
+                }
+
+                boardElement.appendChild(cell);
+            }
+        }
+        updateToolsState();
+    }
+
+    function getCellPos(cell) {
+        const rect = cell.getBoundingClientRect();
+        const parentRect = canvas.getBoundingClientRect();
+        return {
+            x: rect.left + rect.width / 2 - parentRect.left,
+            y: rect.top + rect.height / 2 - parentRect.top
+        };
+    }
+
+    function drawLines(currentX, currentY) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (selectedCells.length === 0) return;
+
+        ctx.beginPath();
+        ctx.lineWidth = 6;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        const firstPos = getCellPos(selectedCells[0].element);
+        ctx.moveTo(firstPos.x, firstPos.y);
+
+        for (let i = 1; i < selectedCells.length; i++) {
+            const pos = getCellPos(selectedCells[i].element);
+            ctx.lineTo(pos.x, pos.y);
+        }
+
+        if (currentX !== undefined && currentY !== undefined) {
+            const parentRect = canvas.getBoundingClientRect();
+            ctx.lineTo(currentX - parentRect.left, currentY - parentRect.top);
+        }
+
+        ctx.stroke();
+    }
+
+    function getTargetCell(x, y) {
+        const target = document.elementFromPoint(x, y);
+        if (target && target.classList.contains('cell')) {
+            return target;
+        }
+        return null;
+    }
+
+    function handleStart(x, y) {
+        const cell = getTargetCell(x, y);
+        if (!cell) return;
+
+        if (isHammerMode) {
+            useHammer(cell);
+            return;
+        }
+
+        isDragging = true;
+        selectedCells = [];
+        addToSelection(cell);
+        drawLines(x, y);
+    }
+
+    function handleMove(x, y) {
+        if (!isDragging || isHammerMode) return;
+        const cell = getTargetCell(x, y);
+        if (cell) {
+            addToSelection(cell);
+        }
+        drawLines(x, y);
+    }
+
+    function handleEnd() {
+        if (!isDragging || isHammerMode) return;
+        isDragging = false;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        if (selectedCells.length >= 2) {
+            mergeCells();
+        } else {
+            selectedCells.forEach(c => c.element.classList.remove('selected'));
+        }
+        selectedCells = [];
+    }
+
+    function addToSelection(cell) {
+        const r = parseInt(cell.dataset.r);
+        const c = parseInt(cell.dataset.c);
+        const val = board[r][c];
+
+        if (selectedCells.some(s => s.r === r && s.c === c)) {
+            if (selectedCells.length >= 2) {
+                const prev = selectedCells[selectedCells.length - 2];
+                if (prev.r === r && prev.c === c) {
+                    const removed = selectedCells.pop();
+                    removed.element.classList.remove('selected');
+                }
+            }
+            return;
+        }
+
+        if (selectedCells.length === 0) {
+            selectedCells.push({ r, c, val, element: cell });
+            cell.classList.add('selected');
+            return;
+        }
+
+        const last = selectedCells[selectedCells.length - 1];
+        const isAdjacent = Math.abs(last.r - r) <= 1 && Math.abs(last.c - c) <= 1;
+
+        if (isAdjacent) {
+            if (selectedCells.length === 1) {
+                if (val === last.val) {
+                    selectedCells.push({ r, c, val, element: cell });
+                    cell.classList.add('selected');
+                }
+            } else {
+                if (val === last.val || val === last.val * 2) {
+                    selectedCells.push({ r, c, val, element: cell });
+                    cell.classList.add('selected');
+                }
+            }
+        }
+    }
+
+    function mergeCells() {
+        const last = selectedCells[selectedCells.length - 1];
+        let sum = selectedCells.reduce((acc, cur) => acc + cur.val, 0);
+        let mergedValue = Math.pow(2, Math.floor(Math.log2(sum)));
+        
+        if (mergedValue < last.val * 2) mergedValue = last.val * 2;
+
+        selectedCells.forEach(c => {
+            board[c.r][c.c] = 0;
+        });
+
+        board[last.r][last.c] = mergedValue;
+        
+        score += sum;
+        const earnedCoins = Math.floor(sum / 10);
+        coins += earnedCoins;
+        
+        scoreElement.textContent = score;
+        coinsElement.textContent = coins;
+
+        if (score > bestScore) {
+            bestScore = score;
+            bestScoreElement.textContent = bestScore;
+            localStorage.setItem('2248_best', bestScore);
+        }
+
+        applyGravity();
+    }
+
+    function applyGravity() {
+        for (let c = 0; c < COLS; c++) {
+            let colVals = [];
+            for (let r = 0; r < ROWS; r++) {
+                if (board[r][c] !== 0) colVals.push(board[r][c]);
+            }
+            while (colVals.length < ROWS) {
+                colVals.unshift(generateRandomBlock());
+            }
+            for (let r = 0; r < ROWS; r++) {
+                board[r][c] = colVals[r];
+            }
+        }
+        renderBoard();
+    }
+
+    function updateToolsState() {
+        document.getElementById('btn-shuffle').disabled = coins < 150;
+        document.getElementById('btn-hammer').disabled = coins < 100;
+    }
+
+    function useShuffle() {
+        if (coins < 150) return;
+        coins -= 150;
+        coinsElement.textContent = coins;
+
+        for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < COLS; c++) {
+                board[r][c] = generateRandomBlock();
+            }
+        }
+        renderBoard();
+        showStatusMsg('🔄 盤面已洗牌！');
+    }
+
+    function toggleHammer() {
+        if (coins < 100) return;
+        isHammerMode = !isHammerMode;
+        const btn = document.getElementById('btn-hammer');
+        if (isHammerMode) {
+            btn.classList.add('active');
+            showStatusMsg('🔨 請點擊要敲碎的方塊');
+        } else {
+            btn.classList.remove('active');
+            showStatusMsg('');
+        }
+    }
+
+    function useHammer(cell) {
+        const r = parseInt(cell.dataset.r);
+        const c = parseInt(cell.dataset.c);
+        
+        coins -= 100;
+        coinsElement.textContent = coins;
+        board[r][c] = 0;
+
+        isHammerMode = false;
+        document.getElementById('btn-hammer').classList.remove('active');
+        showStatusMsg('💥 已敲碎方塊！');
+
+        applyGravity();
+    }
+
+    function showStatusMsg(msg) {
+        statusMsg.textContent = msg;
+        if (msg) setTimeout(() => { statusMsg.textContent = ''; }, 3000);
+    }
+
+    window.addEventListener('touchstart', e => handleStart(e.touches[0].clientX, e.touches[0].clientY), { passive: false });
+    window.addEventListener('touchmove', e => handleMove(e.touches[0].clientX, e.touches[0].clientY), { passive: false });
+    window.addEventListener('touchend', handleEnd);
+
+    window.addEventListener('mousedown', e => handleStart(e.clientX, e.clientY));
+    window.addEventListener('mousemove', e => handleMove(e.clientX, e.clientY));
+    window.addEventListener('mouseup', handleEnd);
+
+    window.addEventListener('resize', resizeCanvas);
+
+    initBoard();
+</script>
+</body>
+</html>
         color: #ffffff;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         display: flex;
