@@ -2,8 +2,8 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
-<title>2248 GAME</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>2248</title>
 <style>
     * {
         box-sizing: border-box;
@@ -11,7 +11,6 @@
         -webkit-user-select: none;
     }
     html {
-        /* 開放垂直滾動，確保小螢幕可瀏覽完整內容 */
         overflow-y: auto;
         overflow-x: hidden;
         height: 100%;
@@ -29,20 +28,10 @@
         padding: 15px 10px 30px 10px;
     }
 
-    /* 🔍 質感自訂滾動條 */
-    ::-webkit-scrollbar {
-        width: 6px;
-    }
-    ::-webkit-scrollbar-track {
-        background: #1e1e24;
-    }
-    ::-webkit-scrollbar-thumb {
-        background: #3d405b;
-        border-radius: 10px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-        background: #f4d03f;
-    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #1e1e24; }
+    ::-webkit-scrollbar-thumb { background: #3d405b; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #f4d03f; }
 
     .header {
         display: flex;
@@ -52,15 +41,8 @@
         max-width: 350px;
         margin-bottom: 6px;
     }
-    .title-box {
-        display: flex;
-        flex-direction: column;
-    }
-    .title-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
+    .title-box { display: flex; flex-direction: column; }
+    .title-row { display: flex; align-items: center; gap: 8px; }
     .title {
         font-size: 26px;
         font-weight: 900;
@@ -72,28 +54,19 @@
         color: #f4d03f;
         border: none;
         border-radius: 50%;
-        width: 24px;
-        height: 24px;
-        font-size: 13px;
-        font-weight: bold;
+        width: 24px; height: 24px;
+        font-size: 13px; font-weight: bold;
         cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        display: flex; align-items: center; justify-content: center;
     }
     .coin-box {
         font-size: 13px;
         color: #f1c40f;
         font-weight: bold;
-        display: flex;
-        align-items: center;
-        gap: 4px;
+        display: flex; align-items: center; gap: 4px;
         margin-top: 2px;
     }
-    .score-container {
-        display: flex;
-        gap: 6px;
-    }
+    .score-container { display: flex; gap: 6px; }
     .score-box {
         background-color: #2b2d42;
         padding: 4px 8px;
@@ -101,15 +74,8 @@
         text-align: center;
         min-width: 65px;
     }
-    .score-label {
-        font-size: 9px;
-        color: #8d99ae;
-    }
-    .score-value {
-        font-size: 15px;
-        font-weight: bold;
-        color: #edf2f4;
-    }
+    .score-label { font-size: 9px; color: #8d99ae; }
+    .score-value { font-size: 15px; font-weight: bold; color: #edf2f4; }
 
     .mode-tabs {
         display: flex;
@@ -148,7 +114,6 @@
         letter-spacing: 0.5px;
     }
 
-    /* 🔒 僅在遊戲容器鎖定手勢防止連線時捲動網頁 */
     .game-container {
         position: relative;
         background-color: #2b2d42;
@@ -158,9 +123,7 @@
         touch-action: none;
         overscroll-behavior: none;
     }
-    .game-container.shake {
-        animation: shake-board 0.3s ease-in-out;
-    }
+    .game-container.shake { animation: shake-board 0.3s ease-in-out; }
     @keyframes shake-board {
         0%, 100% { transform: translateX(0); }
         25% { transform: translateX(-6px); }
@@ -168,10 +131,7 @@
     }
     #line-canvas {
         position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+        top: 0; left: 0; width: 100%; height: 100%;
         pointer-events: none;
         z-index: 10;
     }
@@ -184,15 +144,11 @@
         z-index: 5;
     }
     .cell {
-        width: 60px;
-        height: 60px;
+        width: 60px; height: 60px;
         border-radius: 12px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        font-size: 22px;
-        font-weight: 900;
+        display: flex; flex-direction: column;
+        justify-content: center; align-items: center;
+        font-size: 22px; font-weight: 900;
         color: #ffffff;
         transition: transform 0.15s ease, background-color 0.2s, background 0.2s;
         box-shadow: inset 0 -3px 0 rgba(0,0,0,0.25), 0 2px 5px rgba(0,0,0,0.3);
@@ -207,7 +163,6 @@
         box-shadow: 0 0 12px #ffffff;
     }
 
-    /* 💣 炸彈方塊樣式 */
     .cell.bomb-cell {
         background: linear-gradient(135deg, #111111, #333333) !important;
         border: 2px solid #e74c3c;
@@ -219,20 +174,13 @@
         100% { border-color: #f39c12; }
     }
     .bomb-timer {
-        position: absolute;
-        top: 2px;
-        left: 4px;
-        font-size: 10px;
-        color: #e74c3c;
-        font-weight: 900;
+        position: absolute; top: 2px; left: 4px;
+        font-size: 10px; color: #e74c3c; font-weight: 900;
     }
     .bomb-target {
-        font-size: 16px;
-        font-weight: 900;
-        color: #f1c40f;
+        font-size: 16px; font-weight: 900; color: #f1c40f;
     }
 
-    /* 👑 皇冠樣式 */
     .cell.max-value {
         border: 3px solid #ffd700;
         box-shadow: 0 0 14px #ffd700, inset 0 0 8px #ffd700;
@@ -240,9 +188,7 @@
     }
     .cell.max-value::before {
         content: '👑';
-        position: absolute;
-        top: -6px;
-        right: -4px;
+        position: absolute; top: -6px; right: -4px;
         font-size: 14px;
         filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
     }
@@ -251,132 +197,82 @@
         100% { box-shadow: 0 0 16px #ffe600; }
     }
 
-    /* 動畫效果 */
-    .cell.pop {
-        animation: pop-animation 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
+    .cell.pop { animation: pop-animation 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     @keyframes pop-animation {
         0% { transform: scale(0.5); }
         50% { transform: scale(1.2); }
         100% { transform: scale(1); }
     }
 
-    .cell.drop {
-        animation: drop-animation 0.25s ease-out;
-    }
+    .cell.drop { animation: drop-animation 0.25s ease-out; }
     @keyframes drop-animation {
         0% { transform: translateY(-20px); opacity: 0; }
         100% { transform: translateY(0); opacity: 1; }
     }
 
-    /* 道具欄 */
     .tools-bar {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin-top: 12px;
-        width: 100%;
-        max-width: 350px;
+        display: flex; flex-wrap: wrap; gap: 6px;
+        margin-top: 10px; width: 100%; max-width: 350px;
         justify-content: center;
     }
     .tool-btn {
         flex: 1 1 30%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        background-color: #2b2d42;
-        border: 2px solid #3d405b;
-        color: #ffffff;
-        padding: 8px 2px;
-        border-radius: 12px;
-        font-size: 12px;
-        font-weight: bold;
-        cursor: pointer;
+        display: flex; align-items: center; justify-content: center; gap: 4px;
+        background-color: #2b2d42; border: 2px solid #3d405b;
+        color: #ffffff; padding: 8px 2px; border-radius: 12px;
+        font-size: 12px; font-weight: bold; cursor: pointer;
         transition: all 0.2s;
     }
     .tool-btn:active { transform: scale(0.95); }
     .tool-btn.active { border-color: #e74c3c; background-color: #c0392b; }
     .tool-btn:disabled { opacity: 0.4; cursor: not-allowed; }
     .tool-cost {
-        background-color: #f1c40f;
-        color: #000;
-        padding: 2px 4px;
-        border-radius: 6px;
-        font-size: 10px;
+        background-color: #f1c40f; color: #000;
+        padding: 2px 4px; border-radius: 6px; font-size: 10px;
     }
 
     #combo-overlay {
-        position: absolute;
-        top: 40%;
-        left: 50%;
+        position: absolute; top: 40%; left: 50%;
         transform: translate(-50%, -50%) scale(0);
-        font-size: 24px;
-        font-weight: 900;
-        color: #f39c12;
+        font-size: 24px; font-weight: 900; color: #f39c12;
         text-shadow: 0 0 15px #f1c40f, 0 0 5px #000;
-        pointer-events: none;
-        z-index: 20;
+        pointer-events: none; z-index: 20;
         transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
-        opacity: 0;
-        white-space: nowrap;
+        opacity: 0; white-space: nowrap;
     }
     #combo-overlay.show {
-        transform: translate(-50%, -50%) scale(1.3);
-        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.3); opacity: 1;
     }
 
     #status-msg {
-        margin-top: 6px;
-        height: 18px;
-        font-size: 13px;
-        color: #f39c12;
-        font-weight: bold;
-        text-align: center;
+        margin-top: 6px; height: 18px; font-size: 13px;
+        color: #f39c12; font-weight: bold; text-align: center;
     }
 
-    /* Modal 彈出視窗 */
     .modal-overlay {
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.85);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 100;
-        opacity: 0;
-        pointer-events: none;
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.85); display: flex;
+        justify-content: center; align-items: center;
+        z-index: 100; opacity: 0; pointer-events: none;
         transition: opacity 0.3s ease;
     }
     .modal-overlay.show { opacity: 1; pointer-events: auto; }
     .modal-card {
-        background: #2b2d42;
-        border: 2px solid #3d405b;
-        border-radius: 20px;
-        padding: 20px 24px;
-        text-align: left;
-        max-width: 320px;
-        width: 90%;
+        background: #2b2d42; border: 2px solid #3d405b;
+        border-radius: 20px; padding: 20px 24px; text-align: left;
+        max-width: 320px; width: 90%;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-        max-height: 85vh;
-        overflow-y: auto;
+        max-height: 85vh; overflow-y: auto;
     }
     .modal-title { font-size: 24px; font-weight: 900; color: #f4d03f; margin-bottom: 12px; text-align: center; }
     .modal-content { font-size: 13px; color: #edf2f4; line-height: 1.6; margin-bottom: 18px; }
     .modal-content h4 { color: #2ecc71; margin: 10px 0 4px 0; font-size: 14px; }
     .modal-content ul { padding-left: 18px; margin: 4px 0; }
     .modal-btn-close {
-        display: block;
-        width: 100%;
-        background-color: #27ae60;
-        color: white;
-        border: none;
-        padding: 10px;
-        font-size: 15px;
-        font-weight: bold;
-        border-radius: 14px;
-        cursor: pointer;
-        text-align: center;
+        display: block; width: 100%; background-color: #27ae60;
+        color: white; border: none; padding: 10px;
+        font-size: 15px; font-weight: bold; border-radius: 14px;
+        cursor: pointer; text-align: center;
     }
 </style>
 </head>
@@ -438,29 +334,18 @@
     <div class="modal-card">
         <div class="modal-title">📖 遊戲玩法說明</div>
         <div class="modal-content">
-            <h4>🟢 模式選擇</h4>
+            <h4>🟢 模式選擇與存檔相容</h4>
             <ul>
-                <li><b>基本模式</b>：經典純淨連線體驗。</li>
-                <li><b>炸彈模式</b>：每 8-12 步降下炸彈，限時精準命中目標數字拆彈，獲得雙倍獎勵！</li>
+                <li>存檔能在「基本模式」與「炸彈模式」間完全雙向無縫匯入。</li>
             </ul>
-
             <h4>💣 炸彈精準拆除與懲罰</h4>
             <ul>
-                <li><b>拆彈方式</b>：連線終點直接留在炸彈上，或在炸彈周圍九宮格合成出目標數字！</li>
-                <li>成功拆彈享<b>雙倍加分與雙倍金幣</b>！</li>
-                <li>若步數歸零炸彈引爆，會<b>清空周圍九宮格方塊（不給分）</b>。</li>
+                <li>連線終點留在炸彈上或在周圍九宮格合成目標數字即可拆彈！</li>
+                <li>成功拆彈享<b>雙倍加分與雙倍金幣</b>！引爆則清空九宮格。</li>
             </ul>
-
-            <h4>⚡ 數字淘汰與色彩</h4>
-            <ul>
-                <li>每種數字皆有專屬漸層色彩，視覺超清晰！</li>
-                <li>合成出 <b>2048</b> 時，<b>8 及以下全消除</b>，最小值變為 16！</li>
-            </ul>
-
-            <h4>🪙 道具與存檔</h4>
+            <h4>🪙 道具系統</h4>
             <ul>
                 <li><b>↩️ 復原 (50🪙)</b> / <b>🔄 洗牌 (150🪙)</b> / <b>🔨 鐵錘 (100🪙)</b></li>
-                <li>匯出之 <code>.json</code> 存檔可在兩個模式間相容切換。</li>
             </ul>
         </div>
         <button class="modal-btn-close" onclick="closeModal('tutorial-modal')">我知道了，開始遊玩！</button>
@@ -586,8 +471,26 @@
         currentGameMode = mode;
         document.getElementById('mode-basic').classList.toggle('active', mode === 'basic');
         document.getElementById('mode-bomb').classList.toggle('active', mode === 'bomb');
+        
+        // 跨模式切換時，進行盤面格式自動轉換與修正
+        sanitizeBoardForMode();
+
         showStatusMsg(`切換至：${mode === 'basic' ? '🟢 基本模式' : '💣 炸彈模式'}`);
-        initBoard();
+        renderBoard(true);
+    }
+
+    // 🌟 跨模式資料修復：基本模式不允許殘留炸彈物件；炸彈模式確保無損轉換
+    function sanitizeBoardForMode() {
+        for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < COLS; c++) {
+                if (currentGameMode === 'basic') {
+                    // 如果切換到基本模式，將盤面上的炸彈轉化為普通數字
+                    if (typeof board[r][c] === 'object' && board[r][c].type === 'bomb') {
+                        board[r][c] = board[r][c].targetVal;
+                    }
+                }
+            }
+        }
     }
 
     function openTutorialModal() { tutorialModal.classList.add('show'); }
@@ -1225,6 +1128,7 @@
         document.getElementById('file-input').click();
     }
 
+    // 🌟 跨模式存檔匯入相容性加強
     function importSave(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -1240,9 +1144,14 @@
                     minAllowedValue = saveData.minAllowedValue || 2;
                     board = saveData.board;
 
+                    // 若存檔內有指定模式，優先切換至該模式；並進行跨模式格式修正
                     if (saveData.currentGameMode) {
-                        switchMode(saveData.currentGameMode);
+                        currentGameMode = saveData.currentGameMode;
+                        document.getElementById('mode-basic').classList.toggle('active', currentGameMode === 'basic');
+                        document.getElementById('mode-bomb').classList.toggle('active', currentGameMode === 'bomb');
                     }
+                    
+                    sanitizeBoardForMode();
 
                     scoreElement.textContent = score;
                     coinsElement.textContent = coins;
@@ -1250,7 +1159,7 @@
                     localStorage.setItem('2248_best', bestScore);
 
                     renderBoard(true);
-                    showStatusMsg('📂 存檔匯入成功！');
+                    showStatusMsg('📂 存檔匯入成功！已切換至存檔對應模式');
                 } else {
                     alert('⚠️ 無效的存檔檔案格式！');
                 }
