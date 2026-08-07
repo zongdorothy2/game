@@ -2,8 +2,8 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>2248</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
+<title>2248 GAME</title>
 <style>
     * {
         box-sizing: border-box;
@@ -54,11 +54,13 @@
         color: #f4d03f;
         border: none;
         border-radius: 50%;
-        width: 24px; height: 24px;
-        font-size: 13px; font-weight: bold;
+        width: 26px; height: 26px;
+        font-size: 14px; font-weight: bold;
         cursor: pointer;
         display: flex; align-items: center; justify-content: center;
+        transition: transform 0.2s;
     }
+    .btn-help:active { transform: scale(0.9); }
     .coin-box {
         font-size: 13px;
         color: #f1c40f;
@@ -229,6 +231,7 @@
     .tool-cost {
         background-color: #f1c40f; color: #000;
         padding: 2px 4px; border-radius: 6px; font-size: 10px;
+        transition: all 0.2s;
     }
 
     #combo-overlay {
@@ -259,15 +262,19 @@
     .modal-overlay.show { opacity: 1; pointer-events: auto; }
     .modal-card {
         background: #2b2d42; border: 2px solid #3d405b;
-        border-radius: 20px; padding: 20px 24px; text-align: left;
-        max-width: 320px; width: 90%;
+        border-radius: 20px; padding: 20px 22px; text-align: left;
+        max-width: 340px; width: 92%;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
         max-height: 85vh; overflow-y: auto;
     }
-    .modal-title { font-size: 24px; font-weight: 900; color: #f4d03f; margin-bottom: 12px; text-align: center; }
-    .modal-content { font-size: 13px; color: #edf2f4; line-height: 1.6; margin-bottom: 18px; }
-    .modal-content h4 { color: #2ecc71; margin: 10px 0 4px 0; font-size: 14px; }
-    .modal-content ul { padding-left: 18px; margin: 4px 0; }
+    .modal-title { font-size: 22px; font-weight: 900; color: #f4d03f; margin-bottom: 12px; text-align: center; }
+    .modal-content { font-size: 13px; color: #edf2f4; line-height: 1.65; margin-bottom: 18px; }
+    .modal-content h4 {
+        color: #2ecc71; margin: 12px 0 4px 0; font-size: 14px;
+        border-bottom: 1px solid #3d405b; padding-bottom: 3px;
+    }
+    .modal-content ul { padding-left: 16px; margin: 4px 0; }
+    .modal-content li { margin-bottom: 3px; }
     .modal-btn-close {
         display: block; width: 100%; background-color: #27ae60;
         color: white; border: none; padding: 10px;
@@ -314,9 +321,9 @@
 <div id="status-msg"></div>
 
 <div class="tools-bar">
-    <button class="tool-btn" id="btn-undo" onclick="useUndo()">↩️ 復原<span class="tool-cost">50</span></button>
-    <button class="tool-btn" id="btn-shuffle" onclick="useShuffle()">🔄 洗牌<span class="tool-cost">150</span></button>
-    <button class="tool-btn" id="btn-hammer" onclick="toggleHammer()">🔨 鐵錘<span class="tool-cost">100</span></button>
+    <button class="tool-btn" id="btn-undo" onclick="useUndo()">↩️ 復原<span class="tool-cost" id="cost-undo">50</span></button>
+    <button class="tool-btn" id="btn-shuffle" onclick="useShuffle()">🔄 洗牌<span class="tool-cost" id="cost-shuffle">150</span></button>
+    <button class="tool-btn" id="btn-hammer" onclick="toggleHammer()">🔨 鐵錘<span class="tool-cost" id="cost-hammer">100</span></button>
     <button class="tool-btn" onclick="exportSave()">💾 匯出</button>
     <button class="tool-btn" onclick="triggerImport()">📂 匯入</button>
 </div>
@@ -330,22 +337,43 @@
     </div>
 </div>
 
+<!-- 📖 詳細版玩法說明 Modal -->
 <div class="modal-overlay" id="tutorial-modal">
     <div class="modal-card">
-        <div class="modal-title">📖 遊戲玩法說明</div>
+        <div class="modal-title">📖 2248 詳細玩法說明</div>
         <div class="modal-content">
-            <h4>🟢 模式選擇與存檔相容</h4>
+            <h4>🎮 基本連線與合成規則</h4>
             <ul>
-                <li>存檔能在「基本模式」與「炸彈模式」間完全雙向無縫匯入。</li>
+                <li><b>滑動連線</b>：滑動手指連接相鄰（含斜向 8 個方向）的數字。</li>
+                <li><b>數字順序</b>：前兩個數字必須<b>完全相同</b>（例如：2 $\rightarrow$ 2）。後續可連接<b>相同數字或兩倍數字</b>（例如：2 $\rightarrow$ 2 $\rightarrow$ 4 $\rightarrow$ 8 $\rightarrow$ 16）。</li>
+                <li><b>即時預覽</b>：連線時頂部會即時顯示「預計合成數字」與可獲得的分數/金幣。</li>
             </ul>
-            <h4>💣 炸彈精準拆除與懲罰</h4>
+
+            <h4>💣 雙模式說明</h4>
             <ul>
-                <li>連線終點留在炸彈上或在周圍九宮格合成目標數字即可拆彈！</li>
-                <li>成功拆彈享<b>雙倍加分與雙倍金幣</b>！引爆則清空九宮格。</li>
+                <li><b>🟢 基本模式</b>：經典純淨的數字合成體驗。</li>
+                <li><b>💣 炸彈模式</b>：每 8~12 步隨機降下炸彈（帶有倒數步數與目標數字）。</li>
+                <li><b>精準拆彈</b>：把連線終點落在炸彈上，或在周圍九宮格合成出目標數字即可拆除，獲<b>雙倍得分與雙倍金幣</b>！若歸零引爆會清空周圍九宮格。</li>
             </ul>
-            <h4>🪙 道具系統</h4>
+
+            <h4>📈 動態道具計費系統</h4>
             <ul>
-                <li><b>↩️ 復原 (50🪙)</b> / <b>🔄 洗牌 (150🪙)</b> / <b>🔨 鐵錘 (100🪙)</b></li>
+                <li>道具費用隨盤面<b>最高數字（戴皇冠方塊）</b>階梯式微幅成長：</li>
+                <li><b>↩️ 復原 (50+🪙)</b>：撤銷上一步的合併或道具操作。</li>
+                <li><b>🔄 洗牌 (150+🪙)</b>：<b>保護最大數字不動</b>，隨機重置 10 個方塊。</li>
+                <li><b>🔨 鐵錘 (100+🪙)</b>：點擊直接敲碎任意 1 個指定方塊。</li>
+            </ul>
+
+            <h4>⚡ 數字淘汰與簡寫</h4>
+            <ul>
+                <li>當合成出 <b>2048</b> 時，自動<b>消除盤面上 8 及以下方塊</b>，新方塊最小從 16 生成！合成出 <b>4096</b> 時消除 16 及以下，依此類推。</li>
+                <li>大數字簡寫：$16384 \rightarrow 16K$、$1048576 \rightarrow 1M$、$1024M \rightarrow 2G$。</li>
+                <li>每種數字皆有獨一無二的專屬彩虹漸層色彩。</li>
+            </ul>
+
+            <h4>💾 雙向存檔相容</h4>
+            <ul>
+                <li>可將遊戲匯出為帶有當天日期的 <code>.json</code> 存檔，且可在基本模式與炸彈模式間<b>自由匯入切換</b>。</li>
             </ul>
         </div>
         <button class="modal-btn-close" onclick="closeModal('tutorial-modal')">我知道了，開始遊玩！</button>
@@ -388,6 +416,19 @@
     bestScoreElement.textContent = bestScore;
     coinsElement.textContent = coins;
 
+    // 📈 動態道具費用計算
+    function getToolCost(type) {
+        const maxValue = getBoardMaxValue();
+        let baseCost = (type === 'undo') ? 50 : (type === 'hammer') ? 100 : 150;
+        
+        if (maxValue >= 2048) {
+            const powerOffset = Math.log2(maxValue / 1024);
+            const multiplier = 1 + (powerOffset * 0.15);
+            return Math.floor(baseCost * multiplier);
+        }
+        return baseCost;
+    }
+
     function getCellColor(val) {
         if (!val || val <= 0) return '#2b2d42';
         const power = Math.round(Math.log2(val));
@@ -400,7 +441,8 @@
     function formatNumber(val) {
         if (val < 16384) return val.toString();
         if (val < 1048576) return (val / 1024) + 'K';
-        return (val / 1048576) + 'M';
+        if (val < 1073741824) return (val / 1048576) + 'M';
+        return (val / 1073741824) + 'G';
     }
 
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -472,19 +514,15 @@
         document.getElementById('mode-basic').classList.toggle('active', mode === 'basic');
         document.getElementById('mode-bomb').classList.toggle('active', mode === 'bomb');
         
-        // 跨模式切換時，進行盤面格式自動轉換與修正
         sanitizeBoardForMode();
-
         showStatusMsg(`切換至：${mode === 'basic' ? '🟢 基本模式' : '💣 炸彈模式'}`);
         renderBoard(true);
     }
 
-    // 🌟 跨模式資料修復：基本模式不允許殘留炸彈物件；炸彈模式確保無損轉換
     function sanitizeBoardForMode() {
         for (let r = 0; r < ROWS; r++) {
             for (let c = 0; c < COLS; c++) {
                 if (currentGameMode === 'basic') {
-                    // 如果切換到基本模式，將盤面上的炸彈轉化為普通數字
                     if (typeof board[r][c] === 'object' && board[r][c].type === 'bomb') {
                         board[r][c] = board[r][c].targetVal;
                     }
@@ -957,6 +995,8 @@
     }
 
     function checkGameOver() {
+        const hammerCost = getToolCost('hammer');
+
         for (let r = 0; r < ROWS; r++) {
             for (let c = 0; c < COLS; c++) {
                 const currentVal = board[r][c];
@@ -978,7 +1018,7 @@
             }
         }
 
-        if (coins >= 100) {
+        if (coins >= hammerCost) {
             showStatusMsg('⚠️ 盤面已無可連線方塊！請使用洗牌或鐵錘突破！');
             return;
         }
@@ -988,14 +1028,23 @@
     }
 
     function updateToolsState() {
-        document.getElementById('btn-undo').disabled = !lastState || coins < 50;
-        document.getElementById('btn-shuffle').disabled = coins < 150;
-        document.getElementById('btn-hammer').disabled = coins < 100;
+        const undoCost = getToolCost('undo');
+        const shuffleCost = getToolCost('shuffle');
+        const hammerCost = getToolCost('hammer');
+
+        document.getElementById('cost-undo').textContent = undoCost;
+        document.getElementById('cost-shuffle').textContent = shuffleCost;
+        document.getElementById('cost-hammer').textContent = hammerCost;
+
+        document.getElementById('btn-undo').disabled = !lastState || coins < undoCost;
+        document.getElementById('btn-shuffle').disabled = coins < shuffleCost;
+        document.getElementById('btn-hammer').disabled = coins < hammerCost;
     }
 
     function useUndo() {
-        if (!lastState || coins < 50) return;
-        coins -= 50;
+        const cost = getToolCost('undo');
+        if (!lastState || coins < cost) return;
+        coins -= cost;
         board = JSON.parse(JSON.stringify(lastState.board));
         score = lastState.score;
         minAllowedValue = lastState.minAllowedValue;
@@ -1011,7 +1060,8 @@
     }
 
     function useShuffle() {
-        if (coins < 150) return;
+        const cost = getToolCost('shuffle');
+        if (coins < cost) return;
 
         const maxValue = getBoardMaxValue();
         let candidateCoords = [];
@@ -1030,7 +1080,7 @@
         }
 
         saveCurrentState();
-        coins -= 150;
+        coins -= cost;
         coinsElement.textContent = coins;
         playHammerSound();
         triggerShake();
@@ -1050,7 +1100,8 @@
     }
 
     function toggleHammer() {
-        if (coins < 100) return;
+        const cost = getToolCost('hammer');
+        if (coins < cost) return;
         isHammerMode = !isHammerMode;
         const btn = document.getElementById('btn-hammer');
         if (isHammerMode) {
@@ -1063,11 +1114,12 @@
     }
 
     function useHammer(cell) {
+        const cost = getToolCost('hammer');
         saveCurrentState();
         const r = parseInt(cell.dataset.r);
         const c = parseInt(cell.dataset.c);
         
-        coins -= 100;
+        coins -= cost;
         coinsElement.textContent = coins;
         board[r][c] = 0;
 
@@ -1128,7 +1180,6 @@
         document.getElementById('file-input').click();
     }
 
-    // 🌟 跨模式存檔匯入相容性加強
     function importSave(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -1144,7 +1195,6 @@
                     minAllowedValue = saveData.minAllowedValue || 2;
                     board = saveData.board;
 
-                    // 若存檔內有指定模式，優先切換至該模式；並進行跨模式格式修正
                     if (saveData.currentGameMode) {
                         currentGameMode = saveData.currentGameMode;
                         document.getElementById('mode-basic').classList.toggle('active', currentGameMode === 'basic');
