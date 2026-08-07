@@ -30,7 +30,7 @@
         align-items: center;
         width: 100%;
         max-width: 350px;
-        margin-bottom: 12px;
+        margin-bottom: 8px;
     }
     .title-box {
         display: flex;
@@ -71,6 +71,18 @@
         font-weight: bold;
         color: #edf2f4;
     }
+
+    /* 🔍 即時預覽提示欄 */
+    #preview-box {
+        height: 22px;
+        font-size: 14px;
+        font-weight: 800;
+        color: #2ecc71;
+        text-align: center;
+        margin-bottom: 6px;
+        letter-spacing: 0.5px;
+    }
+
     .game-container {
         position: relative;
         background-color: #2b2d42;
@@ -118,12 +130,8 @@
         position: relative;
         letter-spacing: -0.5px;
     }
-    .cell.small-text {
-        font-size: 17px;
-    }
-    .cell.xsmall-text {
-        font-size: 14px;
-    }
+    .cell.small-text { font-size: 17px; }
+    .cell.xsmall-text { font-size: 14px; }
     .cell.selected {
         transform: scale(0.85);
         box-shadow: 0 0 12px #ffffff;
@@ -164,16 +172,18 @@
         100% { box-shadow: 0 0 16px #ffe600; }
     }
 
+    /* 道具欄 (排版微調為兩行或精簡欄位) */
     .tools-bar {
         display: flex;
-        gap: 8px;
+        flex-wrap: wrap;
+        gap: 6px;
         margin-top: 10px;
         width: 100%;
         max-width: 350px;
         justify-content: center;
     }
     .tool-btn {
-        flex: 1;
+        flex: 1 1 30%;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -181,30 +191,22 @@
         background-color: #2b2d42;
         border: 2px solid #3d405b;
         color: #ffffff;
-        padding: 8px 4px;
+        padding: 8px 2px;
         border-radius: 12px;
-        font-size: 13px;
+        font-size: 12px;
         font-weight: bold;
         cursor: pointer;
         transition: all 0.2s;
     }
-    .tool-btn:active {
-        transform: scale(0.95);
-    }
-    .tool-btn.active {
-        border-color: #e74c3c;
-        background-color: #c0392b;
-    }
-    .tool-btn:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-    }
+    .tool-btn:active { transform: scale(0.95); }
+    .tool-btn.active { border-color: #e74c3c; background-color: #c0392b; }
+    .tool-btn:disabled { opacity: 0.4; cursor: not-allowed; }
     .tool-cost {
         background-color: #f1c40f;
         color: #000;
-        padding: 2px 5px;
+        padding: 2px 4px;
         border-radius: 6px;
-        font-size: 11px;
+        font-size: 10px;
     }
 
     #combo-overlay {
@@ -235,6 +237,46 @@
         font-weight: bold;
         text-align: center;
     }
+
+    /* 死局 (Game Over) 彈出視窗面板 */
+    .modal-overlay {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.85);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 100;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+    .modal-overlay.show {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .modal-card {
+        background: #2b2d42;
+        border: 3px solid #ef233c;
+        border-radius: 20px;
+        padding: 25px 30px;
+        text-align: center;
+        max-width: 300px;
+        width: 90%;
+        box-shadow: 0 10px 30px rgba(239, 35, 60, 0.4);
+    }
+    .modal-title { font-size: 28px; font-weight: 900; color: #ef233c; margin-bottom: 10px; }
+    .modal-score { font-size: 20px; color: #f4d03f; margin-bottom: 20px; font-weight: bold; }
+    .btn-restart {
+        background-color: #27ae60;
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        font-size: 16px;
+        font-weight: bold;
+        border-radius: 20px;
+        cursor: pointer;
+    }
 </style>
 </head>
 <body>
@@ -256,6 +298,8 @@
     </div>
 </div>
 
+<div id="preview-box"></div>
+
 <div class="game-container" id="game-container">
     <div id="combo-overlay">🔥 驚人 10 連擊！</div>
     <canvas id="line-canvas"></canvas>
@@ -265,10 +309,21 @@
 <div id="status-msg"></div>
 
 <div class="tools-bar">
+    <button class="tool-btn" id="btn-undo" onclick="useUndo()">↩️ 復原<span class="tool-cost">50</span></button>
     <button class="tool-btn" id="btn-shuffle" onclick="useShuffle()">🔄 洗牌<span class="tool-cost">150</span></button>
     <button class="tool-btn" id="btn-hammer" onclick="toggleHammer()">🔨 鐵錘<span class="tool-cost">100</span></button>
     <button class="tool-btn" onclick="exportSave()">💾 匯出</button>
     <button class="tool-btn" onclick="triggerImport()">📂 匯入</button>
+</div>
+
+<!-- 💀 Game Over 彈出面板 -->
+<div class="modal-overlay" id="game-over-modal">
+    <div class="modal-card">
+        <div class="modal-title">GAME OVER</div>
+        <div style="color: #8d99ae; font-size: 14px; margin-bottom: 5px;">無可連線方塊且金幣不足！</div>
+        <div class="modal-score" id="final-score">得分: 0</div>
+        <button class="btn-restart" onclick="closeGameOverModal(); initBoard();">重新開始</button>
+    </div>
 </div>
 
 <input type="file" id="file-input" accept=".json" style="display: none;" onchange="importSave(event)">
@@ -284,7 +339,9 @@
     const bestScoreElement = document.getElementById('best-score');
     const coinsElement = document.getElementById('coins');
     const statusMsg = document.getElementById('status-msg');
+    const previewBox = document.getElementById('preview-box');
     const comboOverlay = document.getElementById('combo-overlay');
+    const gameOverModal = document.getElementById('game-over-modal');
 
     let board = [];
     let score = 0;
@@ -295,6 +352,9 @@
     let isHammerMode = false;
     let minAllowedValue = 2;
     let mergedTargetPos = null;
+
+    // ↩️ 復原紀錄歷史
+    let lastState = null;
 
     bestScoreElement.textContent = bestScore;
     coinsElement.textContent = coins;
@@ -312,9 +372,7 @@
 
     function formatNumber(val) {
         if (val < 16384) return val.toString();
-        if (val < 1048576) {
-            return (val / 1024) + 'K';
-        }
+        if (val < 1048576) return (val / 1024) + 'K';
         return (val / 1048576) + 'M';
     }
 
@@ -384,6 +442,7 @@
     function initBoard() {
         score = 0;
         minAllowedValue = 2;
+        lastState = null;
         scoreElement.textContent = score;
         board = [];
         for (let r = 0; r < ROWS; r++) {
@@ -465,6 +524,16 @@
         updateToolsState();
     }
 
+    function saveCurrentState() {
+        lastState = {
+            board: JSON.parse(JSON.stringify(board)),
+            score: score,
+            coins: coins,
+            minAllowedValue: minAllowedValue
+        };
+        updateToolsState();
+    }
+
     function getCellPos(cell) {
         const rect = cell.getBoundingClientRect();
         const parentRect = canvas.getBoundingClientRect();
@@ -530,12 +599,14 @@
             addToSelection(cell);
         }
         drawLines(x, y);
+        updatePreview();
     }
 
     function handleEnd() {
         if (!isDragging || isHammerMode) return;
         isDragging = false;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        previewBox.textContent = '';
 
         const count = selectedCells.length;
         if (count >= 2) {
@@ -549,6 +620,21 @@
             selectedCells.forEach(c => c.element.classList.remove('selected'));
             selectedCells = [];
         }
+    }
+
+    // 🎯 即時預覽計算欄
+    function updatePreview() {
+        if (selectedCells.length < 2) {
+            previewBox.textContent = '';
+            return;
+        }
+        const last = selectedCells[selectedCells.length - 1];
+        let sum = selectedCells.reduce((acc, cur) => acc + cur.val, 0);
+        let mergedValue = Math.pow(2, Math.floor(Math.log2(sum)));
+        if (mergedValue < last.val * 2) mergedValue = last.val * 2;
+
+        const earnedCoins = Math.floor(sum / 5);
+        previewBox.textContent = `🎯 預計合成：${formatNumber(mergedValue)} (+${sum}分 / +${earnedCoins}🪙)`;
     }
 
     function showComboAlert(count) {
@@ -604,6 +690,8 @@
     }
 
     function mergeCells() {
+        saveCurrentState(); // 合併前先儲存狀態以備 Undo
+
         const last = selectedCells[selectedCells.length - 1];
         let sum = selectedCells.reduce((acc, cur) => acc + cur.val, 0);
         let mergedValue = Math.pow(2, Math.floor(Math.log2(sum)));
@@ -635,6 +723,9 @@
         checkAndEliminateLowerBlocks(mergedValue);
         applyGravity();
         selectedCells = [];
+
+        // 💀 每次動作完成後，自動檢查是否陷入死局
+        checkGameOver();
     }
 
     function checkAndEliminateLowerBlocks(newCreatedVal) {
@@ -673,19 +764,73 @@
         renderBoard(true);
     }
 
+    // 💀 死局判斷演算法
+    function checkGameOver() {
+        // 1. 檢查八向相鄰是否有任何可以連線的數字
+        for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < COLS; c++) {
+                const currentVal = board[r][c];
+                // 檢查相鄰的 8 個格子
+                for (let dr = -1; dr <= 1; dr++) {
+                    for (let dc = -1; dc <= 1; dc++) {
+                        if (dr === 0 && dc === 0) continue;
+                        const nr = r + dr;
+                        const nc = c + dc;
+                        if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
+                            const neighborVal = board[nr][nc];
+                            if (neighborVal === currentVal || neighborVal === currentVal * 2) {
+                                return; // 尚有連線可能，未死局
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 2. 若完全無法連線，檢查金幣是否足夠使用破局道具（洗牌 150 / 鐵錘 100）
+        if (coins >= 100) {
+            showStatusMsg('⚠️ 盤面已無可連線方塊！請使用洗牌或鐵錘突破！');
+            return;
+        }
+
+        // 3. 既無法連線且金幣不足以救援 ➡️ 觸發 Game Over
+        document.getElementById('final-score').textContent = `得分: ${score}`;
+        gameOverModal.classList.add('show');
+    }
+
+    function closeGameOverModal() {
+        gameOverModal.classList.remove('show');
+    }
+
     function updateToolsState() {
+        document.getElementById('btn-undo').disabled = !lastState || coins < 50;
         document.getElementById('btn-shuffle').disabled = coins < 150;
         document.getElementById('btn-hammer').disabled = coins < 100;
     }
 
-    // 🔄 新版洗牌功能：最大數字絕對保護，隨機替換 10 個非最大值方塊
+    // ↩️ 復原道具
+    function useUndo() {
+        if (!lastState || coins < 50) return;
+        coins -= 50;
+        board = JSON.parse(JSON.stringify(lastState.board));
+        score = lastState.score;
+        minAllowedValue = lastState.minAllowedValue;
+
+        scoreElement.textContent = score;
+        coinsElement.textContent = coins;
+        lastState = null;
+
+        playHammerSound();
+        renderBoard(true);
+        showStatusMsg('↩️ 已復原至上一回合！');
+    }
+
     function useShuffle() {
         if (coins < 150) return;
 
         const maxValue = getBoardMaxValue();
         let candidateCoords = [];
 
-        // 1. 找出所有非最大數字的座標位置
         for (let r = 0; r < ROWS; r++) {
             for (let c = 0; c < COLS; c++) {
                 if (board[r][c] !== maxValue) {
@@ -694,32 +839,29 @@
             }
         }
 
-        // 如果可修改的方塊不足，則不執行
         if (candidateCoords.length === 0) {
             showStatusMsg('⚠️ 盤面無可替換的方塊！');
             return;
         }
 
+        saveCurrentState();
         coins -= 150;
         coinsElement.textContent = coins;
         playHammerSound();
         triggerShake();
 
-        // 2. 隨機打亂候選座標，並隨機取出最多 10 個座標
         for (let i = candidateCoords.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [candidateCoords[i], candidateCoords[j]] = [candidateCoords[j], candidateCoords[i]];
         }
 
         const targetsToChange = candidateCoords.slice(0, 10);
-
-        // 3. 重新為這 10 個位置生成全新的隨機數字
         targetsToChange.forEach(coord => {
             board[coord.r][coord.c] = generateRandomBlock();
         });
 
         renderBoard(true);
-        showStatusMsg(`🔄 已為您重置 10 個數字，最高數字 ${formatNumber(maxValue)} 保持不變！`);
+        showStatusMsg(`🔄 已重置 10 個數字，最高數字 ${formatNumber(maxValue)} 保持不變！`);
     }
 
     function toggleHammer() {
@@ -736,6 +878,7 @@
     }
 
     function useHammer(cell) {
+        saveCurrentState();
         const r = parseInt(cell.dataset.r);
         const c = parseInt(cell.dataset.c);
         
@@ -751,6 +894,7 @@
         showStatusMsg('💥 已敲碎方塊！');
 
         applyGravity();
+        checkGameOver();
     }
 
     function showStatusMsg(msg) {
@@ -780,7 +924,6 @@
         const jsonString = JSON.stringify(saveData, null, 2);
         const blob = new Blob([jsonString], { type: "application/json" });
         const url = URL.createObjectURL(blob);
-        
         const fileName = `2248_Save_${getFormattedDate()}.json`;
 
         const a = document.createElement('a');
