@@ -36,11 +36,30 @@
         display: flex;
         flex-direction: column;
     }
+    .title-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
     .title {
         font-size: 28px;
         font-weight: 900;
         color: #f4d03f;
         letter-spacing: 1px;
+    }
+    .btn-help {
+        background: #3d405b;
+        color: #f4d03f;
+        border: none;
+        border-radius: 50%;
+        width: 26px;
+        height: 26px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     .coin-box {
         font-size: 14px;
@@ -72,7 +91,6 @@
         color: #edf2f4;
     }
 
-    /* 🔍 即時預覽提示欄 */
     #preview-box {
         height: 22px;
         font-size: 14px;
@@ -172,7 +190,6 @@
         100% { box-shadow: 0 0 16px #ffe600; }
     }
 
-    /* 道具欄 (排版微調為兩行或精簡欄位) */
     .tools-bar {
         display: flex;
         flex-wrap: wrap;
@@ -238,7 +255,7 @@
         text-align: center;
     }
 
-    /* 死局 (Game Over) 彈出視窗面板 */
+    /* Modal 彈出面板通用樣式 */
     .modal-overlay {
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
@@ -257,25 +274,32 @@
     }
     .modal-card {
         background: #2b2d42;
-        border: 3px solid #ef233c;
+        border: 2px solid #3d405b;
         border-radius: 20px;
-        padding: 25px 30px;
-        text-align: center;
-        max-width: 300px;
+        padding: 20px 24px;
+        text-align: left;
+        max-width: 320px;
         width: 90%;
-        box-shadow: 0 10px 30px rgba(239, 35, 60, 0.4);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        max-height: 85vh;
+        overflow-y: auto;
     }
-    .modal-title { font-size: 28px; font-weight: 900; color: #ef233c; margin-bottom: 10px; }
-    .modal-score { font-size: 20px; color: #f4d03f; margin-bottom: 20px; font-weight: bold; }
-    .btn-restart {
+    .modal-title { font-size: 24px; font-weight: 900; color: #f4d03f; margin-bottom: 12px; text-align: center; }
+    .modal-content { font-size: 13px; color: #edf2f4; line-height: 1.6; margin-bottom: 18px; }
+    .modal-content h4 { color: #2ecc71; margin: 10px 0 4px 0; font-size: 14px; }
+    .modal-content ul { padding-left: 18px; margin: 4px 0; }
+    .modal-btn-close {
+        display: block;
+        width: 100%;
         background-color: #27ae60;
         color: white;
         border: none;
-        padding: 10px 24px;
-        font-size: 16px;
+        padding: 10px;
+        font-size: 15px;
         font-weight: bold;
-        border-radius: 20px;
+        border-radius: 14px;
         cursor: pointer;
+        text-align: center;
     }
 </style>
 </head>
@@ -283,7 +307,10 @@
 
 <div class="header">
     <div class="title-box">
-        <div class="title">2248</div>
+        <div class="title-row">
+            <div class="title">2248</div>
+            <button class="btn-help" onclick="openTutorialModal()" title="遊戲說明">?</button>
+        </div>
         <div class="coin-box">🪙 金幣: <span id="coins">0</span></div>
     </div>
     <div class="score-container">
@@ -318,11 +345,46 @@
 
 <!-- 💀 Game Over 彈出面板 -->
 <div class="modal-overlay" id="game-over-modal">
+    <div class="modal-card" style="border-color: #ef233c; text-align: center;">
+        <div class="modal-title" style="color: #ef233c;">GAME OVER</div>
+        <div style="color: #8d99ae; font-size: 14px; margin-bottom: 8px;">無可連線方塊且金幣不足！</div>
+        <div style="font-size: 20px; color: #f4d03f; margin-bottom: 20px; font-weight: bold;" id="final-score">得分: 0</div>
+        <button class="modal-btn-close" onclick="closeModal('game-over-modal'); initBoard();">重新開始</button>
+    </div>
+</div>
+
+<!-- ❓ 遊戲教學說明 Modal -->
+<div class="modal-overlay" id="tutorial-modal">
     <div class="modal-card">
-        <div class="modal-title">GAME OVER</div>
-        <div style="color: #8d99ae; font-size: 14px; margin-bottom: 5px;">無可連線方塊且金幣不足！</div>
-        <div class="modal-score" id="final-score">得分: 0</div>
-        <button class="btn-restart" onclick="closeGameOverModal(); initBoard();">重新開始</button>
+        <div class="modal-title">📖 遊戲玩法說明</div>
+        <div class="modal-content">
+            <h4>🎮 連線與合成規則</h4>
+            <ul>
+                <li>拖曳滑動可連接八個方向的方塊。</li>
+                <li>前兩個數字必須<b>相同</b>（例如 2→2）。</li>
+                <li>接續可連接<b>相同或兩倍</b>的數字（例如 2→2→4→8）。</li>
+            </ul>
+
+            <h4>⚡ 數字淘汰機制</h4>
+            <ul>
+                <li>合成出 <b>2048</b> 時，盤面上 <b>8 及以下（2, 4, 8）全消除</b>，新生成最小值變為 16！</li>
+                <li>合成出 <b>4096</b> 時，<b>16 及以下全消除</b>，最小值變為 32，以此類推！</li>
+            </ul>
+
+            <h4>🪙 道具與金幣</h4>
+            <ul>
+                <li>每次合成皆可獲得雙倍金幣。</li>
+                <li><b>↩️ 復原 (50🪙)</b>：返回上一回合。</li>
+                <li><b>🔄 洗牌 (150🪙)</b>：保持最大數字不變，隨機重置 10 個方塊。</li>
+                <li><b>🔨 鐵錘 (100🪙)</b>：點擊直接敲碎指定方塊。</li>
+            </ul>
+
+            <h4>💾 存檔說明</h4>
+            <ul>
+                <li>點擊匯出可下載當天日期的 <code>.json</code> 存檔檔案。</li>
+            </ul>
+        </div>
+        <button class="modal-btn-close" onclick="closeModal('tutorial-modal')">我知道了，開始遊玩！</button>
     </div>
 </div>
 
@@ -342,6 +404,7 @@
     const previewBox = document.getElementById('preview-box');
     const comboOverlay = document.getElementById('combo-overlay');
     const gameOverModal = document.getElementById('game-over-modal');
+    const tutorialModal = document.getElementById('tutorial-modal');
 
     let board = [];
     let score = 0;
@@ -352,8 +415,6 @@
     let isHammerMode = false;
     let minAllowedValue = 2;
     let mergedTargetPos = null;
-
-    // ↩️ 復原紀錄歷史
     let lastState = null;
 
     bestScoreElement.textContent = bestScore;
@@ -437,6 +498,21 @@
         containerElement.classList.remove('shake');
         void containerElement.offsetWidth;
         containerElement.classList.add('shake');
+    }
+
+    function openTutorialModal() {
+        tutorialModal.classList.add('show');
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('show');
+    }
+
+    function checkFirstVisit() {
+        if (!localStorage.getItem('2248_visited')) {
+            openTutorialModal();
+            localStorage.setItem('2248_visited', 'true');
+        }
     }
 
     function initBoard() {
@@ -622,7 +698,6 @@
         }
     }
 
-    // 🎯 即時預覽計算欄
     function updatePreview() {
         if (selectedCells.length < 2) {
             previewBox.textContent = '';
@@ -690,7 +765,7 @@
     }
 
     function mergeCells() {
-        saveCurrentState(); // 合併前先儲存狀態以備 Undo
+        saveCurrentState();
 
         const last = selectedCells[selectedCells.length - 1];
         let sum = selectedCells.reduce((acc, cur) => acc + cur.val, 0);
@@ -724,15 +799,15 @@
         applyGravity();
         selectedCells = [];
 
-        // 💀 每次動作完成後，自動檢查是否陷入死局
         checkGameOver();
     }
 
+    // 🌟 新版數字淘汰邏輯：以 2048 消除 8（含）以下為基準 (偏移 8 階: 2^N / 2^8)
     function checkAndEliminateLowerBlocks(newCreatedVal) {
-        if (newCreatedVal >= 1024) {
-            const eliminateThreshold = newCreatedVal / Math.pow(2, 7); 
+        if (newCreatedVal >= 2048) {
+            const eliminateThreshold = newCreatedVal / Math.pow(2, 8); 
 
-            if (eliminateThreshold > minAllowedValue) {
+            if (eliminateThreshold >= minAllowedValue) {
                 minAllowedValue = eliminateThreshold * 2;
 
                 for (let r = 0; r < ROWS; r++) {
@@ -764,13 +839,10 @@
         renderBoard(true);
     }
 
-    // 💀 死局判斷演算法
     function checkGameOver() {
-        // 1. 檢查八向相鄰是否有任何可以連線的數字
         for (let r = 0; r < ROWS; r++) {
             for (let c = 0; c < COLS; c++) {
                 const currentVal = board[r][c];
-                // 檢查相鄰的 8 個格子
                 for (let dr = -1; dr <= 1; dr++) {
                     for (let dc = -1; dc <= 1; dc++) {
                         if (dr === 0 && dc === 0) continue;
@@ -779,7 +851,7 @@
                         if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
                             const neighborVal = board[nr][nc];
                             if (neighborVal === currentVal || neighborVal === currentVal * 2) {
-                                return; // 尚有連線可能，未死局
+                                return;
                             }
                         }
                     }
@@ -787,19 +859,13 @@
             }
         }
 
-        // 2. 若完全無法連線，檢查金幣是否足夠使用破局道具（洗牌 150 / 鐵錘 100）
         if (coins >= 100) {
             showStatusMsg('⚠️ 盤面已無可連線方塊！請使用洗牌或鐵錘突破！');
             return;
         }
 
-        // 3. 既無法連線且金幣不足以救援 ➡️ 觸發 Game Over
         document.getElementById('final-score').textContent = `得分: ${score}`;
         gameOverModal.classList.add('show');
-    }
-
-    function closeGameOverModal() {
-        gameOverModal.classList.remove('show');
     }
 
     function updateToolsState() {
@@ -808,7 +874,6 @@
         document.getElementById('btn-hammer').disabled = coins < 100;
     }
 
-    // ↩️ 復原道具
     function useUndo() {
         if (!lastState || coins < 50) return;
         coins -= 50;
@@ -986,6 +1051,7 @@
     window.addEventListener('resize', resizeCanvas);
 
     initBoard();
+    checkFirstVisit();
 </script>
 </body>
 </html>
