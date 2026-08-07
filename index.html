@@ -78,6 +78,14 @@
         border-radius: 16px;
         box-shadow: 0 10px 25px rgba(0,0,0,0.5);
     }
+    .game-container.shake {
+        animation: shake-board 0.3s ease-in-out;
+    }
+    @keyframes shake-board {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
     #line-canvas {
         position: absolute;
         top: 0;
@@ -102,16 +110,34 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        font-size: 20px;
+        font-size: 18px;
         font-weight: 800;
         color: #ffffff;
-        transition: transform 0.1s ease;
+        transition: transform 0.15s ease, background-color 0.2s;
         box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2);
         position: relative;
     }
     .cell.selected {
         transform: scale(0.85);
         box-shadow: 0 0 12px #ffffff;
+    }
+
+    /* ✨ 動畫效果：合成彈跳與新數字掉落 */
+    .cell.pop {
+        animation: pop-animation 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes pop-animation {
+        0% { transform: scale(0.5); }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); }
+    }
+
+    .cell.drop {
+        animation: drop-animation 0.25s ease-out;
+    }
+    @keyframes drop-animation {
+        0% { transform: translateY(-20px); opacity: 0; }
+        100% { transform: translateY(0); opacity: 1; }
     }
 
     /* 最高數字皇冠與金框樣式 */
@@ -137,7 +163,7 @@
     .tools-bar {
         display: flex;
         gap: 12px;
-        margin-top: 15px;
+        margin-top: 12px;
         width: 100%;
         max-width: 350px;
         justify-content: center;
@@ -180,10 +206,11 @@
     /* 提示訊息 */
     #status-msg {
         margin-top: 8px;
-        height: 18px;
+        height: 20px;
         font-size: 13px;
         color: #f39c12;
         font-weight: bold;
+        text-align: center;
     }
 </style>
 </head>
@@ -206,7 +233,7 @@
     </div>
 </div>
 
-<div class="game-container">
+<div class="game-container" id="game-container">
     <canvas id="line-canvas"></canvas>
     <div id="game-board"></div>
 </div>
@@ -226,6 +253,7 @@
     const ROWS = 7;
     const COLS = 5;
     const boardElement = document.getElementById('game-board');
+    const containerElement = document.getElementById('game-container');
     const canvas = document.getElementById('line-canvas');
     const ctx = canvas.getContext('2d');
     const scoreElement = document.getElementById('score');
@@ -241,14 +269,86 @@
     let selectedCells = [];
     let isHammerMode = false;
 
+    let minAllowedValue = 2;
+    let mergedTargetPos = null; // 紀錄合併發生的位置（用於播放 Pop 動畫）
+
     bestScoreElement.textContent = bestScore;
     coinsElement.textContent = coins;
 
     const colors = {
         2: '#8bc34a', 4: '#f4a261', 8: '#4dd0e1', 16: '#5c6bc0',
         32: '#ef6c00', 64: '#7e57c2', 128: '#7209b7', 256: '#3f37c9',
-        512: '#27ae60', 1024: '#4cc9f0', 2048: '#f15bb5', 4096: '#00f5d4'
+        512: '#27ae60', 1024: '#4cc9f0', 2048: '#f15bb5', 4096: '#00f5d4',
+        8192: '#ff0054', 16384: '#9b59b6', 32768: '#e67e22'
     };
+
+    // 🔊 --- Web Audio API 即時合成音效引擎 ---
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function initAudio() {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    // 連線叮聲（隨著連線越長，音調越高）
+    function playConnectSound(index) {
+        initAudio();
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        const baseFreq = 300;
+        osc.frequency.setValueAtTime(baseFreq * Math.pow(1.12, index), audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.1);
+    }
+
+    // 合成消除音效
+    function playMergeSound() {
+        initAudio();
+        if (!audioCtx) return;
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.2);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(now + 0.2);
+    }
+
+    // 道具打擊音效
+    function playHammerSound() {
+        initAudio();
+        if (!audioCtx) return;
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.exponentialRampToValueAtTime(40, now + 0.15);
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(now + 0.15);
+    }
+
+    function triggerShake() {
+        containerElement.classList.remove('shake');
+        void containerElement.offsetWidth; // 觸發重繪
+        containerElement.classList.add('shake');
+    }
 
     function getCellColor(val) {
         return colors[val] || '#ff0054';
@@ -256,6 +356,7 @@
 
     function initBoard() {
         score = 0;
+        minAllowedValue = 2;
         scoreElement.textContent = score;
         board = [];
         for (let r = 0; r < ROWS; r++) {
@@ -265,23 +366,25 @@
             }
             board.push(row);
         }
-        renderBoard();
+        renderBoard(true);
         resizeCanvas();
         updateToolsState();
     }
 
-    // 隨機生成 2 到 64 之間的 2 的冪次方偶數
     function generateRandomBlock() {
-        // 設定權重：數字越小機率越高，維護遊戲連線流暢度
-        const pool = [
-            2, 2, 2, 2, 2, 2,    // 2 (最高機率)
-            4, 4, 4, 4, 4,       // 4
-            8, 8, 8, 8,          // 8
-            16, 16, 16,          // 16
-            32, 32,              // 32
-            64                   // 64
-        ];
-        return pool[Math.floor(Math.random() * pool.length)];
+        let options = [];
+        let base = minAllowedValue;
+        for (let i = 0; i < 6; i++) {
+            options.push(base * Math.pow(2, i));
+        }
+        const weights = [35, 25, 18, 12, 7, 3];
+        const randomNum = Math.floor(Math.random() * 100);
+        let sum = 0;
+        for (let i = 0; i < weights.length; i++) {
+            sum += weights[i];
+            if (randomNum < sum) return options[i];
+        }
+        return options[0];
     }
 
     function resizeCanvas() {
@@ -300,7 +403,7 @@
         return max;
     }
 
-    function renderBoard() {
+    function renderBoard(isNewDrop = false) {
         boardElement.innerHTML = '';
         const maxValue = getBoardMaxValue();
 
@@ -318,9 +421,17 @@
                     cell.classList.add('max-value');
                 }
 
+                // 播放 Pop 彈跳或 Drop 下落動畫
+                if (mergedTargetPos && mergedTargetPos.r === r && mergedTargetPos.c === c) {
+                    cell.classList.add('pop');
+                } else if (isNewDrop) {
+                    cell.classList.add('drop');
+                }
+
                 boardElement.appendChild(cell);
             }
         }
+        mergedTargetPos = null;
         updateToolsState();
     }
 
@@ -423,6 +534,7 @@
         if (selectedCells.length === 0) {
             selectedCells.push({ r, c, val, element: cell });
             cell.classList.add('selected');
+            playConnectSound(selectedCells.length);
             return;
         }
 
@@ -434,11 +546,13 @@
                 if (val === last.val) {
                     selectedCells.push({ r, c, val, element: cell });
                     cell.classList.add('selected');
+                    playConnectSound(selectedCells.length);
                 }
             } else {
                 if (val === last.val || val === last.val * 2) {
                     selectedCells.push({ r, c, val, element: cell });
                     cell.classList.add('selected');
+                    playConnectSound(selectedCells.length);
                 }
             }
         }
@@ -456,9 +570,12 @@
         });
 
         board[last.r][last.c] = mergedValue;
+        mergedTargetPos = { r: last.r, c: last.c }; // 設定 Pop 動畫位置
         
+        playMergeSound();
+
         score += sum;
-        const earnedCoins = Math.floor(sum / 10);
+        const earnedCoins = Math.floor(sum / 5);
         coins += earnedCoins;
         
         scoreElement.textContent = score;
@@ -470,7 +587,28 @@
             localStorage.setItem('2248_best', bestScore);
         }
 
+        checkAndEliminateLowerBlocks(mergedValue);
         applyGravity();
+    }
+
+    function checkAndEliminateLowerBlocks(newCreatedVal) {
+        if (newCreatedVal >= 1024) {
+            const eliminateThreshold = newCreatedVal / Math.pow(2, 7); 
+
+            if (eliminateThreshold > minAllowedValue) {
+                minAllowedValue = eliminateThreshold * 2;
+
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        if (board[r][c] > 0 && board[r][c] <= eliminateThreshold) {
+                            board[r][c] = 0;
+                        }
+                    }
+                }
+                triggerShake();
+                showStatusMsg(`⚡ 解鎖新境界！消除低於 ${minAllowedValue} 的數字！`);
+            }
+        }
     }
 
     function applyGravity() {
@@ -486,7 +624,7 @@
                 board[r][c] = colVals[r];
             }
         }
-        renderBoard();
+        renderBoard(true);
     }
 
     function updateToolsState() {
@@ -499,12 +637,15 @@
         coins -= 150;
         coinsElement.textContent = coins;
 
+        playHammerSound();
+        triggerShake();
+
         for (let r = 0; r < ROWS; r++) {
             for (let c = 0; c < COLS; c++) {
                 board[r][c] = generateRandomBlock();
             }
         }
-        renderBoard();
+        renderBoard(true);
         showStatusMsg('🔄 盤面已洗牌！');
     }
 
@@ -529,6 +670,9 @@
         coinsElement.textContent = coins;
         board[r][c] = 0;
 
+        playHammerSound();
+        triggerShake();
+
         isHammerMode = false;
         document.getElementById('btn-hammer').classList.remove('active');
         showStatusMsg('💥 已敲碎方塊！');
@@ -538,7 +682,7 @@
 
     function showStatusMsg(msg) {
         statusMsg.textContent = msg;
-        if (msg) setTimeout(() => { statusMsg.textContent = ''; }, 3000);
+        if (msg) setTimeout(() => { statusMsg.textContent = ''; }, 3500);
     }
 
     window.addEventListener('touchstart', e => handleStart(e.touches[0].clientX, e.touches[0].clientY), { passive: false });
