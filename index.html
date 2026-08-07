@@ -1,39 +1,311 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- 補上來源偽裝標頭，允許伺服器讀取來源 -->
-    <meta name="referrer" content="no-referrer-when-downgrade">
-    <title>2248 Merge Puzzle (純淨版)</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #111111;
-        }
-        #game-frame {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>2248 Merge Puzzle - 純淨版</title>
+<style>
+    * {
+        box-sizing: border-box;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+    body {
+        background-color: #1e1e24;
+        color: #ffffff;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 10px;
+        touch-action: none;
+        overscroll-behavior: none;
+    }
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        max-width: 350px;
+        margin-bottom: 15px;
+    }
+    .title {
+        font-size: 28px;
+        font-weight: 800;
+        color: #f4d03f;
+        letter-spacing: 1px;
+    }
+    .score-container {
+        display: flex;
+        gap: 10px;
+    }
+    .score-box {
+        background-color: #2b2d42;
+        padding: 8px 14px;
+        border-radius: 10px;
+        text-align: center;
+        min-width: 75px;
+    }
+    .score-label {
+        font-size: 11px;
+        color: #8d99ae;
+        text-transform: uppercase;
+    }
+    .score-value {
+        font-size: 18px;
+        font-weight: bold;
+        color: #edf2f4;
+    }
+    #game-board {
+        display: grid;
+        grid-template-columns: repeat(5, 62px);
+        grid-template-rows: repeat(7, 62px);
+        gap: 8px;
+        background-color: #2b2d42;
+        padding: 10px;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        position: relative;
+    }
+    .cell {
+        width: 62px;
+        height: 62px;
+        border-radius: 12px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 22px;
+        font-weight: 800;
+        color: #ffffff;
+        transition: transform 0.15s ease, opacity 0.15s ease;
+        box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2);
+    }
+    .cell.selected {
+        transform: scale(0.85);
+        opacity: 0.85;
+        box-shadow: 0 0 12px #ffffff;
+    }
+    .btn-reset {
+        margin-top: 20px;
+        background-color: #ef233c;
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        font-size: 16px;
+        font-weight: bold;
+        border-radius: 20px;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(239, 35, 60, 0.4);
+    }
+    .btn-reset:active {
+        transform: scale(0.95);
+    }
+</style>
 </head>
 <body>
 
-    <!-- 放寬必要權限並加入修復參數 -->
-    <iframe id="game-frame" 
-            src="https://app-347406.games.s3.yandex.net/347406/lxrrwkcnmfdnhkmlex89l0i884ympn6o_brotli/index.html?skip-guard=1&flags=%7B%22adv_sticky_banner_disabled%22%3Atrue%7D#origin=https%3A%2F%2Fplayhop.com&app-id=347406&device-type=desktop" 
-            allow="accelerometer; gyroscope; autoplay; payment; geolocation"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-downloads">
-    </iframe>
+<div class="header">
+    <div class="title">2248</div>
+    <div class="score-container">
+        <div class="score-box">
+            <div class="score-label">分數</div>
+            <div class="score-value" id="score">0</div>
+        </div>
+        <div class="score-box">
+            <div class="score-label">最高</div>
+            <div class="score-value" id="best-score">0</div>
+        </div>
+    </div>
+</div>
 
+<div id="game-board"></div>
+<button class="btn-reset" onclick="initBoard()">重新開始</button>
+
+<script>
+    const ROWS = 7;
+    const COLS = 5;
+    const boardElement = document.getElementById('game-board');
+    const scoreElement = document.getElementById('score');
+    const bestScoreElement = document.getElementById('best-score');
+    
+    let board = [];
+    let score = 0;
+    let bestScore = localStorage.getItem('2248_best') || 0;
+    let isDragging = false;
+    let selectedCells = [];
+
+    bestScoreElement.textContent = bestScore;
+
+    // 方塊色彩配置
+    const colors = {
+        2: '#e63946', 4: '#f4a261', 8: '#2a9d8f', 16: '#457b9d',
+        32: '#6a0572', 64: '#b5179e', 128: '#7209b7', 256: '#3f37c9',
+        512: '#4895ef', 1024: '#4cc9f0', 2048: '#f15bb5', 4096: '#00f5d4'
+    };
+
+    function getCellColor(val) {
+        return colors[val] || '#ff0054';
+    }
+
+    function initBoard() {
+        score = 0;
+        scoreElement.textContent = score;
+        board = [];
+        for (let r = 0; r < ROWS; r++) {
+            let row = [];
+            for (let c = 0; c < COLS; c++) {
+                row.push(generateRandomBlock());
+            }
+            board.push(row);
+        }
+        renderBoard();
+    }
+
+    function generateRandomBlock() {
+        const pool = [2, 2, 2, 4, 4, 8];
+        return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    function renderBoard() {
+        boardElement.innerHTML = '';
+        for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < COLS; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                const val = board[r][c];
+                cell.textContent = val;
+                cell.style.backgroundColor = getCellColor(val);
+                cell.dataset.r = r;
+                cell.dataset.c = c;
+                boardElement.appendChild(cell);
+            }
+        }
+    }
+
+    function getTargetCell(e) {
+        let x = e.touches ? e.touches[0].clientX : e.clientX;
+        let y = e.touches ? e.touches[0].clientY : e.clientY;
+        const target = document.elementFromPoint(x, y);
+        return (target && target.classList.contains('cell')) ? target : null;
+    }
+
+    function startInteraction(e) {
+        e.preventDefault();
+        const target = getTargetCell(e);
+        if (target) {
+            isDragging = true;
+            selectedCells = [];
+            addToSelection(target);
+        }
+    }
+
+    function continueInteraction(e) {
+        if (!isDragging) return;
+        e.preventDefault();
+        const target = getTargetCell(e);
+        if (target) {
+            addToSelection(target);
+        }
+    }
+
+    function endInteraction() {
+        if (!isDragging) return;
+        isDragging = false;
+
+        if (selectedCells.length >= 2) {
+            mergeCells();
+        } else {
+            selectedCells.forEach(c => c.element.classList.remove('selected'));
+        }
+        selectedCells = [];
+    }
+
+    function addToSelection(cellElement) {
+        const r = parseInt(cellElement.dataset.r);
+        const c = parseInt(cellElement.dataset.c);
+        const val = board[r][c];
+        const cellData = { r, c, val, element: cellElement };
+
+        if (selectedCells.length === 0) {
+            selectedCells.push(cellData);
+            cellElement.classList.add('selected');
+            return;
+        }
+
+        const last = selectedCells[selectedCells.length - 1];
+        const isAdjacent = Math.abs(last.r - r) <= 1 && Math.abs(last.c - c) <= 1;
+        const existIdx = selectedCells.findIndex(s => s.r === r && s.c === c);
+
+        // 退回前一格
+        if (existIdx === selectedCells.length - 2) {
+            const removed = selectedCells.pop();
+            removed.element.classList.remove('selected');
+            return;
+        }
+
+        // 新增連線規則
+        if (existIdx === -1 && isAdjacent) {
+            if (val === last.val || val === last.val * 2) {
+                selectedCells.push(cellData);
+                cellElement.classList.add('selected');
+            }
+        }
+    }
+
+    function mergeCells() {
+        const last = selectedCells[selectedCells.length - 1];
+        let sum = selectedCells.reduce((acc, cur) => acc + cur.val, 0);
+        
+        // 算出小於等於總和的最接近 2 的冪次方
+        let mergedValue = Math.pow(2, Math.floor(Math.log2(sum)));
+        if (mergedValue < last.val * 2) mergedValue = last.val * 2;
+
+        selectedCells.forEach(c => {
+            board[c.r][c.c] = 0;
+        });
+
+        board[last.r][last.c] = mergedValue;
+        score += mergedValue;
+        scoreElement.textContent = score;
+
+        if (score > bestScore) {
+            bestScore = score;
+            bestScoreElement.textContent = bestScore;
+            localStorage.setItem('2248_best', bestScore);
+        }
+
+        applyGravity();
+    }
+
+    function applyGravity() {
+        for (let c = 0; c < COLS; c++) {
+            let colVals = [];
+            for (let r = 0; r < ROWS; r++) {
+                if (board[r][c] !== 0) colVals.push(board[r][c]);
+            }
+            while (colVals.length < ROWS) {
+                colVals.unshift(generateRandomBlock());
+            }
+            for (let r = 0; r < ROWS; r++) {
+                board[r][c] = colVals[r];
+            }
+        }
+        renderBoard();
+    }
+
+    // 綁定事件
+    boardElement.addEventListener('touchstart', startInteraction, { passive: false });
+    boardElement.addEventListener('touchmove', continueInteraction, { passive: false });
+    window.addEventListener('touchend', endInteraction);
+
+    boardElement.addEventListener('mousedown', startInteraction);
+    boardElement.addEventListener('mousemove', continueInteraction);
+    window.addEventListener('mouseup', endInteraction);
+
+    initBoard();
+</script>
 </body>
 </html>
