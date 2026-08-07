@@ -18,21 +18,19 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        height: 100vh;
-        height: 100dvh; /* 相容手機真實可視高度 */
+        min-height: 100vh;
         margin: 0;
-        padding: 4px 10px;
+        padding: 10px;
         touch-action: none;
         overscroll-behavior: none;
-        overflow: hidden; /* 確保完全無捲動條 */
     }
     .header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         width: 100%;
-        max-width: 320px;
-        margin-bottom: 4px;
+        max-width: 350px;
+        margin-bottom: 6px;
     }
     .title-box {
         display: flex;
@@ -41,22 +39,22 @@
     .title-row {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
     }
     .title {
-        font-size: 22px;
+        font-size: 26px;
         font-weight: 900;
         color: #f4d03f;
-        letter-spacing: 0.5px;
+        letter-spacing: 1px;
     }
     .btn-help {
         background: #3d405b;
         color: #f4d03f;
         border: none;
         border-radius: 50%;
-        width: 22px;
-        height: 22px;
-        font-size: 12px;
+        width: 24px;
+        height: 24px;
+        font-size: 13px;
         font-weight: bold;
         cursor: pointer;
         display: flex;
@@ -64,12 +62,13 @@
         justify-content: center;
     }
     .coin-box {
-        font-size: 12px;
+        font-size: 13px;
         color: #f1c40f;
         font-weight: bold;
         display: flex;
         align-items: center;
-        gap: 3px;
+        gap: 4px;
+        margin-top: 2px;
     }
     .score-container {
         display: flex;
@@ -77,37 +76,36 @@
     }
     .score-box {
         background-color: #2b2d42;
-        padding: 3px 6px;
-        border-radius: 8px;
+        padding: 4px 8px;
+        border-radius: 10px;
         text-align: center;
-        min-width: 60px;
+        min-width: 65px;
     }
     .score-label {
         font-size: 9px;
         color: #8d99ae;
     }
     .score-value {
-        font-size: 14px;
+        font-size: 15px;
         font-weight: bold;
         color: #edf2f4;
     }
 
-    /* 🟢 💣 模式選擇按鈕頁籤 (緊湊邊距) */
     .mode-tabs {
         display: flex;
-        gap: 6px;
+        gap: 8px;
         width: 100%;
-        max-width: 320px;
-        margin-bottom: 4px;
+        max-width: 350px;
+        margin-bottom: 8px;
     }
     .mode-btn {
         flex: 1;
-        padding: 4px 0;
-        border-radius: 10px;
-        border: 1.5px solid #3d405b;
+        padding: 6px 0;
+        border-radius: 12px;
+        border: 2px solid #3d405b;
         background-color: #2b2d42;
         color: #8d99ae;
-        font-size: 12px;
+        font-size: 13px;
         font-weight: bold;
         cursor: pointer;
         text-align: center;
@@ -117,34 +115,33 @@
         background-color: #3d405b;
         color: #ffffff;
         border-color: #f4d03f;
-        box-shadow: 0 0 8px rgba(244, 208, 63, 0.25);
+        box-shadow: 0 0 10px rgba(244, 208, 63, 0.3);
     }
 
     #preview-box {
-        height: 18px;
-        font-size: 12px;
+        height: 20px;
+        font-size: 13px;
         font-weight: 800;
         color: #2ecc71;
         text-align: center;
-        margin-bottom: 3px;
+        margin-bottom: 4px;
         letter-spacing: 0.5px;
     }
 
-    /* 盤面外框緊湊化 */
     .game-container {
         position: relative;
         background-color: #2b2d42;
-        padding: 6px;
-        border-radius: 14px;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        padding: 10px;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
     }
     .game-container.shake {
         animation: shake-board 0.3s ease-in-out;
     }
     @keyframes shake-board {
         0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-5px); }
-        75% { transform: translateX(5px); }
+        25% { transform: translateX(-6px); }
+        75% { transform: translateX(6px); }
     }
     #line-canvas {
         position: absolute;
@@ -159,38 +156,38 @@
         display: grid;
         grid-template-columns: repeat(5, 60px);
         grid-template-rows: repeat(7, 60px);
-        gap: 5px;
+        gap: 8px;
         position: relative;
         z-index: 5;
     }
     .cell {
         width: 60px;
         height: 60px;
-        border-radius: 10px;
+        border-radius: 12px;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        font-size: 19px;
+        font-size: 22px;
         font-weight: 900;
         color: #ffffff;
         transition: transform 0.15s ease, background-color 0.2s;
-        box-shadow: inset 0 -2px 0 rgba(0,0,0,0.2);
+        box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2);
         position: relative;
         letter-spacing: -0.5px;
     }
-    .cell.small-text { font-size: 15px; }
-    .cell.xsmall-text { font-size: 12px; }
+    .cell.small-text { font-size: 17px; }
+    .cell.xsmall-text { font-size: 14px; }
     .cell.selected {
         transform: scale(0.85);
-        box-shadow: 0 0 10px #ffffff;
+        box-shadow: 0 0 12px #ffffff;
     }
 
-    /* 💣 炸彈方塊樣式 */
+    /* 💣 炸彈方塊專屬樣式 */
     .cell.bomb-cell {
         background-color: #222222 !important;
         border: 2px solid #e74c3c;
-        box-shadow: 0 0 8px #e74c3c, inset 0 0 6px #c0392b;
+        box-shadow: 0 0 10px #e74c3c, inset 0 0 8px #c0392b;
         animation: bomb-pulse 1s infinite alternate;
     }
     @keyframes bomb-pulse {
@@ -200,21 +197,21 @@
     .bomb-timer {
         position: absolute;
         top: 2px;
-        left: 3px;
-        font-size: 9px;
+        left: 4px;
+        font-size: 10px;
         color: #e74c3c;
         font-weight: 900;
     }
     .bomb-target {
-        font-size: 14px;
+        font-size: 16px;
         font-weight: 900;
         color: #f1c40f;
     }
 
     /* 皇冠樣式 */
     .cell.max-value {
-        border: 2.5px solid #ffd700;
-        box-shadow: 0 0 10px #ffd700, inset 0 0 6px #ffd700;
+        border: 3px solid #ffd700;
+        box-shadow: 0 0 12px #ffd700, inset 0 0 8px #ffd700;
         animation: pulse-glow 1.5s infinite alternate;
     }
     .cell.max-value::before {
@@ -222,12 +219,12 @@
         position: absolute;
         top: -6px;
         right: -4px;
-        font-size: 12px;
+        font-size: 14px;
         filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
     }
     @keyframes pulse-glow {
-        0% { box-shadow: 0 0 6px #ffd700; }
-        100% { box-shadow: 0 0 14px #ffe600; }
+        0% { box-shadow: 0 0 8px #ffd700; }
+        100% { box-shadow: 0 0 16px #ffe600; }
     }
 
     /* 動畫效果 */
@@ -236,7 +233,7 @@
     }
     @keyframes pop-animation {
         0% { transform: scale(0.5); }
-        50% { transform: scale(1.18); }
+        50% { transform: scale(1.2); }
         100% { transform: scale(1); }
     }
 
@@ -244,18 +241,18 @@
         animation: drop-animation 0.25s ease-out;
     }
     @keyframes drop-animation {
-        0% { transform: translateY(-15px); opacity: 0; }
+        0% { transform: translateY(-20px); opacity: 0; }
         100% { transform: translateY(0); opacity: 1; }
     }
 
-    /* 道具欄 (微調緊貼盤面下緣) */
+    /* 道具欄 */
     .tools-bar {
         display: flex;
         flex-wrap: wrap;
-        gap: 5px;
-        margin-top: 6px;
+        gap: 6px;
+        margin-top: 10px;
         width: 100%;
-        max-width: 320px;
+        max-width: 350px;
         justify-content: center;
     }
     .tool-btn {
@@ -263,13 +260,13 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 3px;
+        gap: 4px;
         background-color: #2b2d42;
-        border: 1.5px solid #3d405b;
+        border: 2px solid #3d405b;
         color: #ffffff;
-        padding: 6px 2px;
-        border-radius: 10px;
-        font-size: 11px;
+        padding: 8px 2px;
+        border-radius: 12px;
+        font-size: 12px;
         font-weight: bold;
         cursor: pointer;
         transition: all 0.2s;
@@ -280,9 +277,9 @@
     .tool-cost {
         background-color: #f1c40f;
         color: #000;
-        padding: 1px 4px;
-        border-radius: 5px;
-        font-size: 9px;
+        padding: 2px 4px;
+        border-radius: 6px;
+        font-size: 10px;
     }
 
     #combo-overlay {
@@ -290,10 +287,10 @@
         top: 40%;
         left: 50%;
         transform: translate(-50%, -50%) scale(0);
-        font-size: 22px;
+        font-size: 24px;
         font-weight: 900;
         color: #f39c12;
-        text-shadow: 0 0 12px #f1c40f, 0 0 4px #000;
+        text-shadow: 0 0 15px #f1c40f, 0 0 5px #000;
         pointer-events: none;
         z-index: 20;
         transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
@@ -301,14 +298,14 @@
         white-space: nowrap;
     }
     #combo-overlay.show {
-        transform: translate(-50%, -50%) scale(1.2);
+        transform: translate(-50%, -50%) scale(1.3);
         opacity: 1;
     }
 
     #status-msg {
-        margin-top: 4px;
-        height: 16px;
-        font-size: 12px;
+        margin-top: 6px;
+        height: 18px;
+        font-size: 13px;
         color: #f39c12;
         font-weight: bold;
         text-align: center;
@@ -331,29 +328,29 @@
     .modal-card {
         background: #2b2d42;
         border: 2px solid #3d405b;
-        border-radius: 18px;
-        padding: 18px 20px;
+        border-radius: 20px;
+        padding: 20px 24px;
         text-align: left;
-        max-width: 310px;
+        max-width: 320px;
         width: 90%;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
         max-height: 85vh;
         overflow-y: auto;
     }
-    .modal-title { font-size: 22px; font-weight: 900; color: #f4d03f; margin-bottom: 10px; text-align: center; }
-    .modal-content { font-size: 12px; color: #edf2f4; line-height: 1.5; margin-bottom: 15px; }
-    .modal-content h4 { color: #2ecc71; margin: 8px 0 3px 0; font-size: 13px; }
-    .modal-content ul { padding-left: 16px; margin: 3px 0; }
+    .modal-title { font-size: 24px; font-weight: 900; color: #f4d03f; margin-bottom: 12px; text-align: center; }
+    .modal-content { font-size: 13px; color: #edf2f4; line-height: 1.6; margin-bottom: 18px; }
+    .modal-content h4 { color: #2ecc71; margin: 10px 0 4px 0; font-size: 14px; }
+    .modal-content ul { padding-left: 18px; margin: 4px 0; }
     .modal-btn-close {
         display: block;
         width: 100%;
         background-color: #27ae60;
         color: white;
         border: none;
-        padding: 9px;
-        font-size: 14px;
+        padding: 10px;
+        font-size: 15px;
         font-weight: bold;
-        border-radius: 12px;
+        border-radius: 14px;
         cursor: pointer;
         text-align: center;
     }
@@ -381,7 +378,6 @@
     </div>
 </div>
 
-<!-- 模式切換按鈕 -->
 <div class="mode-tabs">
     <button class="mode-btn active" id="mode-basic" onclick="switchMode('basic')">🟢 基本模式</button>
     <button class="mode-btn" id="mode-bomb" onclick="switchMode('bomb')">💣 炸彈模式</button>
@@ -405,17 +401,15 @@
     <button class="tool-btn" onclick="triggerImport()">📂 匯入</button>
 </div>
 
-<!-- 💀 Game Over 彈出面板 -->
 <div class="modal-overlay" id="game-over-modal">
     <div class="modal-card" style="border-color: #ef233c; text-align: center;">
         <div class="modal-title" style="color: #ef233c;">GAME OVER</div>
-        <div style="color: #8d99ae; font-size: 13px; margin-bottom: 8px;">無可連線方塊且金幣不足！</div>
-        <div style="font-size: 18px; color: #f4d03f; margin-bottom: 16px; font-weight: bold;" id="final-score">得分: 0</div>
+        <div style="color: #8d99ae; font-size: 14px; margin-bottom: 8px;">無可連線方塊且金幣不足！</div>
+        <div style="font-size: 20px; color: #f4d03f; margin-bottom: 20px; font-weight: bold;" id="final-score">得分: 0</div>
         <button class="modal-btn-close" onclick="closeModal('game-over-modal'); initBoard();">重新開始</button>
     </div>
 </div>
 
-<!-- ❓ 遊戲教學說明 Modal -->
 <div class="modal-overlay" id="tutorial-modal">
     <div class="modal-card">
         <div class="modal-title">📖 遊戲玩法說明</div>
@@ -428,7 +422,7 @@
 
             <h4>💣 炸彈精準拆除與懲罰</h4>
             <ul>
-                <li>炸彈帶有倒數步數與<b>目標數字（如 64）</b>。</li>
+                <li>炸彈數字會動態對應當前盤面範圍（不會出現無法合成的小數字）。</li>
                 <li>於炸彈上或周圍九宮格合成出該數字即可拆彈，享<b>雙倍加分與雙倍金幣</b>！</li>
                 <li>若步數歸零炸彈引爆，會<b>清空周圍九宮格方塊（不給分）</b>。</li>
             </ul>
@@ -622,8 +616,8 @@
 
     function resizeCanvas() {
         const rect = boardElement.getBoundingClientRect();
-        canvas.width = rect.width + 10;
-        canvas.height = rect.height + 10;
+        canvas.width = rect.width + 20;
+        canvas.height = rect.height + 20;
     }
 
     function getBoardMaxValue() {
@@ -653,7 +647,7 @@
                 if (typeof cellData === 'object' && cellData.type === 'bomb') {
                     cell.classList.add('bomb-cell');
                     cell.innerHTML = `
-                        <div class="bomb-timer">💣${cellData.timer}</div>
+                        <div class="bomb-timer">💣 ${cellData.timer}步</div>
                         <div class="bomb-target">${formatNumber(cellData.targetVal)}</div>
                     `;
                 } else {
@@ -709,7 +703,7 @@
         if (selectedCells.length === 0) return;
 
         ctx.beginPath();
-        ctx.lineWidth = 5;
+        ctx.lineWidth = 6;
         ctx.strokeStyle = '#ffffff';
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
@@ -955,6 +949,7 @@
         }
     }
 
+    // 🌟 核心修正：炸彈目標數字完全動態對應當前的 minAllowedValue 階梯範圍！
     function spawnBomb() {
         let emptyCoords = [];
         let existingBombs = 0;
@@ -972,7 +967,14 @@
         if (existingBombs >= 2 || emptyCoords.length === 0) return;
 
         const targetCoord = emptyCoords[Math.floor(Math.random() * emptyCoords.length)];
-        const possibleTargets = [16, 32, 64, 128, 256, 512];
+        
+        // 🎯 根據當前允許最小數字 (minAllowedValue) 生成對應允許範圍內的炸彈目標 (例如 8192 開始時生成 8192~256K)
+        let possibleTargets = [];
+        let base = minAllowedValue;
+        for (let i = 0; i < 6; i++) {
+            possibleTargets.push(base * Math.pow(2, i));
+        }
+
         const targetVal = possibleTargets[Math.floor(Math.random() * possibleTargets.length)];
         const timer = Math.floor(Math.random() * 5) + 5;
 
@@ -1064,6 +1066,7 @@
         board = JSON.parse(JSON.stringify(lastState.board));
         score = lastState.score;
         minAllowedValue = lastState.minAllowedValue;
+        moveCount = lastState.moveCount || 0;
 
         scoreElement.textContent = score;
         coinsElement.textContent = coins;
