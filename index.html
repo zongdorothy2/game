@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>2248 Merge Puzzle - 純淨版</title>
+<title>2248 Merge Puzzle - 無廣告版</title>
 <style>
     * {
         box-sizing: border-box;
@@ -13,7 +13,7 @@
     body {
         background-color: #1e1e24;
         color: #ffffff;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -33,8 +33,8 @@
         margin-bottom: 15px;
     }
     .title {
-        font-size: 28px;
-        font-weight: 800;
+        font-size: 32px;
+        font-weight: 900;
         color: #f4d03f;
         letter-spacing: 1px;
     }
@@ -44,7 +44,7 @@
     }
     .score-box {
         background-color: #2b2d42;
-        padding: 8px 14px;
+        padding: 6px 12px;
         border-radius: 10px;
         text-align: center;
         min-width: 75px;
@@ -52,44 +52,55 @@
     .score-label {
         font-size: 11px;
         color: #8d99ae;
-        text-transform: uppercase;
     }
     .score-value {
         font-size: 18px;
         font-weight: bold;
         color: #edf2f4;
     }
-    #game-board {
-        display: grid;
-        grid-template-columns: repeat(5, 62px);
-        grid-template-rows: repeat(7, 62px);
-        gap: 8px;
+    .game-container {
+        position: relative;
         background-color: #2b2d42;
         padding: 10px;
         border-radius: 16px;
         box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+    #line-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 10;
+    }
+    #game-board {
+        display: grid;
+        grid-template-columns: repeat(5, 60px);
+        grid-template-rows: repeat(7, 60px);
+        gap: 8px;
         position: relative;
+        z-index: 5;
     }
     .cell {
-        width: 62px;
-        height: 62px;
+        width: 60px;
+        height: 60px;
         border-radius: 12px;
         display: flex;
         justify-content: center;
         align-items: center;
-        font-size: 22px;
+        font-size: 20px;
         font-weight: 800;
         color: #ffffff;
-        transition: transform 0.15s ease, opacity 0.15s ease;
+        transition: transform 0.1s ease;
         box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2);
     }
     .cell.selected {
         transform: scale(0.85);
-        opacity: 0.85;
         box-shadow: 0 0 12px #ffffff;
     }
     .btn-reset {
-        margin-top: 20px;
+        margin-top: 15px;
         background-color: #ef233c;
         color: white;
         border: none;
@@ -98,10 +109,6 @@
         font-weight: bold;
         border-radius: 20px;
         cursor: pointer;
-        box-shadow: 0 4px 10px rgba(239, 35, 60, 0.4);
-    }
-    .btn-reset:active {
-        transform: scale(0.95);
     }
 </style>
 </head>
@@ -111,23 +118,29 @@
     <div class="title">2248</div>
     <div class="score-container">
         <div class="score-box">
-            <div class="score-label">分數</div>
+            <div class="score-label">SCORE</div>
             <div class="score-value" id="score">0</div>
         </div>
         <div class="score-box">
-            <div class="score-label">最高</div>
+            <div class="score-label">BEST</div>
             <div class="score-value" id="best-score">0</div>
         </div>
     </div>
 </div>
 
-<div id="game-board"></div>
+<div class="game-container">
+    <canvas id="line-canvas"></canvas>
+    <div id="game-board"></div>
+</div>
+
 <button class="btn-reset" onclick="initBoard()">重新開始</button>
 
 <script>
     const ROWS = 7;
     const COLS = 5;
     const boardElement = document.getElementById('game-board');
+    const canvas = document.getElementById('line-canvas');
+    const ctx = canvas.getContext('2d');
     const scoreElement = document.getElementById('score');
     const bestScoreElement = document.getElementById('best-score');
     
@@ -139,7 +152,6 @@
 
     bestScoreElement.textContent = bestScore;
 
-    // 方塊色彩配置
     const colors = {
         2: '#e63946', 4: '#f4a261', 8: '#2a9d8f', 16: '#457b9d',
         32: '#6a0572', 64: '#b5179e', 128: '#7209b7', 256: '#3f37c9',
@@ -162,11 +174,18 @@
             board.push(row);
         }
         renderBoard();
+        resizeCanvas();
     }
 
     function generateRandomBlock() {
         const pool = [2, 2, 2, 4, 4, 8];
         return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    function resizeCanvas() {
+        const rect = boardElement.getBoundingClientRect();
+        canvas.width = rect.width + 20;
+        canvas.height = rect.height + 20;
     }
 
     function renderBoard() {
@@ -185,35 +204,72 @@
         }
     }
 
-    function getTargetCell(e) {
-        let x = e.touches ? e.touches[0].clientX : e.clientX;
-        let y = e.touches ? e.touches[0].clientY : e.clientY;
-        const target = document.elementFromPoint(x, y);
-        return (target && target.classList.contains('cell')) ? target : null;
+    function getCellPos(cell) {
+        const rect = cell.getBoundingClientRect();
+        const parentRect = canvas.getBoundingClientRect();
+        return {
+            x: rect.left + rect.width / 2 - parentRect.left,
+            y: rect.top + rect.height / 2 - parentRect.top
+        };
     }
 
-    function startInteraction(e) {
-        e.preventDefault();
-        const target = getTargetCell(e);
-        if (target) {
+    function drawLines(currentX, currentY) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (selectedCells.length === 0) return;
+
+        ctx.beginPath();
+        ctx.lineWidth = 6;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        const firstPos = getCellPos(selectedCells[0].element);
+        ctx.moveTo(firstPos.x, firstPos.y);
+
+        for (let i = 1; i < selectedCells.length; i++) {
+            const pos = getCellPos(selectedCells[i].element);
+            ctx.lineTo(pos.x, pos.y);
+        }
+
+        if (currentX !== undefined && currentY !== undefined) {
+            const parentRect = canvas.getBoundingClientRect();
+            ctx.lineTo(currentX - parentRect.left, currentY - parentRect.top);
+        }
+
+        ctx.stroke();
+    }
+
+    function getTargetCell(x, y) {
+        const target = document.elementFromPoint(x, y);
+        if (target && target.classList.contains('cell')) {
+            return target;
+        }
+        return null;
+    }
+
+    function handleStart(x, y) {
+        const cell = getTargetCell(x, y);
+        if (cell) {
             isDragging = true;
             selectedCells = [];
-            addToSelection(target);
+            addToSelection(cell);
+            drawLines(x, y);
         }
     }
 
-    function continueInteraction(e) {
+    function handleMove(x, y) {
         if (!isDragging) return;
-        e.preventDefault();
-        const target = getTargetCell(e);
-        if (target) {
-            addToSelection(target);
+        const cell = getTargetCell(x, y);
+        if (cell) {
+            addToSelection(cell);
         }
+        drawLines(x, y);
     }
 
-    function endInteraction() {
+    function handleEnd() {
         if (!isDragging) return;
         isDragging = false;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         if (selectedCells.length >= 2) {
             mergeCells();
@@ -223,44 +279,60 @@
         selectedCells = [];
     }
 
-    function addToSelection(cellElement) {
-        const r = parseInt(cellElement.dataset.r);
-        const c = parseInt(cellElement.dataset.c);
+    function addToSelection(cell) {
+        const r = parseInt(cell.dataset.r);
+        const c = parseInt(cell.dataset.c);
         const val = board[r][c];
-        const cellData = { r, c, val, element: cellElement };
+
+        // 避免重複計算同一個 DOM
+        if (selectedCells.some(s => s.r === r && s.c === c)) {
+            // 退回上一格邏輯
+            if (selectedCells.length >= 2) {
+                const prev = selectedCells[selectedCells.length - 2];
+                if (prev.r === r && prev.c === c) {
+                    const removed = selectedCells.pop();
+                    removed.element.classList.remove('selected');
+                }
+            }
+            return;
+        }
 
         if (selectedCells.length === 0) {
-            selectedCells.push(cellData);
-            cellElement.classList.add('selected');
+            selectedCells.push({ r, c, val, element: cell });
+            cell.classList.add('selected');
             return;
         }
 
         const last = selectedCells[selectedCells.length - 1];
         const isAdjacent = Math.abs(last.r - r) <= 1 && Math.abs(last.c - c) <= 1;
-        const existIdx = selectedCells.findIndex(s => s.r === r && s.c === c);
 
-        // 退回前一格
-        if (existIdx === selectedCells.length - 2) {
-            const removed = selectedCells.pop();
-            removed.element.classList.remove('selected');
-            return;
-        }
+        if (isAdjacent) {
+            // 2248 連線規則：第一組相同，後續可以連接同數字或兩倍數字
+            const firstVal = selectedCells[0].val;
+            const secondVal = selectedCells.length > 1 ? selectedCells[1].val : firstVal;
 
-        // 新增連線規則
-        if (existIdx === -1 && isAdjacent) {
-            if (val === last.val || val === last.val * 2) {
-                selectedCells.push(cellData);
-                cellElement.classList.add('selected');
+            if (selectedCells.length === 1) {
+                if (val === last.val) {
+                    selectedCells.push({ r, c, val, element: cell });
+                    cell.classList.add('selected');
+                }
+            } else {
+                if (val === last.val || val === last.val * 2) {
+                    selectedCells.push({ r, c, val, element: cell });
+                    cell.classList.add('selected');
+                }
             }
         }
     }
 
     function mergeCells() {
         const last = selectedCells[selectedCells.length - 1];
-        let sum = selectedCells.reduce((acc, cur) => acc + cur.val, 0);
         
-        // 算出小於等於總和的最接近 2 的冪次方
+        // 算出連線總和對應的 2 的冪次方數值
+        let sum = selectedCells.reduce((acc, cur) => acc + cur.val, 0);
         let mergedValue = Math.pow(2, Math.floor(Math.log2(sum)));
+        
+        // 確保合併後的數字不小於最後一個方塊的兩倍
         if (mergedValue < last.val * 2) mergedValue = last.val * 2;
 
         selectedCells.forEach(c => {
@@ -268,7 +340,7 @@
         });
 
         board[last.r][last.c] = mergedValue;
-        score += mergedValue;
+        score += sum;
         scoreElement.textContent = score;
 
         if (score > bestScore) {
@@ -296,14 +368,16 @@
         renderBoard();
     }
 
-    // 綁定事件
-    boardElement.addEventListener('touchstart', startInteraction, { passive: false });
-    boardElement.addEventListener('touchmove', continueInteraction, { passive: false });
-    window.addEventListener('touchend', endInteraction);
+    // 全局事件監聽 (確保手機與電腦鬆開手指/滑鼠時 100% 觸發合併)
+    window.addEventListener('touchstart', e => handleStart(e.touches[0].clientX, e.touches[0].clientY), { passive: false });
+    window.addEventListener('touchmove', e => handleMove(e.touches[0].clientX, e.touches[0].clientY), { passive: false });
+    window.addEventListener('touchend', handleEnd);
 
-    boardElement.addEventListener('mousedown', startInteraction);
-    boardElement.addEventListener('mousemove', continueInteraction);
-    window.addEventListener('mouseup', endInteraction);
+    window.addEventListener('mousedown', e => handleStart(e.clientX, e.clientY));
+    window.addEventListener('mousemove', e => handleMove(e.clientX, e.clientY));
+    window.addEventListener('mouseup', handleEnd);
+
+    window.addEventListener('resize', resizeCanvas);
 
     initBoard();
 </script>
