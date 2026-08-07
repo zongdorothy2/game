@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>2248 Merge Puzzle - 無廣告版</title>
+<title>2248 GAME</title>
 <style>
     * {
         box-sizing: border-box;
@@ -30,31 +30,44 @@
         align-items: center;
         width: 100%;
         max-width: 350px;
-        margin-bottom: 15px;
+        margin-bottom: 12px;
+    }
+    .title-box {
+        display: flex;
+        flex-direction: column;
     }
     .title {
-        font-size: 32px;
+        font-size: 28px;
         font-weight: 900;
         color: #f4d03f;
         letter-spacing: 1px;
     }
+    .coin-box {
+        font-size: 14px;
+        color: #f1c40f;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 2px;
+    }
     .score-container {
         display: flex;
-        gap: 10px;
+        gap: 8px;
     }
     .score-box {
         background-color: #2b2d42;
-        padding: 6px 12px;
+        padding: 6px 10px;
         border-radius: 10px;
         text-align: center;
-        min-width: 75px;
+        min-width: 70px;
     }
     .score-label {
-        font-size: 11px;
+        font-size: 10px;
         color: #8d99ae;
     }
     .score-value {
-        font-size: 18px;
+        font-size: 16px;
         font-weight: bold;
         color: #edf2f4;
     }
@@ -94,35 +107,101 @@
         color: #ffffff;
         transition: transform 0.1s ease;
         box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2);
+        position: relative;
     }
     .cell.selected {
         transform: scale(0.85);
         box-shadow: 0 0 12px #ffffff;
     }
-    .btn-reset {
+
+    /* 最高數字皇冠與金框樣式 */
+    .cell.max-value {
+        border: 3px solid #ffd700;
+        box-shadow: 0 0 12px #ffd700, inset 0 0 8px #ffd700;
+        animation: pulse-glow 1.5s infinite alternate;
+    }
+    .cell.max-value::before {
+        content: '👑';
+        position: absolute;
+        top: -6px;
+        right: -4px;
+        font-size: 14px;
+        filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+    }
+    @keyframes pulse-glow {
+        0% { box-shadow: 0 0 8px #ffd700; }
+        100% { box-shadow: 0 0 16px #ffe600; }
+    }
+
+    /* 道具工具欄 */
+    .tools-bar {
+        display: flex;
+        gap: 12px;
         margin-top: 15px;
-        background-color: #ef233c;
-        color: white;
-        border: none;
-        padding: 10px 24px;
-        font-size: 16px;
+        width: 100%;
+        max-width: 350px;
+        justify-content: center;
+    }
+    .tool-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        background-color: #2b2d42;
+        border: 2px solid #3d405b;
+        color: #ffffff;
+        padding: 10px;
+        border-radius: 12px;
+        font-size: 14px;
         font-weight: bold;
-        border-radius: 20px;
         cursor: pointer;
+        transition: all 0.2s;
+    }
+    .tool-btn:active {
+        transform: scale(0.95);
+    }
+    .tool-btn.active {
+        border-color: #e74c3c;
+        background-color: #c0392b;
+        animation: shake 0.3s infinite;
+    }
+    .tool-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+    .tool-cost {
+        background-color: #f1c40f;
+        color: #000;
+        padding: 2px 6px;
+        border-radius: 8px;
+        font-size: 12px;
+    }
+
+    /* 提示訊息 */
+    #status-msg {
+        margin-top: 8px;
+        height: 18px;
+        font-size: 13px;
+        color: #f39c12;
+        font-weight: bold;
     }
 </style>
 </head>
 <body>
 
 <div class="header">
-    <div class="title">2248</div>
+    <div class="title-box">
+        <div class="title">2248</div>
+        <div class="coin-box">🪙 金幣: <span id="coins">0</span></div>
+    </div>
     <div class="score-container">
         <div class="score-box">
-            <div class="score-label">SCORE</div>
+            <div class="score-label">分數</div>
             <div class="score-value" id="score">0</div>
         </div>
         <div class="score-box">
-            <div class="score-label">BEST</div>
+            <div class="score-label">最高</div>
             <div class="score-value" id="best-score">0</div>
         </div>
     </div>
@@ -133,7 +212,17 @@
     <div id="game-board"></div>
 </div>
 
-<button class="btn-reset" onclick="initBoard()">重新開始</button>
+<div id="status-msg"></div>
+
+<!-- 道具工具區域 -->
+<div class="tools-bar">
+    <button class="tool-btn" id="btn-shuffle" onclick="useShuffle()">
+        🔄 洗牌 <span class="tool-cost">150</span>
+    </button>
+    <button class="tool-btn" id="btn-hammer" onclick="toggleHammer()">
+        🔨 鐵錘 <span class="tool-cost">100</span>
+    </button>
+</div>
 
 <script>
     const ROWS = 7;
@@ -143,19 +232,24 @@
     const ctx = canvas.getContext('2d');
     const scoreElement = document.getElementById('score');
     const bestScoreElement = document.getElementById('best-score');
-    
+    const coinsElement = document.getElementById('coins');
+    const statusMsg = document.getElementById('status-msg');
+
     let board = [];
     let score = 0;
+    let coins = 100; // 初始給予 100 金幣體驗
     let bestScore = localStorage.getItem('2248_best') || 0;
     let isDragging = false;
     let selectedCells = [];
+    let isHammerMode = false;
 
     bestScoreElement.textContent = bestScore;
+    coinsElement.textContent = coins;
 
     const colors = {
         2: '#e63946', 4: '#f4a261', 8: '#2a9d8f', 16: '#457b9d',
         32: '#6a0572', 64: '#b5179e', 128: '#7209b7', 256: '#3f37c9',
-        512: '#4895ef', 1024: '#4cc9f0', 2048: '#f15bb5', 4096: '#00f5d4'
+        512: '#27ae60', 1024: '#4cc9f0', 2048: '#f15bb5', 4096: '#00f5d4'
     };
 
     function getCellColor(val) {
@@ -175,6 +269,7 @@
         }
         renderBoard();
         resizeCanvas();
+        updateToolsState();
     }
 
     function generateRandomBlock() {
@@ -188,8 +283,21 @@
         canvas.height = rect.height + 20;
     }
 
+    // 找出目前盤面上的最大數值
+    function getBoardMaxValue() {
+        let max = 0;
+        for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < COLS; c++) {
+                if (board[r][c] > max) max = board[r][c];
+            }
+        }
+        return max;
+    }
+
     function renderBoard() {
         boardElement.innerHTML = '';
+        const maxValue = getBoardMaxValue();
+
         for (let r = 0; r < ROWS; r++) {
             for (let c = 0; c < COLS; c++) {
                 const cell = document.createElement('div');
@@ -199,9 +307,16 @@
                 cell.style.backgroundColor = getCellColor(val);
                 cell.dataset.r = r;
                 cell.dataset.c = c;
+
+                // 若為最大值且大於等於 16，加上皇冠與閃光特效
+                if (val === maxValue && val >= 16) {
+                    cell.classList.add('max-value');
+                }
+
                 boardElement.appendChild(cell);
             }
         }
+        updateToolsState();
     }
 
     function getCellPos(cell) {
@@ -249,16 +364,22 @@
 
     function handleStart(x, y) {
         const cell = getTargetCell(x, y);
-        if (cell) {
-            isDragging = true;
-            selectedCells = [];
-            addToSelection(cell);
-            drawLines(x, y);
+        if (!cell) return;
+
+        // 若開啟鐵錘模式，優先執行敲碎功能
+        if (isHammerMode) {
+            useHammer(cell);
+            return;
         }
+
+        isDragging = true;
+        selectedCells = [];
+        addToSelection(cell);
+        drawLines(x, y);
     }
 
     function handleMove(x, y) {
-        if (!isDragging) return;
+        if (!isDragging || isHammerMode) return;
         const cell = getTargetCell(x, y);
         if (cell) {
             addToSelection(cell);
@@ -267,7 +388,7 @@
     }
 
     function handleEnd() {
-        if (!isDragging) return;
+        if (!isDragging || isHammerMode) return;
         isDragging = false;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -284,9 +405,7 @@
         const c = parseInt(cell.dataset.c);
         const val = board[r][c];
 
-        // 避免重複計算同一個 DOM
         if (selectedCells.some(s => s.r === r && s.c === c)) {
-            // 退回上一格邏輯
             if (selectedCells.length >= 2) {
                 const prev = selectedCells[selectedCells.length - 2];
                 if (prev.r === r && prev.c === c) {
@@ -307,10 +426,6 @@
         const isAdjacent = Math.abs(last.r - r) <= 1 && Math.abs(last.c - c) <= 1;
 
         if (isAdjacent) {
-            // 2248 連線規則：第一組相同，後續可以連接同數字或兩倍數字
-            const firstVal = selectedCells[0].val;
-            const secondVal = selectedCells.length > 1 ? selectedCells[1].val : firstVal;
-
             if (selectedCells.length === 1) {
                 if (val === last.val) {
                     selectedCells.push({ r, c, val, element: cell });
@@ -327,12 +442,9 @@
 
     function mergeCells() {
         const last = selectedCells[selectedCells.length - 1];
-        
-        // 算出連線總和對應的 2 的冪次方數值
         let sum = selectedCells.reduce((acc, cur) => acc + cur.val, 0);
         let mergedValue = Math.pow(2, Math.floor(Math.log2(sum)));
         
-        // 確保合併後的數字不小於最後一個方塊的兩倍
         if (mergedValue < last.val * 2) mergedValue = last.val * 2;
 
         selectedCells.forEach(c => {
@@ -340,8 +452,14 @@
         });
 
         board[last.r][last.c] = mergedValue;
+        
+        // 增加分數與金幣（每10分折算1金幣）
         score += sum;
+        const earnedCoins = Math.floor(sum / 10);
+        coins += earnedCoins;
+        
         scoreElement.textContent = score;
+        coinsElement.textContent = coins;
 
         if (score > bestScore) {
             bestScore = score;
@@ -368,7 +486,64 @@
         renderBoard();
     }
 
-    // 全局事件監聽 (確保手機與電腦鬆開手指/滑鼠時 100% 觸發合併)
+    // --- 道具工具功能 ---
+
+    function updateToolsState() {
+        document.getElementById('btn-shuffle').disabled = coins < 150;
+        document.getElementById('btn-hammer').disabled = coins < 100;
+    }
+
+    // 道具 1: 洗牌
+    function useShuffle() {
+        if (coins < 150) return;
+        coins -= 150;
+        coinsElement.textContent = coins;
+
+        for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < COLS; c++) {
+                board[r][c] = generateRandomBlock();
+            }
+        }
+        renderBoard();
+        showStatusMsg('🔄 盤面已洗牌！');
+    }
+
+    // 道具 2: 切換鐵錘模式
+    function toggleHammer() {
+        if (coins < 100) return;
+        isHammerMode = !isHammerMode;
+        const btn = document.getElementById('btn-hammer');
+        if (isHammerMode) {
+            btn.classList.add('active');
+            showStatusMsg('🔨 請點擊要敲碎的方塊');
+        } else {
+            btn.classList.remove('active');
+            showStatusMsg('');
+        }
+    }
+
+    // 執行敲碎
+    function useHammer(cell) {
+        const r = parseInt(cell.dataset.r);
+        const c = parseInt(cell.dataset.c);
+        
+        coins -= 100;
+        coinsElement.textContent = coins;
+        board[r][c] = 0;
+
+        isHammerMode = false;
+        document.getElementById('btn-hammer').classList.remove('active');
+        showStatusMsg('💥 已敲碎方塊！');
+
+        applyGravity();
+    }
+
+    function showStatusMsg(msg) {
+        statusMsg.textContent = msg;
+        if (msg) setTimeout(() => { statusMsg.textContent = ''; }, 3000);
+    }
+
+    // 事件監聽
     window.addEventListener('touchstart', e => handleStart(e.touches[0].clientX, e.touches[0].clientY), { passive: false });
     window.addEventListener('touchmove', e => handleMove(e.touches[0].clientX, e.touches[0].clientY), { passive: false });
     window.addEventListener('touchend', handleEnd);
