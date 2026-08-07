@@ -110,7 +110,6 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        /* 🔍 字體放大 */
         font-size: 22px;
         font-weight: 900;
         color: #ffffff;
@@ -119,7 +118,6 @@
         position: relative;
         letter-spacing: -0.5px;
     }
-    /* 針對字數較長的文字自動縮小字型 */
     .cell.small-text {
         font-size: 17px;
     }
@@ -131,7 +129,6 @@
         box-shadow: 0 0 12px #ffffff;
     }
 
-    /* 動畫效果 */
     .cell.pop {
         animation: pop-animation 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
@@ -149,7 +146,6 @@
         100% { transform: translateY(0); opacity: 1; }
     }
 
-    /* 最高數字皇冠與金框樣式 */
     .cell.max-value {
         border: 3px solid #ffd700;
         box-shadow: 0 0 12px #ffd700, inset 0 0 8px #ffd700;
@@ -168,7 +164,6 @@
         100% { box-shadow: 0 0 16px #ffe600; }
     }
 
-    /* 道具工具欄 */
     .tools-bar {
         display: flex;
         gap: 8px;
@@ -212,7 +207,6 @@
         font-size: 11px;
     }
 
-    /* 連擊 (Combo) 浮空特效 */
     #combo-overlay {
         position: absolute;
         top: 40%;
@@ -233,7 +227,6 @@
         opacity: 1;
     }
 
-    /* 提示訊息 */
     #status-msg {
         margin-top: 6px;
         height: 18px;
@@ -275,8 +268,11 @@
     <button class="tool-btn" id="btn-shuffle" onclick="useShuffle()">🔄 洗牌<span class="tool-cost">150</span></button>
     <button class="tool-btn" id="btn-hammer" onclick="toggleHammer()">🔨 鐵錘<span class="tool-cost">100</span></button>
     <button class="tool-btn" onclick="exportSave()">💾 匯出</button>
-    <button class="tool-btn" onclick="importSave()">📂 匯入</button>
+    <button class="tool-btn" onclick="triggerImport()">📂 匯入</button>
 </div>
+
+<!-- 隱藏的檔案上傳元件 -->
+<input type="file" id="file-input" accept=".json" style="display: none;" onchange="importSave(event)">
 
 <script>
     const ROWS = 7;
@@ -304,7 +300,6 @@
     bestScoreElement.textContent = bestScore;
     coinsElement.textContent = coins;
 
-    // 方塊顏色配置
     const colors = {
         2: '#8bc34a', 4: '#f4a261', 8: '#4dd0e1', 16: '#5c6bc0',
         32: '#ef6c00', 64: '#7e57c2', 128: '#7209b7', 256: '#3f37c9',
@@ -316,16 +311,14 @@
         return colors[val] || '#9b59b6';
     }
 
-    // 🌟 K/M 大數字轉換邏輯
     function formatNumber(val) {
-        if (val < 16384) return val.toString(); // 8192 之前顯示原始數字
+        if (val < 16384) return val.toString();
         if (val < 1048576) {
-            return (val / 1024) + 'K'; // 16K, 32K ... 512K
+            return (val / 1024) + 'K';
         }
-        return (val / 1048576) + 'M'; // 1M, 2M ... 1024M
+        return (val / 1048576) + 'M';
     }
 
-    // Web Audio API
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     let audioCtx = null;
 
@@ -453,7 +446,6 @@
                 cell.dataset.r = r;
                 cell.dataset.c = c;
 
-                // 文字過長微調字型大小
                 if (text.length === 4) cell.classList.add('small-text');
                 else if (text.length >= 5) cell.classList.add('xsmall-text');
 
@@ -548,10 +540,9 @@
 
         const count = selectedCells.length;
         if (count >= 2) {
-            // 🌟 10 連擊以上跳出動畫提示
             if (count >= 10) {
                 showComboAlert(count);
-                setTimeout(() => { mergeCells(); }, 400); // 稍微停頓展示提示
+                setTimeout(() => { mergeCells(); }, 400);
             } else {
                 mergeCells();
             }
@@ -741,48 +732,83 @@
         if (msg) setTimeout(() => { statusMsg.textContent = ''; }, 3500);
     }
 
-    // 💾 存檔匯出/匯入邏輯
+    // 📄 取得當前日期的格式化字串 (YYYYMMDD)
+    function getFormattedDate() {
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        return `${yyyy}${mm}${dd}`;
+    }
+
+    // 💾 匯出為 .json 檔案
     function exportSave() {
         const saveData = {
+            game: "2248_Merge_Puzzle",
+            exportDate: new Date().toISOString(),
             score,
             coins,
             bestScore,
             minAllowedValue,
             board
         };
-        const jsonStr = btoa(JSON.stringify(saveData)); // Base64 編碼
-        navigator.clipboard.writeText(jsonStr).then(() => {
-            alert('💾 遊戲存檔已複製到剪貼簿！您可以貼上保存它。');
-        }).catch(() => {
-            prompt('請複製以下存檔代碼：', jsonStr);
-        });
+
+        const jsonString = JSON.stringify(saveData, null, 2);
+        const blob = new Blob([jsonString], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        
+        const fileName = `2248_Save_${getFormattedDate()}.json`;
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showStatusMsg(`💾 已下載存檔：${fileName}`);
     }
 
-    function importSave() {
-        const jsonStr = prompt('請貼上您的遊戲存檔代碼：');
-        if (!jsonStr) return;
-        try {
-            const saveData = JSON.parse(atob(jsonStr.trim()));
-            if (saveData.board && saveData.score !== undefined) {
-                score = saveData.score;
-                coins = saveData.coins;
-                bestScore = saveData.bestScore;
-                minAllowedValue = saveData.minAllowedValue || 2;
-                board = saveData.board;
+    // 📂 觸發檔案選擇器
+    function triggerImport() {
+        document.getElementById('file-input').click();
+    }
 
-                scoreElement.textContent = score;
-                coinsElement.textContent = coins;
-                bestScoreElement.textContent = bestScore;
-                localStorage.setItem('2248_best', bestScore);
+    // 📂 讀取並匯入 .json 檔案
+    function importSave(event) {
+        const file = event.target.files[0];
+        if (!file) return;
 
-                renderBoard(true);
-                showStatusMsg('📂 存檔匯入成功！');
-            } else {
-                alert('⚠️ 無效的存檔格式！');
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const saveData = JSON.parse(e.target.result);
+                if (saveData.board && saveData.score !== undefined) {
+                    score = saveData.score;
+                    coins = saveData.coins;
+                    bestScore = saveData.bestScore;
+                    minAllowedValue = saveData.minAllowedValue || 2;
+                    board = saveData.board;
+
+                    scoreElement.textContent = score;
+                    coinsElement.textContent = coins;
+                    bestScoreElement.textContent = bestScore;
+                    localStorage.setItem('2248_best', bestScore);
+
+                    renderBoard(true);
+                    showStatusMsg('📂 存檔匯入成功！');
+                } else {
+                    alert('⚠️ 無效的存檔檔案格式！');
+                }
+            } catch (err) {
+                alert('⚠️ 讀取存檔失敗，請確認是否為正確的 .json 檔案。');
             }
-        } catch (e) {
-            alert('⚠️ 存檔代碼解析失敗，請確認代碼是否完整。');
-        }
+            // 清空選擇器，確保重複選擇同檔案時仍能觸發
+            event.target.value = '';
+        };
+        reader.readAsText(file);
     }
 
     window.addEventListener('touchstart', e => handleStart(e.touches[0].clientX, e.touches[0].clientY), { passive: false });
