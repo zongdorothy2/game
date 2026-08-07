@@ -18,19 +18,21 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        min-height: 100vh;
+        height: 100vh;
+        height: 100dvh; /* 相容手機真實可視高度 */
         margin: 0;
-        padding: 10px;
+        padding: 4px 10px;
         touch-action: none;
         overscroll-behavior: none;
+        overflow: hidden; /* 確保完全無捲動條 */
     }
     .header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         width: 100%;
-        max-width: 350px;
-        margin-bottom: 6px;
+        max-width: 320px;
+        margin-bottom: 4px;
     }
     .title-box {
         display: flex;
@@ -39,22 +41,22 @@
     .title-row {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
     }
     .title {
-        font-size: 26px;
+        font-size: 22px;
         font-weight: 900;
         color: #f4d03f;
-        letter-spacing: 1px;
+        letter-spacing: 0.5px;
     }
     .btn-help {
         background: #3d405b;
         color: #f4d03f;
         border: none;
         border-radius: 50%;
-        width: 24px;
-        height: 24px;
-        font-size: 13px;
+        width: 22px;
+        height: 22px;
+        font-size: 12px;
         font-weight: bold;
         cursor: pointer;
         display: flex;
@@ -62,13 +64,12 @@
         justify-content: center;
     }
     .coin-box {
-        font-size: 13px;
+        font-size: 12px;
         color: #f1c40f;
         font-weight: bold;
         display: flex;
         align-items: center;
-        gap: 4px;
-        margin-top: 2px;
+        gap: 3px;
     }
     .score-container {
         display: flex;
@@ -76,37 +77,37 @@
     }
     .score-box {
         background-color: #2b2d42;
-        padding: 4px 8px;
-        border-radius: 10px;
+        padding: 3px 6px;
+        border-radius: 8px;
         text-align: center;
-        min-width: 65px;
+        min-width: 60px;
     }
     .score-label {
         font-size: 9px;
         color: #8d99ae;
     }
     .score-value {
-        font-size: 15px;
+        font-size: 14px;
         font-weight: bold;
         color: #edf2f4;
     }
 
-    /* 🟢 💣 模式選擇按鈕頁籤 */
+    /* 🟢 💣 模式選擇按鈕頁籤 (緊湊邊距) */
     .mode-tabs {
         display: flex;
-        gap: 8px;
+        gap: 6px;
         width: 100%;
-        max-width: 350px;
-        margin-bottom: 8px;
+        max-width: 320px;
+        margin-bottom: 4px;
     }
     .mode-btn {
         flex: 1;
-        padding: 6px 0;
-        border-radius: 12px;
-        border: 2px solid #3d405b;
+        padding: 4px 0;
+        border-radius: 10px;
+        border: 1.5px solid #3d405b;
         background-color: #2b2d42;
         color: #8d99ae;
-        font-size: 13px;
+        font-size: 12px;
         font-weight: bold;
         cursor: pointer;
         text-align: center;
@@ -116,33 +117,34 @@
         background-color: #3d405b;
         color: #ffffff;
         border-color: #f4d03f;
-        box-shadow: 0 0 10px rgba(244, 208, 63, 0.3);
+        box-shadow: 0 0 8px rgba(244, 208, 63, 0.25);
     }
 
     #preview-box {
-        height: 20px;
-        font-size: 13px;
+        height: 18px;
+        font-size: 12px;
         font-weight: 800;
         color: #2ecc71;
         text-align: center;
-        margin-bottom: 4px;
+        margin-bottom: 3px;
         letter-spacing: 0.5px;
     }
 
+    /* 盤面外框緊湊化 */
     .game-container {
         position: relative;
         background-color: #2b2d42;
-        padding: 10px;
-        border-radius: 16px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        padding: 6px;
+        border-radius: 14px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.4);
     }
     .game-container.shake {
         animation: shake-board 0.3s ease-in-out;
     }
     @keyframes shake-board {
         0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-6px); }
-        75% { transform: translateX(6px); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
     }
     #line-canvas {
         position: absolute;
@@ -155,40 +157,40 @@
     }
     #game-board {
         display: grid;
-        grid-template-columns: repeat(5, 60px);
-        grid-template-rows: repeat(7, 60px);
-        gap: 8px;
+        grid-template-columns: repeat(5, 52px);
+        grid-template-rows: repeat(7, 52px);
+        gap: 5px;
         position: relative;
         z-index: 5;
     }
     .cell {
-        width: 60px;
-        height: 60px;
-        border-radius: 12px;
+        width: 52px;
+        height: 52px;
+        border-radius: 10px;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        font-size: 22px;
+        font-size: 19px;
         font-weight: 900;
         color: #ffffff;
         transition: transform 0.15s ease, background-color 0.2s;
-        box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2);
+        box-shadow: inset 0 -2px 0 rgba(0,0,0,0.2);
         position: relative;
         letter-spacing: -0.5px;
     }
-    .cell.small-text { font-size: 17px; }
-    .cell.xsmall-text { font-size: 14px; }
+    .cell.small-text { font-size: 15px; }
+    .cell.xsmall-text { font-size: 12px; }
     .cell.selected {
         transform: scale(0.85);
-        box-shadow: 0 0 12px #ffffff;
+        box-shadow: 0 0 10px #ffffff;
     }
 
-    /* 💣 炸彈方塊專屬樣式 */
+    /* 💣 炸彈方塊樣式 */
     .cell.bomb-cell {
         background-color: #222222 !important;
         border: 2px solid #e74c3c;
-        box-shadow: 0 0 10px #e74c3c, inset 0 0 8px #c0392b;
+        box-shadow: 0 0 8px #e74c3c, inset 0 0 6px #c0392b;
         animation: bomb-pulse 1s infinite alternate;
     }
     @keyframes bomb-pulse {
@@ -198,21 +200,21 @@
     .bomb-timer {
         position: absolute;
         top: 2px;
-        left: 4px;
-        font-size: 10px;
+        left: 3px;
+        font-size: 9px;
         color: #e74c3c;
         font-weight: 900;
     }
     .bomb-target {
-        font-size: 16px;
+        font-size: 14px;
         font-weight: 900;
         color: #f1c40f;
     }
 
     /* 皇冠樣式 */
     .cell.max-value {
-        border: 3px solid #ffd700;
-        box-shadow: 0 0 12px #ffd700, inset 0 0 8px #ffd700;
+        border: 2.5px solid #ffd700;
+        box-shadow: 0 0 10px #ffd700, inset 0 0 6px #ffd700;
         animation: pulse-glow 1.5s infinite alternate;
     }
     .cell.max-value::before {
@@ -220,12 +222,12 @@
         position: absolute;
         top: -6px;
         right: -4px;
-        font-size: 14px;
+        font-size: 12px;
         filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
     }
     @keyframes pulse-glow {
-        0% { box-shadow: 0 0 8px #ffd700; }
-        100% { box-shadow: 0 0 16px #ffe600; }
+        0% { box-shadow: 0 0 6px #ffd700; }
+        100% { box-shadow: 0 0 14px #ffe600; }
     }
 
     /* 動畫效果 */
@@ -234,7 +236,7 @@
     }
     @keyframes pop-animation {
         0% { transform: scale(0.5); }
-        50% { transform: scale(1.2); }
+        50% { transform: scale(1.18); }
         100% { transform: scale(1); }
     }
 
@@ -242,18 +244,18 @@
         animation: drop-animation 0.25s ease-out;
     }
     @keyframes drop-animation {
-        0% { transform: translateY(-20px); opacity: 0; }
+        0% { transform: translateY(-15px); opacity: 0; }
         100% { transform: translateY(0); opacity: 1; }
     }
 
-    /* 道具欄 */
+    /* 道具欄 (微調緊貼盤面下緣) */
     .tools-bar {
         display: flex;
         flex-wrap: wrap;
-        gap: 6px;
-        margin-top: 10px;
+        gap: 5px;
+        margin-top: 6px;
         width: 100%;
-        max-width: 350px;
+        max-width: 320px;
         justify-content: center;
     }
     .tool-btn {
@@ -261,13 +263,13 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 4px;
+        gap: 3px;
         background-color: #2b2d42;
-        border: 2px solid #3d405b;
+        border: 1.5px solid #3d405b;
         color: #ffffff;
-        padding: 8px 2px;
-        border-radius: 12px;
-        font-size: 12px;
+        padding: 6px 2px;
+        border-radius: 10px;
+        font-size: 11px;
         font-weight: bold;
         cursor: pointer;
         transition: all 0.2s;
@@ -278,9 +280,9 @@
     .tool-cost {
         background-color: #f1c40f;
         color: #000;
-        padding: 2px 4px;
-        border-radius: 6px;
-        font-size: 10px;
+        padding: 1px 4px;
+        border-radius: 5px;
+        font-size: 9px;
     }
 
     #combo-overlay {
@@ -288,10 +290,10 @@
         top: 40%;
         left: 50%;
         transform: translate(-50%, -50%) scale(0);
-        font-size: 24px;
+        font-size: 22px;
         font-weight: 900;
         color: #f39c12;
-        text-shadow: 0 0 15px #f1c40f, 0 0 5px #000;
+        text-shadow: 0 0 12px #f1c40f, 0 0 4px #000;
         pointer-events: none;
         z-index: 20;
         transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
@@ -299,14 +301,14 @@
         white-space: nowrap;
     }
     #combo-overlay.show {
-        transform: translate(-50%, -50%) scale(1.3);
+        transform: translate(-50%, -50%) scale(1.2);
         opacity: 1;
     }
 
     #status-msg {
-        margin-top: 6px;
-        height: 18px;
-        font-size: 13px;
+        margin-top: 4px;
+        height: 16px;
+        font-size: 12px;
         color: #f39c12;
         font-weight: bold;
         text-align: center;
@@ -329,29 +331,29 @@
     .modal-card {
         background: #2b2d42;
         border: 2px solid #3d405b;
-        border-radius: 20px;
-        padding: 20px 24px;
+        border-radius: 18px;
+        padding: 18px 20px;
         text-align: left;
-        max-width: 320px;
+        max-width: 310px;
         width: 90%;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
         max-height: 85vh;
         overflow-y: auto;
     }
-    .modal-title { font-size: 24px; font-weight: 900; color: #f4d03f; margin-bottom: 12px; text-align: center; }
-    .modal-content { font-size: 13px; color: #edf2f4; line-height: 1.6; margin-bottom: 18px; }
-    .modal-content h4 { color: #2ecc71; margin: 10px 0 4px 0; font-size: 14px; }
-    .modal-content ul { padding-left: 18px; margin: 4px 0; }
+    .modal-title { font-size: 22px; font-weight: 900; color: #f4d03f; margin-bottom: 10px; text-align: center; }
+    .modal-content { font-size: 12px; color: #edf2f4; line-height: 1.5; margin-bottom: 15px; }
+    .modal-content h4 { color: #2ecc71; margin: 8px 0 3px 0; font-size: 13px; }
+    .modal-content ul { padding-left: 16px; margin: 3px 0; }
     .modal-btn-close {
         display: block;
         width: 100%;
         background-color: #27ae60;
         color: white;
         border: none;
-        padding: 10px;
-        font-size: 15px;
+        padding: 9px;
+        font-size: 14px;
         font-weight: bold;
-        border-radius: 14px;
+        border-radius: 12px;
         cursor: pointer;
         text-align: center;
     }
@@ -379,7 +381,7 @@
     </div>
 </div>
 
-<!-- 模式選擇按鈕 -->
+<!-- 模式切換按鈕 -->
 <div class="mode-tabs">
     <button class="mode-btn active" id="mode-basic" onclick="switchMode('basic')">🟢 基本模式</button>
     <button class="mode-btn" id="mode-bomb" onclick="switchMode('bomb')">💣 炸彈模式</button>
@@ -407,8 +409,8 @@
 <div class="modal-overlay" id="game-over-modal">
     <div class="modal-card" style="border-color: #ef233c; text-align: center;">
         <div class="modal-title" style="color: #ef233c;">GAME OVER</div>
-        <div style="color: #8d99ae; font-size: 14px; margin-bottom: 8px;">無可連線方塊且金幣不足！</div>
-        <div style="font-size: 20px; color: #f4d03f; margin-bottom: 20px; font-weight: bold;" id="final-score">得分: 0</div>
+        <div style="color: #8d99ae; font-size: 13px; margin-bottom: 8px;">無可連線方塊且金幣不足！</div>
+        <div style="font-size: 18px; color: #f4d03f; margin-bottom: 16px; font-weight: bold;" id="final-score">得分: 0</div>
         <button class="modal-btn-close" onclick="closeModal('game-over-modal'); initBoard();">重新開始</button>
     </div>
 </div>
@@ -465,7 +467,7 @@
     const gameOverModal = document.getElementById('game-over-modal');
     const tutorialModal = document.getElementById('tutorial-modal');
 
-    let currentGameMode = 'basic'; // 'basic' 或 'bomb'
+    let currentGameMode = 'basic';
     let board = [];
     let score = 0;
     let coins = 100;
@@ -477,7 +479,6 @@
     let mergedTargetPos = null;
     let lastState = null;
 
-    // 💣 炸彈模式專用狀態
     let moveCount = 0;
     let nextBombSpawnMoves = 8;
 
@@ -587,7 +588,7 @@
         score = 0;
         minAllowedValue = 2;
         moveCount = 0;
-        nextBombSpawnMoves = Math.floor(Math.random() * 5) + 8; // 8-12 步
+        nextBombSpawnMoves = Math.floor(Math.random() * 5) + 8;
         lastState = null;
         scoreElement.textContent = score;
         board = [];
@@ -621,8 +622,8 @@
 
     function resizeCanvas() {
         const rect = boardElement.getBoundingClientRect();
-        canvas.width = rect.width + 20;
-        canvas.height = rect.height + 20;
+        canvas.width = rect.width + 10;
+        canvas.height = rect.height + 10;
     }
 
     function getBoardMaxValue() {
@@ -650,14 +651,12 @@
                 cell.dataset.c = c;
 
                 if (typeof cellData === 'object' && cellData.type === 'bomb') {
-                    // 💣 炸彈方塊渲染
                     cell.classList.add('bomb-cell');
                     cell.innerHTML = `
-                        <div class="bomb-timer">💣 ${cellData.timer}步</div>
+                        <div class="bomb-timer">💣${cellData.timer}</div>
                         <div class="bomb-target">${formatNumber(cellData.targetVal)}</div>
                     `;
                 } else {
-                    // 一般數字方塊渲染
                     const val = cellData;
                     const text = formatNumber(val);
                     cell.textContent = text;
@@ -710,7 +709,7 @@
         if (selectedCells.length === 0) return;
 
         ctx.beginPath();
-        ctx.lineWidth = 6;
+        ctx.lineWidth = 5;
         ctx.strokeStyle = '#ffffff';
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
@@ -812,7 +811,6 @@
         const c = parseInt(cell.dataset.c);
         const cellContent = board[r][c];
 
-        // 💣 炸彈不能作為連線起點或路徑（除非是連線合成終點進行目標精準命中）
         if (typeof cellContent === 'object' && cellContent.type === 'bomb') return;
 
         const val = cellContent;
@@ -876,7 +874,6 @@
         let earnedScore = sum;
         let earnedCoins = Math.floor(sum / 5);
 
-        // 💣 炸彈模式：檢查是否精準命中拆彈，或是引爆處理
         if (currentGameMode === 'bomb') {
             const bombDefusedBonus = checkAndDefuseBombs(last.r, last.c, mergedValue);
             if (bombDefusedBonus) {
@@ -912,7 +909,6 @@
         checkGameOver();
     }
 
-    // 💣 炸彈拆除判定：合成點落在炸彈上或周圍九宮格且數值相符
     function checkAndDefuseBombs(targetR, targetC, mergedValue) {
         let defused = false;
         for (let r = 0; r < ROWS; r++) {
@@ -921,7 +917,7 @@
                     const bomb = board[r][c];
                     const isAdjacent = Math.abs(r - targetR) <= 1 && Math.abs(c - targetC) <= 1;
                     if (isAdjacent && mergedValue === bomb.targetVal) {
-                        board[r][c] = 0; // 成功拆彈消除
+                        board[r][c] = 0;
                         defused = true;
                     }
                 }
@@ -930,7 +926,6 @@
         return defused;
     }
 
-    // 💣 炸彈倒數與爆炸觸發
     function processBombTimers() {
         for (let r = 0; r < ROWS; r++) {
             for (let c = 0; c < COLS; c++) {
@@ -954,7 +949,7 @@
                 const nr = bombR + dr;
                 const nc = bombC + dc;
                 if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
-                    board[nr][nc] = 0; // 引爆清空不給分
+                    board[nr][nc] = 0;
                 }
             }
         }
@@ -977,11 +972,9 @@
         if (existingBombs >= 2 || emptyCoords.length === 0) return;
 
         const targetCoord = emptyCoords[Math.floor(Math.random() * emptyCoords.length)];
-        
-        // 隨機指定當前盤面上出現過之 16~1024 之間的 2 的冪次方為目標數字
         const possibleTargets = [16, 32, 64, 128, 256, 512];
         const targetVal = possibleTargets[Math.floor(Math.random() * possibleTargets.length)];
-        const timer = Math.floor(Math.random() * 5) + 5; // 5~9 步
+        const timer = Math.floor(Math.random() * 5) + 5;
 
         board[targetCoord.r][targetCoord.c] = {
             type: 'bomb',
