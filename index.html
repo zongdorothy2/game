@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
-<title>2248 GAME</title>
+<title>2248</title>
 <style>
     * {
         box-sizing: border-box;
@@ -345,7 +345,7 @@
             <h4>🎮 基本連線與合成規則</h4>
             <ul>
                 <li><b>滑動連線</b>：滑動手指連接相鄰（含斜向 8 個方向）的數字。</li>
-                <li><b>數字順序</b>：前兩個數字必須<b>完全相同</b>（例如：2 和 2）。後續可連接<b>相同數字或兩倍數字</b>（例如：2 和 2 或 4 或 8 或 16）。</li>
+                <li><b>數字順序</b>：前兩個數字必須<b>完全相同</b>（例如：2 $\rightarrow$ 2）。後續可連接<b>相同數字或兩倍數字</b>（例如：2 $\rightarrow$ 2 $\rightarrow$ 4 $\rightarrow$ 8 $\rightarrow$ 16）。</li>
                 <li><b>即時預覽</b>：連線時頂部會即時顯示「預計合成數字」與可獲得的分數/金幣。</li>
             </ul>
 
@@ -364,10 +364,11 @@
                 <li><b>🔨 鐵錘 (100+🪙)</b>：點擊直接敲碎任意 1 個指定方塊。</li>
             </ul>
 
-            <h4>⚡ 數字淘汰與簡寫</h4>
+            <h4>⚡ 數字進位階梯與簡寫</h4>
             <ul>
-                <li>當合成出 <b>2048</b> 時，自動<b>消除盤面上 8 及以下方塊</b>，新方塊最小從 16 生成！合成出 <b>4096</b> 時消除 16 及以下，依此類推。</li>
-                <li>每種數字皆有獨一無二的專屬彩虹漸層色彩。</li>
+                <li><b>進位順序</b>：$512\text{M} \rightarrow 1\text{G} \rightarrow 512\text{G} \rightarrow 1\text{Q} \rightarrow 512\text{Q} \rightarrow 1\text{Z}$。</li>
+                <li><b>8 階淘汰規則</b>：合成出 <b>2048</b> 時，自動<b>消除盤面上 8 及以下方塊</b>，新方塊最小從 16 生成！合成出 <b>4096</b> 時消除 16 及以下，依此類推。</li>
+                <li>每種數字階梯皆有專屬不重複的彩虹漸層色彩。</li>
             </ul>
 
             <h4>💾 雙向存檔相容</h4>
@@ -415,7 +416,6 @@
     bestScoreElement.textContent = bestScore;
     coinsElement.textContent = coins;
 
-    // 📈 動態道具費用計算
     function getToolCost(type) {
         const maxValue = getBoardMaxValue();
         let baseCost = (type === 'undo') ? 50 : (type === 'hammer') ? 100 : 150;
@@ -437,11 +437,22 @@
         return `linear-gradient(135deg, ${colorMain}, ${colorDark})`;
     }
 
+    // 🌟 核心大數字格式化演算法：512M -> 1G -> 512G -> 1Q -> 512Q -> 1Z
     function formatNumber(val) {
         if (val < 16384) return val.toString();
-        if (val < 1048576) return (val / 1024) + 'K';
-        if (val < 1073741824) return (val / 1048576) + 'M';
-        return (val / 1073741824) + 'G';
+        
+        const units = ['', 'K', 'M', 'G', 'Q', 'Z'];
+        let powerIndex = Math.floor(Math.log2(val) / 10); // 每 10 個次方 (1024 倍) 進位一次
+        
+        if (powerIndex >= units.length) {
+            powerIndex = units.length - 1; // 上限固定於 Z
+        }
+        
+        const unit = units[powerIndex];
+        const divisor = Math.pow(1024, powerIndex);
+        const formattedVal = Math.floor(val / divisor);
+        
+        return formattedVal + unit;
     }
 
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
