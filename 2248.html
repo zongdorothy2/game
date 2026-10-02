@@ -37,7 +37,7 @@
         justify-content: space-between;
         align-items: center;
         width: 100%;
-        max-width: 200px;
+        max-width: 180px;
         margin-bottom: 2px;
     }
     .title-box { display: flex; flex-direction: column; }
@@ -70,7 +70,7 @@
         padding: 2px 4px;
         border-radius: 6px;
         text-align: center;
-        min-width: 44px;
+        min-width: 40px;
     }
     .score-label { font-size: 7px; color: #8d99ae; }
     .score-value { font-size: 11px; font-weight: bold; color: #edf2f4; }
@@ -108,7 +108,7 @@
     #game-board {
         display: grid;
         grid-template-columns: repeat(4, 42px);
-        grid-template-rows: repeat(5, 42px);
+        grid-template-rows: repeat(4, 42px);
         gap: 4px;
         position: relative;
         z-index: 5;
@@ -160,7 +160,7 @@
 
     .tools-bar {
         display: flex; flex-wrap: wrap; gap: 4px;
-        margin-top: 4px; width: 100%; max-width: 200px;
+        margin-top: 4px; width: 100%; max-width: 180px;
         justify-content: center;
     }
     .tool-btn {
@@ -207,7 +207,7 @@
     .modal-card {
         background: #2b2d42; border: 2px solid #3d405b;
         border-radius: 12px; padding: 10px; text-align: left;
-        max-width: 200px; width: 92%;
+        max-width: 180px; width: 92%;
         box-shadow: 0 5px 20px rgba(0, 0, 0, 0.6);
         max-height: 85vh; overflow-y: auto;
     }
@@ -293,7 +293,7 @@
 <input type="file" id="file-input" accept=".json" style="display: none;" onchange="importSave(event)">
 
 <script>
-    const ROWS = 5;
+    const ROWS = 4;
     const COLS = 4;
     const boardElement = document.getElementById('game-board');
     const containerElement = document.getElementById('game-container');
@@ -311,7 +311,7 @@
     let board = [];
     let score = 0;
     let coins = 100;
-    let bestScore = localStorage.getItem('2248_watch_4x5_best') || 0;
+    let bestScore = localStorage.getItem('2248_watch_4x4_best') || 0;
     let isDragging = false;
     let selectedCells = [];
     let isHammerMode = false;
@@ -603,7 +603,7 @@
         if (score > bestScore) {
             bestScore = score;
             bestScoreElement.textContent = bestScore;
-            localStorage.setItem('2248_watch_4x5_best', bestScore);
+            localStorage.setItem('2248_watch_4x4_best', bestScore);
         }
 
         checkAndEliminateLowerBlocks(mergedValue);
@@ -720,7 +720,7 @@
     function exportSave() {
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ score, coins, bestScore, board }));
         const a = document.createElement('a');
-        a.href = dataStr; a.download = "2248_watch_4x5_save.json";
+        a.href = dataStr; a.download = "2248_watch_4x4_save.json";
         a.click();
     }
 
