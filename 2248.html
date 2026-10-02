@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>2248 Lite</title>
+<title>2248 Watch Big</title>
 <style>
     * {
         box-sizing: border-box;
@@ -19,10 +19,9 @@
         overflow: hidden;
         background-color: #121214;
         color: #ffffff;
-        font-family: system-ui, -apple-system, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
-    /* 容器自適應實際可視高度，居中排列 */
     #app {
         display: flex;
         flex-direction: column;
@@ -30,65 +29,63 @@
         align-items: center;
         width: 100%;
         height: 100%;
-        padding: 4px 6px;
+        padding: 2px 4px 4px 4px; /* 極窄邊距 */
     }
 
-    /* 頂部迷你資訊欄 (高約 24px) */
+    /* 頂部單行超緊湊儀表板 (高度僅約 20px) */
     .header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         width: 100%;
-        max-width: 200px;
+        max-width: 220px;
+        padding: 0 2px;
     }
-    .title-group {
+    .header-left {
         display: flex;
         align-items: center;
-        gap: 4px;
-        font-size: 13px;
+        gap: 6px;
+    }
+    .title {
+        font-size: 14px;
         font-weight: 900;
         color: #f1c40f;
+        letter-spacing: -0.5px;
     }
     .coin-tag {
-        font-size: 10px;
-        color: #f39c12;
-        font-weight: bold;
-    }
-    .score-group {
-        display: flex;
-        gap: 4px;
-    }
-    .score-badge {
-        background: #23242b;
-        padding: 1px 4px;
-        border-radius: 4px;
-        font-size: 9px;
-        text-align: center;
-        min-width: 38px;
-    }
-    .score-badge span {
-        display: block;
         font-size: 11px;
-        font-weight: bold;
-        color: #fff;
+        color: #f39c12;
+        font-weight: 800;
+    }
+    .header-right {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #8d99ae;
+    }
+    .header-right span {
+        color: #ffffff;
+        font-weight: 900;
     }
 
-    /* 提示連線數值列 (高 14px) */
+    /* 浮動提示文字 (不占垂直高度) */
     #preview-box {
         height: 14px;
-        font-size: 10px;
-        font-weight: bold;
-        color: #2ecc71;
         line-height: 14px;
+        font-size: 11px;
+        font-weight: 900;
+        color: #2ecc71;
         text-align: center;
     }
 
-    /* 棋盤主體 (4*34 + 3*3 + 8 = 153px，極度省空間) */
+    /* 放大版棋盤 (4*42px + 3*4px + 6px邊界 = 186px) */
     .board-wrap {
         position: relative;
-        background: #23242b;
-        padding: 4px;
-        border-radius: 8px;
+        background: #1e1e24;
+        padding: 3px;
+        border-radius: 10px;
     }
     #line-canvas {
         position: absolute;
@@ -101,36 +98,40 @@
     }
     #game-board {
         display: grid;
-        grid-template-columns: repeat(4, 34px);
-        grid-template-rows: repeat(4, 34px);
-        gap: 3px;
+        grid-template-columns: repeat(4, 42px);
+        grid-template-rows: repeat(4, 42px);
+        gap: 4px;
         position: relative;
         z-index: 5;
     }
+
+    /* 方格與超大清晰數字 */
     .cell {
-        width: 34px;
-        height: 34px;
-        border-radius: 6px;
+        width: 42px;
+        height: 42px;
+        border-radius: 7px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 13px;
-        font-weight: 800;
-        color: #fff;
+        font-size: 20px;          /* 基礎字體直接拉到 20px 大字 */
+        font-weight: 900;
+        color: #ffffff;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.5);
     }
     .cell.selected {
         outline: 2px solid #ffffff;
         transform: scale(0.92);
     }
-    .cell.small { font-size: 10px; }
-    .cell.xsmall { font-size: 8px; }
+    .cell.num-3 { font-size: 15px; } /* 3位數微調 (128, 256, 512) */
+    .cell.num-4 { font-size: 12px; } /* 4位數微調 (1024, 2048) */
+    .cell.num-5 { font-size: 10px; } /* 5位數以上 */
 
-    /* 單行極窄按鈕列 (高約 28px，5 個按鈕完整排開) */
+    /* 底部單行功能鍵 (高度約 26px) */
     .tools-bar {
         display: flex;
         gap: 3px;
         width: 100%;
-        max-width: 200px;
+        max-width: 210px;
         justify-content: space-between;
     }
     .btn {
@@ -139,7 +140,7 @@
         border: 1px solid #3e4152;
         color: #fff;
         border-radius: 5px;
-        height: 26px;
+        height: 25px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -155,7 +156,7 @@
         font-size: 7px;
         color: #f1c40f;
         line-height: 1;
-        transform: scale(0.9);
+        transform: scale(0.85);
     }
 
     /* 彈窗樣式 */
@@ -194,38 +195,38 @@
 <body>
 
 <div id="app">
-    <!-- 頂部資訊 -->
+    <!-- 單行頂部列 -->
     <div class="header">
-        <div class="title-group">
-            <span>2248</span>
+        <div class="header-left">
+            <span class="title">2248</span>
             <div class="coin-tag">🪙<span id="coins">100</span></div>
         </div>
-        <div class="score-group">
-            <div class="score-badge">分<span id="score">0</span></div>
-            <div class="score-badge">冠<span id="best-score">0</span></div>
+        <div class="header-right">
+            <div>分:<span id="score">0</span></div>
+            <div>冠:<span id="best-score">0</span></div>
         </div>
     </div>
 
-    <!-- 提示預覽 -->
+    <!-- 即時預覽列 -->
     <div id="preview-box"></div>
 
-    <!-- 遊戲方陣 -->
+    <!-- 放大棋盤 -->
     <div class="board-wrap" id="board-wrap">
         <canvas id="line-canvas"></canvas>
         <div id="game-board"></div>
     </div>
 
-    <!-- 單排極致緊湊工具列 -->
+    <!-- 底部按鈕 -->
     <div class="tools-bar">
         <button class="btn" id="btn-undo" onclick="useUndo()">↩️復原<span class="cost" id="cost-undo">50</span></button>
         <button class="btn" id="btn-shuffle" onclick="useShuffle()">🔄洗牌<span class="cost" id="cost-shuffle">150</span></button>
-        <button class="btn" id="btn-hammer" onclick="toggleHammer()">🔨搥子<span class="cost" id="cost-hammer">100</span></button>
-        <button class="btn" onclick="exportSave()">💾存</button>
-        <button class="btn" onclick="document.getElementById('file-input').click()">📂讀</button>
+        <button class="btn" id="btn-hammer" onclick="toggleHammer()">🔨鐵錘<span class="cost" id="cost-hammer">100</span></button>
+        <button class="btn" onclick="exportSave()">💾存檔</button>
+        <button class="btn" onclick="document.getElementById('file-input').click()">📂讀檔</button>
     </div>
 </div>
 
-<!-- Game Over 彈窗 -->
+<!-- 遊戲結束彈窗 -->
 <div class="modal-overlay" id="game-over-modal">
     <div class="modal-card">
         <h3 style="color:#e74c3c;">遊戲結束</h3>
@@ -251,18 +252,18 @@
     let board = [];
     let score = 0;
     let coins = 100;
-    let bestScore = parseInt(localStorage.getItem('2248_watch_lite_best') || '0', 10);
+    let bestScore = parseInt(localStorage.getItem('2248_watch_big_best') || '0', 10);
     let isDragging = false;
     let selectedCells = [];
     let isHammerMode = false;
     let minAllowedValue = 2;
     let lastState = null;
-    let cellRects = []; // 座標快取，徹底解放手錶 CPU
+    let cellRects = [];
 
     bestScoreElement.textContent = bestScore;
     coinsElement.textContent = coins;
 
-    // 靜態硬體加速色票（省去手錶每幀即時算 HSL）
+    // 高對比靜態色票
     const COLOR_MAP = {
         2: '#27ae60', 4: '#16a085', 8: '#2980b9', 16: '#8e44ad',
         32: '#d35400', 64: '#c0392b', 128: '#f39c12', 256: '#1abc9c',
@@ -274,7 +275,7 @@
     }
 
     function formatNumber(val) {
-        if (val < 1000) return val.toString();
+        if (val < 10000) return val.toString();
         if (val < 1000000) return Math.floor(val / 1000) + 'K';
         return Math.floor(val / 1000000) + 'M';
     }
@@ -342,15 +343,18 @@
                 cell.style.backgroundColor = getCellColor(val);
                 cell.dataset.r = r;
                 cell.dataset.c = c;
-                if (text.length >= 4) cell.classList.add('xsmall');
-                else if (text.length >= 3) cell.classList.add('small');
+
+                // 依數字位元自動配置最大字體
+                if (text.length >= 5) cell.classList.add('num-5');
+                else if (text.length === 4) cell.classList.add('num-4');
+                else if (text.length === 3) cell.classList.add('num-3');
+
                 boardElement.appendChild(cell);
             }
         }
         updateToolsState();
     }
 
-    // 輕量數學命中檢測（完全取代 document.elementFromPoint）
     function findCellByPos(x, y) {
         for (let i = 0; i < cellRects.length; i++) {
             const b = cellRects[i];
@@ -382,13 +386,10 @@
 
         if (item) {
             const last = selectedCells[selectedCells.length - 1];
-            // 倒退一步消除
             if (selectedCells.length >= 2 && selectedCells[selectedCells.length - 2] === item) {
                 const popped = selectedCells.pop();
                 popped.element.classList.remove('selected');
-            }
-            // 連接相鄰數字
-            else if (!selectedCells.includes(item)) {
+            } else if (!selectedCells.includes(item)) {
                 if (Math.abs(last.r - item.r) <= 1 && Math.abs(last.c - item.c) <= 1) {
                     const currentVal = board[item.r][item.c];
                     const lastVal = board[last.r][last.c];
@@ -424,7 +425,7 @@
         if (selectedCells.length === 0) return;
 
         ctx.beginPath();
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 4;
         ctx.strokeStyle = '#ffffff';
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
@@ -468,7 +469,7 @@
         if (score > bestScore) {
             bestScore = score;
             bestScoreElement.textContent = bestScore;
-            localStorage.setItem('2248_watch_lite_best', bestScore);
+            localStorage.setItem('2248_watch_big_best', bestScore);
         }
 
         applyGravity();
@@ -501,7 +502,7 @@
                 }
             }
         }
-        if (coins >= 100) return; // 還有金幣買槌子就不判死
+        if (coins >= 100) return;
         document.getElementById('final-score').textContent = `得分: ${score}`;
         document.getElementById('game-over-modal').classList.add('show');
     }
@@ -586,7 +587,6 @@
         document.getElementById(id).classList.remove('show');
     }
 
-    // 觸控監聽（針對手錶 WebKit 極速最佳化）
     window.addEventListener('touchstart', e => handleStart(e.touches[0].clientX, e.touches[0].clientY), { passive: false });
     window.addEventListener('touchmove', e => handleMove(e.touches[0].clientX, e.touches[0].clientY), { passive: false });
     window.addEventListener('touchend', handleEnd);
