@@ -3,329 +3,234 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>2248 Watch Game</title>
+<title>2248 Lite</title>
 <style>
     * {
         box-sizing: border-box;
         user-select: none;
         -webkit-user-select: none;
-        touch-action: manipulation;
+        touch-action: none;
+        margin: 0;
+        padding: 0;
     }
     html, body {
         width: 100%;
         height: 100%;
-        overflow: hidden; /* 防止手錶滑動滾動條 */
-        margin: 0;
-        padding: 0;
-        background-color: #1e1e24;
+        overflow: hidden;
+        background-color: #121214;
         color: #ffffff;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-family: system-ui, -apple-system, sans-serif;
     }
 
-    body {
+    /* 容器自適應實際可視高度，居中排列 */
+    #app {
         display: flex;
         flex-direction: column;
-        align-items: center;
         justify-content: space-between;
-        padding: 6px 10px 6px 10px;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        padding: 4px 6px;
     }
 
-    /* 頂部資訊列 (高約 38px) */
+    /* 頂部迷你資訊欄 (高約 24px) */
     .header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         width: 100%;
-        max-width: 300px;
+        max-width: 200px;
     }
-    .title-box { display: flex; flex-direction: column; }
-    .title-row { display: flex; align-items: center; gap: 4px; }
-    .title {
-        font-size: 17px;
+    .title-group {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 13px;
         font-weight: 900;
-        color: #f4d03f;
-        line-height: 1;
-    }
-    .btn-help {
-        background: #3d405b;
-        color: #f4d03f;
-        border: none;
-        border-radius: 50%;
-        width: 18px; height: 18px;
-        font-size: 11px; font-weight: bold;
-        cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
-    }
-    .coin-box {
-        font-size: 11px;
         color: #f1c40f;
+    }
+    .coin-tag {
+        font-size: 10px;
+        color: #f39c12;
         font-weight: bold;
-        display: flex; align-items: center; gap: 2px;
-        margin-top: 2px;
     }
-    .score-container { display: flex; gap: 6px; }
-    .score-box {
-        background-color: #2b2d42;
-        padding: 2px 6px;
-        border-radius: 6px;
+    .score-group {
+        display: flex;
+        gap: 4px;
+    }
+    .score-badge {
+        background: #23242b;
+        padding: 1px 4px;
+        border-radius: 4px;
+        font-size: 9px;
         text-align: center;
-        min-width: 48px;
+        min-width: 38px;
     }
-    .score-label { font-size: 8px; color: #8d99ae; }
-    .score-value { font-size: 12px; font-weight: bold; color: #edf2f4; }
+    .score-badge span {
+        display: block;
+        font-size: 11px;
+        font-weight: bold;
+        color: #fff;
+    }
 
-    /* 合成預覽提示列 (高 14px) */
+    /* 提示連線數值列 (高 14px) */
     #preview-box {
         height: 14px;
-        line-height: 14px;
-        font-size: 11px;
-        font-weight: 800;
+        font-size: 10px;
+        font-weight: bold;
         color: #2ecc71;
+        line-height: 14px;
         text-align: center;
     }
 
-    /* 遊戲核心棋盤 (總高度約 216px，含 padding) */
-    .game-container {
+    /* 棋盤主體 (4*34 + 3*3 + 8 = 153px，極度省空間) */
+    .board-wrap {
         position: relative;
-        background-color: #2b2d42;
+        background: #23242b;
         padding: 4px;
-        border-radius: 12px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-        touch-action: none; /* 讓連線滑動更順暢 */
-    }
-    .game-container.shake { animation: shake-board 0.3s ease-in-out; }
-    @keyframes shake-board {
-        0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-4px); }
-        75% { transform: translateX(4px); }
+        border-radius: 8px;
     }
     #line-canvas {
         position: absolute;
-        top: 0; left: 0; width: 100%; height: 100%;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
         pointer-events: none;
         z-index: 10;
     }
     #game-board {
         display: grid;
-        grid-template-columns: repeat(4, 48px);
-        grid-template-rows: repeat(4, 48px);
-        gap: 4px;
+        grid-template-columns: repeat(4, 34px);
+        grid-template-rows: repeat(4, 34px);
+        gap: 3px;
         position: relative;
         z-index: 5;
     }
     .cell {
-        width: 48px; height: 48px;
-        border-radius: 8px;
-        display: flex; flex-direction: column;
-        justify-content: center; align-items: center;
-        font-size: 17px; font-weight: 900;
-        color: #ffffff;
-        box-shadow: inset 0 -2px 0 rgba(0,0,0,0.25), 0 1px 3px rgba(0,0,0,0.3);
-        position: relative;
-    }
-    .cell.small-text { font-size: 13px; }
-    .cell.xsmall-text { font-size: 11px; }
-    .cell.selected {
-        transform: scale(0.88);
-        box-shadow: 0 0 8px #ffffff;
-    }
-    .cell.max-value {
-        border: 2px solid #ffd700;
-        box-shadow: 0 0 8px #ffd700, inset 0 0 4px #ffd700;
-        animation: pulse-glow 1.5s infinite alternate;
-    }
-    .cell.max-value::before {
-        content: '👑';
-        position: absolute; top: -5px; right: -3px;
-        font-size: 10px;
-    }
-    @keyframes pulse-glow {
-        0% { box-shadow: 0 0 4px #ffd700; }
-        100% { box-shadow: 0 0 10px #ffe600; }
-    }
-    .cell.pop { animation: pop-animation 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-    @keyframes pop-animation {
-        0% { transform: scale(0.5); }
-        50% { transform: scale(1.2); }
-        100% { transform: scale(1); }
-    }
-    .cell.drop { animation: drop-animation 0.25s ease-out; }
-    @keyframes drop-animation {
-        0% { transform: translateY(-10px); opacity: 0; }
-        100% { transform: translateY(0); opacity: 1; }
-    }
-
-    /* 狀態訊息提示 (高 12px) */
-    #status-msg {
-        height: 12px;
-        line-height: 12px;
-        font-size: 10px;
-        color: #f39c12;
-        font-weight: bold;
-        text-align: center;
-    }
-
-    /* 底部按鈕區 (高度縮減至約 64px 內，5 個按鈕一覽無遺) */
-    .tools-bar {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        width: 100%;
-        max-width: 300px;
-    }
-    .tools-row {
-        display: flex;
-        gap: 4px;
-        width: 100%;
-    }
-    .tool-btn {
-        flex: 1;
+        width: 34px;
+        height: 34px;
+        border-radius: 6px;
         display: flex;
         align-items: center;
         justify-content: center;
+        font-size: 13px;
+        font-weight: 800;
+        color: #fff;
+    }
+    .cell.selected {
+        outline: 2px solid #ffffff;
+        transform: scale(0.92);
+    }
+    .cell.small { font-size: 10px; }
+    .cell.xsmall { font-size: 8px; }
+
+    /* 單行極窄按鈕列 (高約 28px，5 個按鈕完整排開) */
+    .tools-bar {
+        display: flex;
         gap: 3px;
-        background-color: #2b2d42;
-        border: 1px solid #3d405b;
-        color: #ffffff;
-        padding: 6px 2px;
-        border-radius: 6px;
-        font-size: 11px;
+        width: 100%;
+        max-width: 200px;
+        justify-content: space-between;
+    }
+    .btn {
+        flex: 1;
+        background: #2b2d38;
+        border: 1px solid #3e4152;
+        color: #fff;
+        border-radius: 5px;
+        height: 26px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-size: 9px;
         font-weight: bold;
         cursor: pointer;
     }
-    .tool-btn.secondary {
-        padding: 4px 2px;
-        font-size: 10px;
-        background-color: #202230;
-        color: #a0a6b5;
-    }
-    .tool-btn:active { transform: scale(0.96); }
-    .tool-btn.active { border-color: #e74c3c; background-color: #c0392b; }
-    .tool-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-    .tool-cost {
-        background-color: #f1c40f;
-        color: #000;
-        padding: 1px 3px;
-        border-radius: 3px;
-        font-size: 8px;
+    .btn:active { background: #3e4152; }
+    .btn.active { background: #c0392b; border-color: #e74c3c; }
+    .btn:disabled { opacity: 0.3; }
+    .btn .cost {
+        font-size: 7px;
+        color: #f1c40f;
         line-height: 1;
-    }
-
-    #combo-overlay {
-        position: absolute; top: 40%; left: 50%;
-        transform: translate(-50%, -50%) scale(0);
-        font-size: 18px; font-weight: 900; color: #f39c12;
-        text-shadow: 0 0 10px #f1c40f, 0 0 3px #000;
-        pointer-events: none; z-index: 20;
-        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
-        opacity: 0; white-space: nowrap;
-    }
-    #combo-overlay.show {
-        transform: translate(-50%, -50%) scale(1.3); opacity: 1;
+        transform: scale(0.9);
     }
 
     /* 彈窗樣式 */
     .modal-overlay {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.85); display: flex;
-        justify-content: center; align-items: center;
-        z-index: 100; opacity: 0; pointer-events: none;
-        transition: opacity 0.25s ease;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.85);
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 100;
     }
-    .modal-overlay.show { opacity: 1; pointer-events: auto; }
+    .modal-overlay.show { display: flex; }
     .modal-card {
-        background: #2b2d42; border: 2px solid #3d405b;
-        border-radius: 12px; padding: 10px; text-align: left;
-        max-width: 260px; width: 90%;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.6);
-        max-height: 85vh; overflow-y: auto;
+        background: #23242b;
+        border-radius: 8px;
+        padding: 10px;
+        width: 85%;
+        max-width: 180px;
+        text-align: center;
     }
-    .modal-title { font-size: 14px; font-weight: 900; color: #f4d03f; margin-bottom: 6px; text-align: center; }
-    .modal-content { font-size: 10px; color: #edf2f4; line-height: 1.4; margin-bottom: 8px; }
-    .modal-content h4 { color: #2ecc71; margin: 4px 0 2px 0; font-size: 11px; }
-    .modal-content ul { padding-left: 12px; margin: 2px 0; }
-    .modal-btn-close {
-        display: block; width: 100%; background-color: #27ae60;
-        color: white; border: none; padding: 6px;
-        font-size: 11px; font-weight: bold; border-radius: 6px;
-        cursor: pointer; text-align: center;
+    .modal-card h3 { font-size: 13px; margin-bottom: 6px; color: #f1c40f; }
+    .modal-card p { font-size: 10px; line-height: 1.4; color: #ccc; margin-bottom: 8px; }
+    .modal-btn {
+        background: #27ae60;
+        border: none;
+        color: #fff;
+        border-radius: 4px;
+        padding: 4px 10px;
+        font-size: 10px;
+        font-weight: bold;
     }
 </style>
 </head>
 <body>
 
-<!-- 頂部標題與金幣分數 -->
-<div class="header">
-    <div class="title-box">
-        <div class="title-row">
-            <div class="title">2248</div>
-            <button class="btn-help" onclick="openTutorialModal()">?</button>
+<div id="app">
+    <!-- 頂部資訊 -->
+    <div class="header">
+        <div class="title-group">
+            <span>2248</span>
+            <div class="coin-tag">🪙<span id="coins">100</span></div>
         </div>
-        <div class="coin-box">🪙 <span id="coins">100</span></div>
+        <div class="score-group">
+            <div class="score-badge">分<span id="score">0</span></div>
+            <div class="score-badge">冠<span id="best-score">0</span></div>
+        </div>
     </div>
-    <div class="score-container">
-        <div class="score-box">
-            <div class="score-label">分數</div>
-            <div class="score-value" id="score">0</div>
-        </div>
-        <div class="score-box">
-            <div class="score-label">最高</div>
-            <div class="score-value" id="best-score">0</div>
-        </div>
+
+    <!-- 提示預覽 -->
+    <div id="preview-box"></div>
+
+    <!-- 遊戲方陣 -->
+    <div class="board-wrap" id="board-wrap">
+        <canvas id="line-canvas"></canvas>
+        <div id="game-board"></div>
+    </div>
+
+    <!-- 單排極致緊湊工具列 -->
+    <div class="tools-bar">
+        <button class="btn" id="btn-undo" onclick="useUndo()">↩️復原<span class="cost" id="cost-undo">50</span></button>
+        <button class="btn" id="btn-shuffle" onclick="useShuffle()">🔄洗牌<span class="cost" id="cost-shuffle">150</span></button>
+        <button class="btn" id="btn-hammer" onclick="toggleHammer()">🔨搥子<span class="cost" id="cost-hammer">100</span></button>
+        <button class="btn" onclick="exportSave()">💾存</button>
+        <button class="btn" onclick="document.getElementById('file-input').click()">📂讀</button>
     </div>
 </div>
 
-<!-- 合成預覽 -->
-<div id="preview-box"></div>
-
-<!-- 遊戲盤面 -->
-<div class="game-container" id="game-container">
-    <div id="combo-overlay">🔥 10連擊！</div>
-    <canvas id="line-canvas"></canvas>
-    <div id="game-board"></div>
-</div>
-
-<!-- 狀態提示 -->
-<div id="status-msg"></div>
-
-<!-- 雙排精簡功能按鈕 -->
-<div class="tools-bar">
-    <div class="tools-row">
-        <button class="tool-btn" id="btn-undo" onclick="useUndo()">↩️復原<span class="tool-cost" id="cost-undo">50</span></button>
-        <button class="tool-btn" id="btn-shuffle" onclick="useShuffle()">🔄洗牌<span class="tool-cost" id="cost-shuffle">150</span></button>
-        <button class="tool-btn" id="btn-hammer" onclick="toggleHammer()">🔨鐵錘<span class="tool-cost" id="cost-hammer">100</span></button>
-    </div>
-    <div class="tools-row">
-        <button class="tool-btn secondary" onclick="exportSave()">💾 匯出存檔</button>
-        <button class="tool-btn secondary" onclick="triggerImport()">📂 匯入存檔</button>
-    </div>
-</div>
-
-<!-- 彈窗 -->
+<!-- Game Over 彈窗 -->
 <div class="modal-overlay" id="game-over-modal">
-    <div class="modal-card" style="border-color: #ef233c; text-align: center;">
-        <div class="modal-title" style="color: #ef233c;">GAME OVER</div>
-        <div style="font-size: 10px; color: #8d99ae; margin-bottom: 4px;">無法連線且金幣不足！</div>
-        <div style="font-size: 13px; color: #f4d03f; margin-bottom: 8px; font-weight: bold;" id="final-score">得分: 0</div>
-        <button class="modal-btn-close" onclick="closeModal('game-over-modal'); initBoard();">重新開始</button>
-    </div>
-</div>
-
-<div class="modal-overlay" id="tutorial-modal">
     <div class="modal-card">
-        <div class="modal-title">📖 玩法說明</div>
-        <div class="modal-content">
-            <h4>🎮 連線規則</h4>
-            <ul>
-                <li>滑動連接 8 方向相鄰數字。</li>
-                <li>前兩個需相同，後續可接相同或兩倍數字。</li>
-            </ul>
-            <h4>⚡ 進位淘汰</h4>
-            <ul>
-                <li>合成 2048 時自動消除 8 及以下方塊！</li>
-            </ul>
-        </div>
-        <button class="modal-btn-close" onclick="closeModal('tutorial-modal')">開始遊戲</button>
+        <h3 style="color:#e74c3c;">遊戲結束</h3>
+        <p id="final-score">得分: 0</p>
+        <button class="modal-btn" onclick="closeModal('game-over-modal'); initBoard();">再玩一次</button>
     </div>
 </div>
 
@@ -335,95 +240,44 @@
     const ROWS = 4;
     const COLS = 4;
     const boardElement = document.getElementById('game-board');
-    const containerElement = document.getElementById('game-container');
+    const boardWrap = document.getElementById('board-wrap');
     const canvas = document.getElementById('line-canvas');
     const ctx = canvas.getContext('2d');
     const scoreElement = document.getElementById('score');
     const bestScoreElement = document.getElementById('best-score');
     const coinsElement = document.getElementById('coins');
-    const statusMsg = document.getElementById('status-msg');
     const previewBox = document.getElementById('preview-box');
-    const comboOverlay = document.getElementById('combo-overlay');
-    const gameOverModal = document.getElementById('game-over-modal');
-    const tutorialModal = document.getElementById('tutorial-modal');
 
     let board = [];
     let score = 0;
     let coins = 100;
-    let bestScore = localStorage.getItem('2248_watch_4x4_best') || 0;
+    let bestScore = parseInt(localStorage.getItem('2248_watch_lite_best') || '0', 10);
     let isDragging = false;
     let selectedCells = [];
     let isHammerMode = false;
     let minAllowedValue = 2;
-    let mergedTargetPos = null;
     let lastState = null;
+    let cellRects = []; // 座標快取，徹底解放手錶 CPU
 
     bestScoreElement.textContent = bestScore;
     coinsElement.textContent = coins;
 
-    function getToolCost(type) {
-        const maxValue = getBoardMaxValue();
-        let baseCost = (type === 'undo') ? 50 : (type === 'hammer') ? 100 : 150;
-        if (maxValue >= 2048) {
-            const powerOffset = Math.log2(maxValue / 1024);
-            return Math.floor(baseCost * (1 + powerOffset * 0.15));
-        }
-        return baseCost;
-    }
+    // 靜態硬體加速色票（省去手錶每幀即時算 HSL）
+    const COLOR_MAP = {
+        2: '#27ae60', 4: '#16a085', 8: '#2980b9', 16: '#8e44ad',
+        32: '#d35400', 64: '#c0392b', 128: '#f39c12', 256: '#1abc9c',
+        512: '#3498db', 1024: '#9b59b6', 2048: '#e67e22', 4096: '#e74c3c'
+    };
 
     function getCellColor(val) {
-        if (!val || val <= 0) return '#2b2d42';
-        const power = Math.round(Math.log2(val));
-        const hue = (power * 37) % 360;
-        return `linear-gradient(135deg, hsl(${hue}, 85%, 52%), hsl(${hue}, 85%, 40%))`;
+        return COLOR_MAP[val] || '#34495e';
     }
 
     function formatNumber(val) {
-        if (val < 16384) return val.toString();
-        const units = ['', 'K', 'M', 'G', 'Q', 'Z'];
-        let powerIndex = Math.min(Math.floor(Math.log2(val) / 10), units.length - 1);
-        return Math.floor(val / Math.pow(1024, powerIndex)) + units[powerIndex];
+        if (val < 1000) return val.toString();
+        if (val < 1000000) return Math.floor(val / 1000) + 'K';
+        return Math.floor(val / 1000000) + 'M';
     }
-
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    let audioCtx = null;
-    function initAudio() {
-        if (!audioCtx) audioCtx = new AudioCtx();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-    }
-    function playConnectSound(index) {
-        initAudio();
-        if (!audioCtx) return;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.frequency.setValueAtTime(300 * Math.pow(1.12, index), audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.08);
-    }
-    function playMergeSound() {
-        initAudio();
-        if (!audioCtx) return;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(440, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15);
-        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.15);
-    }
-
-    function triggerShake() {
-        containerElement.classList.remove('shake');
-        void containerElement.offsetWidth;
-        containerElement.classList.add('shake');
-    }
-
-    function openTutorialModal() { tutorialModal.classList.add('show'); }
-    function closeModal(id) { document.getElementById(id).classList.remove('show'); }
 
     function initBoard() {
         score = 0;
@@ -433,129 +287,120 @@
         board = [];
         for (let r = 0; r < ROWS; r++) {
             let row = [];
-            for (let c = 0; c < COLS; c++) { row.push(generateRandomBlock()); }
+            for (let c = 0; c < COLS; c++) row.push(generateRandomBlock());
             board.push(row);
         }
-        renderBoard(true);
-        resizeCanvas();
+        renderBoard();
+        updateBoardRects();
         updateToolsState();
     }
 
     function generateRandomBlock() {
-        let options = [];
-        let base = minAllowedValue;
-        for (let i = 0; i < 6; i++) { options.push(base * Math.pow(2, i)); }
-        const weights = [35, 25, 18, 12, 7, 3];
-        const randomNum = Math.floor(Math.random() * 100);
+        const base = minAllowedValue;
+        const weights = [40, 28, 18, 10, 4];
+        let rand = Math.random() * 100;
         let sum = 0;
         for (let i = 0; i < weights.length; i++) {
             sum += weights[i];
-            if (randomNum < sum) return options[i];
+            if (rand < sum) return base * Math.pow(2, i);
         }
-        return options[0];
+        return base;
     }
 
-    function resizeCanvas() {
-        const rect = boardElement.getBoundingClientRect();
-        canvas.width = rect.width;
-        canvas.height = rect.height;
-    }
+    function updateBoardRects() {
+        const wrapRect = boardWrap.getBoundingClientRect();
+        canvas.width = wrapRect.width;
+        canvas.height = wrapRect.height;
 
-    function getBoardMaxValue() {
-        let max = 0;
-        for (let r = 0; r < ROWS; r++) {
-            for (let c = 0; c < COLS; c++) {
-                if (board[r][c] > max) max = board[r][c];
-            }
+        cellRects = [];
+        const cells = boardElement.children;
+        for (let i = 0; i < cells.length; i++) {
+            const rect = cells[i].getBoundingClientRect();
+            cellRects.push({
+                r: parseInt(cells[i].dataset.r, 10),
+                c: parseInt(cells[i].dataset.c, 10),
+                left: rect.left,
+                right: rect.right,
+                top: rect.top,
+                bottom: rect.bottom,
+                centerX: rect.left + rect.width / 2 - wrapRect.left,
+                centerY: rect.top + rect.height / 2 - wrapRect.top,
+                element: cells[i]
+            });
         }
-        return max;
     }
 
-    function renderBoard(isNewDrop = false) {
+    function renderBoard() {
         boardElement.innerHTML = '';
-        const maxValue = getBoardMaxValue();
-
         for (let r = 0; r < ROWS; r++) {
             for (let c = 0; c < COLS; c++) {
                 const cell = document.createElement('div');
-                cell.className = 'cell';
                 const val = board[r][c];
                 const text = formatNumber(val);
+                cell.className = 'cell';
                 cell.textContent = text;
-                cell.style.background = getCellColor(val);
+                cell.style.backgroundColor = getCellColor(val);
                 cell.dataset.r = r;
                 cell.dataset.c = c;
-
-                if (text.length >= 4) cell.classList.add('small-text');
-                if (val === maxValue && val >= 16) cell.classList.add('max-value');
-
-                if (mergedTargetPos && mergedTargetPos.r === r && mergedTargetPos.c === c) {
-                    cell.classList.add('pop');
-                } else if (isNewDrop) {
-                    cell.classList.add('drop');
-                }
+                if (text.length >= 4) cell.classList.add('xsmall');
+                else if (text.length >= 3) cell.classList.add('small');
                 boardElement.appendChild(cell);
             }
         }
-        mergedTargetPos = null;
         updateToolsState();
     }
 
-    function saveCurrentState() {
-        lastState = {
-            board: JSON.parse(JSON.stringify(board)),
-            score: score, coins: coins, minAllowedValue: minAllowedValue
-        };
-        updateToolsState();
-    }
-
-    function getCellPos(cell) {
-        const rect = cell.getBoundingClientRect();
-        const parentRect = canvas.getBoundingClientRect();
-        return { x: rect.left + rect.width / 2 - parentRect.left, y: rect.top + rect.height / 2 - parentRect.top };
-    }
-
-    function drawLines(currentX, currentY) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (selectedCells.length === 0) return;
-        ctx.beginPath();
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-
-        const firstPos = getCellPos(selectedCells[0].element);
-        ctx.moveTo(firstPos.x, firstPos.y);
-        for (let i = 1; i < selectedCells.length; i++) {
-            const pos = getCellPos(selectedCells[i].element);
-            ctx.lineTo(pos.x, pos.y);
+    // 輕量數學命中檢測（完全取代 document.elementFromPoint）
+    function findCellByPos(x, y) {
+        for (let i = 0; i < cellRects.length; i++) {
+            const b = cellRects[i];
+            if (x >= b.left && x <= b.right && y >= b.top && y <= b.bottom) {
+                return b;
+            }
         }
-        if (currentX !== undefined && currentY !== undefined) {
-            const parentRect = canvas.getBoundingClientRect();
-            ctx.lineTo(currentX - parentRect.left, currentY - parentRect.top);
-        }
-        ctx.stroke();
-    }
-
-    function getTargetCell(x, y) {
-        const target = document.elementFromPoint(x, y);
-        return (target && target.classList.contains('cell')) ? target : null;
+        return null;
     }
 
     function handleStart(x, y) {
-        const cell = getTargetCell(x, y);
-        if (!cell) return;
-        if (isHammerMode) { useHammer(cell); return; }
+        const item = findCellByPos(x, y);
+        if (!item) return;
+
+        if (isHammerMode) {
+            useHammer(item);
+            return;
+        }
+
         isDragging = true;
-        selectedCells = [];
-        addToSelection(cell);
+        selectedCells = [item];
+        item.element.classList.add('selected');
         drawLines(x, y);
     }
 
     function handleMove(x, y) {
         if (!isDragging || isHammerMode) return;
-        const cell = getTargetCell(x, y);
-        if (cell) addToSelection(cell);
+        const item = findCellByPos(x, y);
+
+        if (item) {
+            const last = selectedCells[selectedCells.length - 1];
+            // 倒退一步消除
+            if (selectedCells.length >= 2 && selectedCells[selectedCells.length - 2] === item) {
+                const popped = selectedCells.pop();
+                popped.element.classList.remove('selected');
+            }
+            // 連接相鄰數字
+            else if (!selectedCells.includes(item)) {
+                if (Math.abs(last.r - item.r) <= 1 && Math.abs(last.c - item.c) <= 1) {
+                    const currentVal = board[item.r][item.c];
+                    const lastVal = board[last.r][last.c];
+                    if ((selectedCells.length === 1 && currentVal === lastVal) ||
+                        (selectedCells.length > 1 && (currentVal === lastVal || currentVal === lastVal * 2))) {
+                        selectedCells.push(item);
+                        item.element.classList.add('selected');
+                    }
+                }
+            }
+        }
+
         drawLines(x, y);
         updatePreview();
     }
@@ -567,189 +412,146 @@
         previewBox.textContent = '';
 
         if (selectedCells.length >= 2) {
-            if (selectedCells.length >= 10) {
-                comboOverlay.textContent = `🔥 ${selectedCells.length}連擊！`;
-                comboOverlay.classList.add('show');
-                setTimeout(() => comboOverlay.classList.remove('show'), 1000);
-            }
             mergeCells();
         } else {
-            selectedCells.forEach(c => c.element.classList.remove('selected'));
+            selectedCells.forEach(i => i.element.classList.remove('selected'));
             selectedCells = [];
         }
     }
 
-    function updatePreview() {
-        if (selectedCells.length < 2) { previewBox.textContent = ''; return; }
-        const last = selectedCells[selectedCells.length - 1];
-        let sum = selectedCells.reduce((acc, cur) => acc + cur.val, 0);
-        let mergedValue = Math.max(Math.pow(2, Math.floor(Math.log2(sum))), last.val * 2);
-        previewBox.textContent = `🎯 ${formatNumber(mergedValue)} (+${sum})`;
+    function drawLines(touchX, touchY) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (selectedCells.length === 0) return;
+
+        ctx.beginPath();
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        ctx.moveTo(selectedCells[0].centerX, selectedCells[0].centerY);
+        for (let i = 1; i < selectedCells.length; i++) {
+            ctx.lineTo(selectedCells[i].centerX, selectedCells[i].centerY);
+        }
+        if (touchX !== undefined && touchY !== undefined) {
+            const wrapRect = boardWrap.getBoundingClientRect();
+            ctx.lineTo(touchX - wrapRect.left, touchY - wrapRect.top);
+        }
+        ctx.stroke();
     }
 
-    function addToSelection(cell) {
-        const r = parseInt(cell.dataset.r);
-        const c = parseInt(cell.dataset.c);
-        const val = board[r][c];
-
-        if (selectedCells.some(s => s.r === r && s.c === c)) {
-            if (selectedCells.length >= 2) {
-                const prev = selectedCells[selectedCells.length - 2];
-                if (prev.r === r && prev.c === c) {
-                    selectedCells.pop().element.classList.remove('selected');
-                }
-            }
+    function updatePreview() {
+        if (selectedCells.length < 2) {
+            previewBox.textContent = '';
             return;
         }
-
-        if (selectedCells.length === 0) {
-            selectedCells.push({ r, c, val, element: cell });
-            cell.classList.add('selected');
-            playConnectSound(selectedCells.length);
-            return;
-        }
-
-        const lastCell = selectedCells[selectedCells.length - 1];
-        if (Math.abs(lastCell.r - r) <= 1 && Math.abs(lastCell.c - c) <= 1) {
-            if (selectedCells.length === 1 && val === lastCell.val) {
-                selectedCells.push({ r, c, val, element: cell });
-                cell.classList.add('selected');
-                playConnectSound(selectedCells.length);
-            } else if (selectedCells.length > 1 && (val === lastCell.val || val === lastCell.val * 2)) {
-                selectedCells.push({ r, c, val, element: cell });
-                cell.classList.add('selected');
-                playConnectSound(selectedCells.length);
-            }
-        }
+        const lastVal = board[selectedCells[selectedCells.length - 1].r][selectedCells[selectedCells.length - 1].c];
+        let sum = selectedCells.reduce((acc, cur) => acc + board[cur.r][cur.c], 0);
+        let mergedValue = Math.max(Math.pow(2, Math.floor(Math.log2(sum))), lastVal * 2);
+        previewBox.textContent = `🎯 ${formatNumber(mergedValue)} (+${sum})`;
     }
 
     function mergeCells() {
         saveCurrentState();
         const last = selectedCells[selectedCells.length - 1];
-        let sum = selectedCells.reduce((acc, cur) => acc + cur.val, 0);
-        let mergedValue = Math.max(Math.pow(2, Math.floor(Math.log2(sum))), last.val * 2);
+        let sum = selectedCells.reduce((acc, cur) => acc + board[cur.r][cur.c], 0);
+        let mergedValue = Math.max(Math.pow(2, Math.floor(Math.log2(sum))), board[last.r][last.c] * 2);
 
-        selectedCells.forEach(c => board[c.r][c.c] = 0);
+        selectedCells.forEach(item => board[item.r][item.c] = 0);
         board[last.r][last.c] = mergedValue;
-        mergedTargetPos = { r: last.r, c: last.c };
-        playMergeSound();
 
         score += sum;
-        coins += Math.floor(sum / 5);
+        coins += Math.max(1, Math.floor(sum / 10));
         scoreElement.textContent = score;
         coinsElement.textContent = coins;
 
         if (score > bestScore) {
             bestScore = score;
             bestScoreElement.textContent = bestScore;
-            localStorage.setItem('2248_watch_4x4_best', bestScore);
+            localStorage.setItem('2248_watch_lite_best', bestScore);
         }
 
-        checkAndEliminateLowerBlocks(mergedValue);
         applyGravity();
         selectedCells = [];
         checkGameOver();
     }
 
-    function checkAndEliminateLowerBlocks(newVal) {
-        if (newVal >= 2048) {
-            let threshold = newVal / 256;
-            if (threshold >= minAllowedValue) {
-                minAllowedValue = threshold * 2;
-                for (let r = 0; r < ROWS; r++) {
-                    for (let c = 0; c < COLS; c++) {
-                        if (board[r][c] > 0 && board[r][c] <= threshold) board[r][c] = 0;
-                    }
-                }
-                triggerShake();
-            }
-        }
-    }
-
     function applyGravity() {
         for (let c = 0; c < COLS; c++) {
-            let colVals = [];
-            for (let r = 0; r < ROWS; r++) { if (board[r][c] !== 0) colVals.push(board[r][c]); }
-            while (colVals.length < ROWS) colVals.unshift(generateRandomBlock());
-            for (let r = 0; r < ROWS; r++) board[r][c] = colVals[r];
+            let col = [];
+            for (let r = 0; r < ROWS; r++) {
+                if (board[r][c] !== 0) col.push(board[r][c]);
+            }
+            while (col.length < ROWS) col.unshift(generateRandomBlock());
+            for (let r = 0; r < ROWS; r++) board[r][c] = col[r];
         }
-        renderBoard(true);
+        renderBoard();
+        updateBoardRects();
     }
 
     function checkGameOver() {
-        const hammerCost = getToolCost('hammer');
         for (let r = 0; r < ROWS; r++) {
             for (let c = 0; c < COLS; c++) {
                 let v = board[r][c];
-                for (let dr = -1; dr <= 1; dr++) {
-                    for (let dc = -1; dc <= 1; dc++) {
-                        let nr = r + dr, nc = c + dc;
-                        if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
-                            let nv = board[nr][nc];
-                            if (nv === v || nv === v * 2) return;
-                        }
+                const neighbors = [[r+1, c], [r-1, c], [r, c+1], [r, c-1], [r+1, c+1], [r-1, c-1], [r+1, c-1], [r-1, c+1]];
+                for (let [nr, nc] of neighbors) {
+                    if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
+                        if (board[nr][nc] === v || board[nr][nc] === v * 2) return;
                     }
                 }
             }
         }
-        if (coins >= hammerCost) return;
+        if (coins >= 100) return; // 還有金幣買槌子就不判死
         document.getElementById('final-score').textContent = `得分: ${score}`;
-        gameOverModal.classList.add('show');
+        document.getElementById('game-over-modal').classList.add('show');
+    }
+
+    function saveCurrentState() {
+        lastState = { board: JSON.parse(JSON.stringify(board)), score, coins };
+        updateToolsState();
     }
 
     function updateToolsState() {
-        const undoCost = getToolCost('undo');
-        const shuffleCost = getToolCost('shuffle');
-        const hammerCost = getToolCost('hammer');
-
-        document.getElementById('cost-undo').textContent = undoCost;
-        document.getElementById('cost-shuffle').textContent = shuffleCost;
-        document.getElementById('cost-hammer').textContent = hammerCost;
-
-        document.getElementById('btn-undo').disabled = !lastState || coins < undoCost;
-        document.getElementById('btn-shuffle').disabled = coins < shuffleCost;
-        document.getElementById('btn-hammer').disabled = coins < hammerCost;
+        document.getElementById('btn-undo').disabled = !lastState || coins < 50;
+        document.getElementById('btn-shuffle').disabled = coins < 150;
+        document.getElementById('btn-hammer').disabled = coins < 100;
     }
 
     function useUndo() {
-        const cost = getToolCost('undo');
-        if (!lastState || coins < cost) return;
-        coins -= cost;
-        board = JSON.parse(JSON.stringify(lastState.board));
+        if (!lastState || coins < 50) return;
+        coins -= 50;
+        board = lastState.board;
         score = lastState.score;
-        minAllowedValue = lastState.minAllowedValue;
         scoreElement.textContent = score;
         coinsElement.textContent = coins;
         lastState = null;
-        renderBoard(true);
+        renderBoard();
+        updateBoardRects();
     }
 
     function useShuffle() {
-        const cost = getToolCost('shuffle');
-        if (coins < cost) return;
+        if (coins < 150) return;
         saveCurrentState();
-        coins -= cost;
+        coins -= 150;
         coinsElement.textContent = coins;
-        triggerShake();
         for (let r = 0; r < ROWS; r++) {
-            for (let c = 0; c < COLS; c++) {
-                board[r][c] = generateRandomBlock();
-            }
+            for (let c = 0; c < COLS; c++) board[r][c] = generateRandomBlock();
         }
-        renderBoard(true);
+        renderBoard();
+        updateBoardRects();
     }
 
     function toggleHammer() {
-        if (coins < getToolCost('hammer')) return;
+        if (coins < 100) return;
         isHammerMode = !isHammerMode;
         document.getElementById('btn-hammer').classList.toggle('active', isHammerMode);
     }
 
-    function useHammer(cell) {
+    function useHammer(item) {
         saveCurrentState();
-        coins -= getToolCost('hammer');
+        coins -= 100;
         coinsElement.textContent = coins;
-        board[parseInt(cell.dataset.r)][parseInt(cell.dataset.c)] = 0;
+        board[item.r][item.c] = 0;
         isHammerMode = false;
         document.getElementById('btn-hammer').classList.remove('active');
         applyGravity();
@@ -757,36 +559,38 @@
     }
 
     function exportSave() {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ score, coins, bestScore, board }));
+        const blob = new Blob([JSON.stringify({ score, coins, bestScore, board })], { type: 'application/json' });
         const a = document.createElement('a');
-        a.href = dataStr; a.download = "2248_watch_4x4_save.json";
+        a.href = URL.createObjectURL(blob);
+        a.download = '2248_save.json';
         a.click();
     }
-
-    function triggerImport() { document.getElementById('file-input').click(); }
 
     function importSave(e) {
         const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = function(evt) {
+        reader.onload = evt => {
             try {
                 const data = JSON.parse(evt.target.result);
                 score = data.score; coins = data.coins; bestScore = data.bestScore; board = data.board;
                 scoreElement.textContent = score; coinsElement.textContent = coins; bestScoreElement.textContent = bestScore;
-                renderBoard(true);
-            } catch (err) { alert('格式錯誤'); }
+                renderBoard();
+                updateBoardRects();
+            } catch (err) { alert('無效檔案'); }
         };
         reader.readAsText(file);
     }
 
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('show');
+    }
+
+    // 觸控監聽（針對手錶 WebKit 極速最佳化）
     window.addEventListener('touchstart', e => handleStart(e.touches[0].clientX, e.touches[0].clientY), { passive: false });
     window.addEventListener('touchmove', e => handleMove(e.touches[0].clientX, e.touches[0].clientY), { passive: false });
     window.addEventListener('touchend', handleEnd);
-    window.addEventListener('mousedown', e => handleStart(e.clientX, e.clientY));
-    window.addEventListener('mousemove', e => handleMove(e.clientX, e.clientY));
-    window.addEventListener('mouseup', handleEnd);
-    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('resize', updateBoardRects);
 
     initBoard();
 </script>
