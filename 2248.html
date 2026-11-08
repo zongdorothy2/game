@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>2248 Watch Big</title>
+<title>2248 Watch Big 3x3</title>
 <style>
     * {
         box-sizing: border-box;
@@ -29,17 +29,17 @@
         align-items: center;
         width: 100%;
         height: 100%;
-        padding: 2px 4px 4px 4px; /* 極窄邊距 */
+        padding: 4px;
     }
 
-    /* 頂部單行超緊湊儀表板 (高度僅約 20px) */
+    /* 頂部單行緊湊儀表板 */
     .header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         width: 100%;
         max-width: 220px;
-        padding: 0 2px;
+        padding: 0 4px;
     }
     .header-left {
         display: flex;
@@ -47,13 +47,13 @@
         gap: 6px;
     }
     .title {
-        font-size: 14px;
+        font-size: 15px;
         font-weight: 900;
         color: #f1c40f;
         letter-spacing: -0.5px;
     }
     .coin-tag {
-        font-size: 11px;
+        font-size: 12px;
         color: #f39c12;
         font-weight: 800;
     }
@@ -61,7 +61,7 @@
         display: flex;
         align-items: center;
         gap: 6px;
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 700;
         color: #8d99ae;
     }
@@ -70,17 +70,17 @@
         font-weight: 900;
     }
 
-    /* 浮動提示文字 (不占垂直高度) */
+    /* 浮動提示文字 */
     #preview-box {
-        height: 14px;
-        line-height: 14px;
-        font-size: 11px;
+        height: 16px;
+        line-height: 16px;
+        font-size: 12px;
         font-weight: 900;
         color: #2ecc71;
         text-align: center;
     }
 
-    /* 放大版棋盤 (4*42px + 3*4px + 6px邊界 = 186px) */
+    /* 3x3 特大棋盤 (3*56px + 2*5px + 6px邊界 = 184px) */
     .board-wrap {
         position: relative;
         background: #1e1e24;
@@ -98,40 +98,40 @@
     }
     #game-board {
         display: grid;
-        grid-template-columns: repeat(4, 42px);
-        grid-template-rows: repeat(4, 42px);
-        gap: 4px;
+        grid-template-columns: repeat(3, 56px);
+        grid-template-rows: repeat(3, 56px);
+        gap: 5px;
         position: relative;
         z-index: 5;
     }
 
-    /* 方格與超大清晰數字 */
+    /* 特大方格與加大數字字體 */
     .cell {
-        width: 42px;
-        height: 42px;
-        border-radius: 7px;
+        width: 56px;
+        height: 56px;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 20px;          /* 基礎字體直接拉到 20px 大字 */
+        font-size: 28px;          /* 基礎字體加大至 28px */
         font-weight: 900;
         color: #ffffff;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        text-shadow: 0 1px 3px rgba(0,0,0,0.6);
     }
     .cell.selected {
-        outline: 2px solid #ffffff;
-        transform: scale(0.92);
+        outline: 3px solid #ffffff;
+        transform: scale(0.94);
     }
-    .cell.num-3 { font-size: 15px; } /* 3位數微調 (128, 256, 512) */
-    .cell.num-4 { font-size: 12px; } /* 4位數微調 (1024, 2048) */
-    .cell.num-5 { font-size: 10px; } /* 5位數以上 */
+    .cell.num-3 { font-size: 20px; } /* 3位數 (128, 256, 512) */
+    .cell.num-4 { font-size: 16px; } /* 4位數 (1024, 2048) */
+    .cell.num-5 { font-size: 13px; } /* 5位數以上 */
 
-    /* 底部單行功能鍵 (高度約 26px) */
+    /* 底部單行功能鍵 */
     .tools-bar {
         display: flex;
         gap: 3px;
         width: 100%;
-        max-width: 210px;
+        max-width: 220px;
         justify-content: space-between;
     }
     .btn {
@@ -140,7 +140,7 @@
         border: 1px solid #3e4152;
         color: #fff;
         border-radius: 5px;
-        height: 25px;
+        height: 26px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -179,15 +179,15 @@
         max-width: 180px;
         text-align: center;
     }
-    .modal-card h3 { font-size: 13px; margin-bottom: 6px; color: #f1c40f; }
-    .modal-card p { font-size: 10px; line-height: 1.4; color: #ccc; margin-bottom: 8px; }
+    .modal-card h3 { font-size: 14px; margin-bottom: 6px; color: #f1c40f; }
+    .modal-card p { font-size: 11px; line-height: 1.4; color: #ccc; margin-bottom: 8px; }
     .modal-btn {
         background: #27ae60;
         border: none;
         color: #fff;
         border-radius: 4px;
         padding: 4px 10px;
-        font-size: 10px;
+        font-size: 11px;
         font-weight: bold;
     }
 </style>
@@ -210,7 +210,7 @@
     <!-- 即時預覽列 -->
     <div id="preview-box"></div>
 
-    <!-- 放大棋盤 -->
+    <!-- 3x3 棋盤 -->
     <div class="board-wrap" id="board-wrap">
         <canvas id="line-canvas"></canvas>
         <div id="game-board"></div>
@@ -238,8 +238,8 @@
 <input type="file" id="file-input" accept=".json" style="display: none;" onchange="importSave(event)">
 
 <script>
-    const ROWS = 4;
-    const COLS = 4;
+    const ROWS = 3;
+    const COLS = 3;
     const boardElement = document.getElementById('game-board');
     const boardWrap = document.getElementById('board-wrap');
     const canvas = document.getElementById('line-canvas');
@@ -252,7 +252,7 @@
     let board = [];
     let score = 0;
     let coins = 100;
-    let bestScore = parseInt(localStorage.getItem('2248_watch_big_best') || '0', 10);
+    let bestScore = parseInt(localStorage.getItem('2248_watch_3x3_best') || '0', 10);
     let isDragging = false;
     let selectedCells = [];
     let isHammerMode = false;
@@ -344,7 +344,6 @@
                 cell.dataset.r = r;
                 cell.dataset.c = c;
 
-                // 依數字位元自動配置最大字體
                 if (text.length >= 5) cell.classList.add('num-5');
                 else if (text.length === 4) cell.classList.add('num-4');
                 else if (text.length === 3) cell.classList.add('num-3');
@@ -425,7 +424,7 @@
         if (selectedCells.length === 0) return;
 
         ctx.beginPath();
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 5;
         ctx.strokeStyle = '#ffffff';
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
@@ -469,7 +468,7 @@
         if (score > bestScore) {
             bestScore = score;
             bestScoreElement.textContent = bestScore;
-            localStorage.setItem('2248_watch_big_best', bestScore);
+            localStorage.setItem('2248_watch_3x3_best', bestScore);
         }
 
         applyGravity();
@@ -563,7 +562,7 @@
         const blob = new Blob([JSON.stringify({ score, coins, bestScore, board })], { type: 'application/json' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = '2248_save.json';
+        a.download = '2248_3x3_save.json';
         a.click();
     }
 
