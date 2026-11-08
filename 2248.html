@@ -28,20 +28,21 @@
         height: 100%;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
+        justify-content: flex-start;
         align-items: center;
-        padding: 4px;
+        padding: 2px 4px;
     }
 
-    /* 頂部通用導航列 */
+    /* 頂部通用導航列 (極緊湊) */
     .top-nav {
         display: flex;
         justify-content: space-between;
         align-items: center;
         width: 100%;
-        max-width: 220px;
-        height: 24px;
-        padding: 0 4px;
+        max-width: 210px;
+        height: 22px;
+        padding: 0 2px;
+        flex-shrink: 0;
     }
     .nav-title {
         font-size: 13px;
@@ -49,16 +50,16 @@
         color: #f1c40f;
     }
     .btn-home {
-        background: #2b2d38;
-        border: 1px solid #4a4e69;
+        background: #3a3d4d;
+        border: 1px solid #5a5e75;
         color: #fff;
         border-radius: 4px;
         font-size: 11px;
-        padding: 2px 6px;
+        padding: 1px 6px;
         font-weight: bold;
         cursor: pointer;
     }
-    .btn-home:active { background: #4a4e69; }
+    .btn-home:active { background: #5a5e75; }
 
     /* 遊戲主畫面容器 */
     .view-container {
@@ -67,7 +68,8 @@
         height: calc(100% - 24px);
         flex-direction: column;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-start;
+        position: relative;
     }
     .view-container.active {
         display: flex;
@@ -77,12 +79,12 @@
     #view-menu {
         justify-content: center;
         gap: 8px;
-        padding: 10px 4px;
+        padding: 6px 4px;
     }
     .menu-btn {
         width: 100%;
-        max-width: 200px;
-        height: 44px;
+        max-width: 195px;
+        height: 42px;
         border-radius: 8px;
         border: none;
         color: #fff;
@@ -101,19 +103,57 @@
     .bg-snake { background: #27ae60; }
     .bg-mole { background: #e67e22; }
 
+    /* === 全螢幕覆蓋層：點擊即開始/重新開始 === */
+    .touch-mask {
+        position: absolute;
+        inset: 0;
+        background: rgba(18, 18, 20, 0.88);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+        cursor: pointer;
+        border-radius: 8px;
+    }
+    .touch-mask.hidden {
+        display: none !important;
+    }
+    .touch-mask-title {
+        font-size: 16px;
+        font-weight: 900;
+        color: #f1c40f;
+        margin-bottom: 6px;
+    }
+    .touch-mask-tip {
+        font-size: 14px;
+        font-weight: bold;
+        color: #2ecc71;
+        background: rgba(46, 204, 113, 0.15);
+        padding: 6px 14px;
+        border-radius: 20px;
+        border: 1px solid #2ecc71;
+        animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.75; transform: scale(0.96); }
+    }
+
     /* === 遊戲 1: 圈圈叉叉 (Tic-Tac-Toe) === */
     .sub-bar {
         display: flex;
-        gap: 6px;
+        gap: 8px;
         align-items: center;
-        margin-bottom: 2px;
+        margin: 2px 0;
+        flex-shrink: 0;
     }
     .mode-btn {
         background: #23242b;
         border: 1px solid #555;
         color: #bbb;
-        font-size: 10px;
-        padding: 2px 6px;
+        font-size: 11px;
+        padding: 2px 8px;
         border-radius: 4px;
     }
     .mode-btn.active {
@@ -126,12 +166,15 @@
         font-size: 12px;
         font-weight: bold;
         color: #2ecc71;
-        height: 16px;
+        height: 18px;
+        line-height: 18px;
+        margin-bottom: 2px;
+        flex-shrink: 0;
     }
     #ttt-board {
         display: grid;
-        grid-template-columns: repeat(3, 58px);
-        grid-template-rows: repeat(3, 58px);
+        grid-template-columns: repeat(3, 56px);
+        grid-template-rows: repeat(3, 56px);
         gap: 5px;
         background: #1e1e24;
         padding: 4px;
@@ -149,15 +192,6 @@
     }
     .ttt-cell.x { color: #e74c3c; }
     .ttt-cell.o { color: #3498db; }
-    .btn-reset {
-        background: #444;
-        border: none;
-        color: #fff;
-        font-size: 11px;
-        padding: 4px 14px;
-        border-radius: 4px;
-        font-weight: bold;
-    }
 
     /* === 遊戲 2: 2248 (3x3 大字版) === */
     .header-2248 {
@@ -165,17 +199,20 @@
         justify-content: space-between;
         align-items: center;
         width: 100%;
-        max-width: 210px;
+        max-width: 200px;
         font-size: 11px;
         font-weight: bold;
+        flex-shrink: 0;
+        margin-bottom: 2px;
     }
     #preview-box {
-        height: 15px;
-        line-height: 15px;
+        height: 14px;
+        line-height: 14px;
         font-size: 11px;
         font-weight: 900;
         color: #2ecc71;
         text-align: center;
+        flex-shrink: 0;
     }
     .board-wrap {
         position: relative;
@@ -194,20 +231,20 @@
     }
     #game-board {
         display: grid;
-        grid-template-columns: repeat(3, 56px);
-        grid-template-rows: repeat(3, 56px);
+        grid-template-columns: repeat(3, 55px);
+        grid-template-rows: repeat(3, 55px);
         gap: 5px;
         position: relative;
         z-index: 5;
     }
     .cell {
-        width: 56px;
-        height: 56px;
+        width: 55px;
+        height: 55px;
         border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 28px;
+        font-size: 27px;
         font-weight: 900;
         color: #ffffff;
         text-shadow: 0 1px 3px rgba(0,0,0,0.6);
@@ -216,15 +253,17 @@
         outline: 3px solid #ffffff;
         transform: scale(0.94);
     }
-    .cell.num-3 { font-size: 20px; }
-    .cell.num-4 { font-size: 16px; }
-    .cell.num-5 { font-size: 13px; }
+    .cell.num-3 { font-size: 19px; }
+    .cell.num-4 { font-size: 15px; }
+    .cell.num-5 { font-size: 12px; }
     .tools-bar {
         display: flex;
         gap: 4px;
         width: 100%;
-        max-width: 210px;
+        max-width: 200px;
         justify-content: space-between;
+        margin-top: 4px;
+        flex-shrink: 0;
     }
     .btn-tool {
         flex: 1;
@@ -232,7 +271,7 @@
         border: 1px solid #3e4152;
         color: #fff;
         border-radius: 5px;
-        height: 25px;
+        height: 24px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -248,9 +287,11 @@
         justify-content: space-between;
         align-items: center;
         width: 100%;
-        max-width: 200px;
+        max-width: 195px;
         font-size: 12px;
         font-weight: bold;
+        margin-bottom: 2px;
+        flex-shrink: 0;
     }
     #snake-canvas {
         background: #1a1a20;
@@ -261,6 +302,8 @@
         font-size: 11px;
         color: #888;
         text-align: center;
+        margin-top: 4px;
+        flex-shrink: 0;
     }
 
     /* === 遊戲 4: 打地鼠 (Whack-a-Mole) === */
@@ -269,14 +312,16 @@
         justify-content: space-between;
         align-items: center;
         width: 100%;
-        max-width: 200px;
+        max-width: 195px;
         font-size: 12px;
         font-weight: bold;
+        margin-bottom: 4px;
+        flex-shrink: 0;
     }
     #mole-board {
         display: grid;
-        grid-template-columns: repeat(3, 58px);
-        grid-template-rows: repeat(3, 58px);
+        grid-template-columns: repeat(3, 56px);
+        grid-template-rows: repeat(3, 56px);
         gap: 6px;
         background: #1e1e24;
         padding: 4px;
@@ -295,38 +340,6 @@
     }
     .mole-hole:active { transform: scale(0.95); }
     .mole-hole.active { background: #5d4037; }
-
-    /* 彈窗樣式 */
-    .modal-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.85);
-        display: none;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        z-index: 100;
-    }
-    .modal-overlay.show { display: flex; }
-    .modal-card {
-        background: #23242b;
-        border-radius: 8px;
-        padding: 12px;
-        width: 85%;
-        max-width: 180px;
-        text-align: center;
-    }
-    .modal-card h3 { font-size: 15px; margin-bottom: 6px; color: #f1c40f; }
-    .modal-card p { font-size: 12px; line-height: 1.4; color: #ccc; margin-bottom: 10px; }
-    .modal-btn {
-        background: #27ae60;
-        border: none;
-        color: #fff;
-        border-radius: 4px;
-        padding: 5px 12px;
-        font-size: 12px;
-        font-weight: bold;
-    }
 </style>
 </head>
 <body>
@@ -354,7 +367,12 @@
         </div>
         <div class="ttt-status" id="ttt-status">輪到 X 下子</div>
         <div id="ttt-board"></div>
-        <button class="btn-reset" onclick="resetTTT()">重新開始</button>
+
+        <!-- 結束時全螢幕覆蓋：觸碰即可重新開始 -->
+        <div class="touch-mask hidden" id="ttt-touch-mask" onclick="resetTTT()">
+            <div class="touch-mask-title" id="ttt-mask-title">獲勝！</div>
+            <div class="touch-mask-tip">👉 觸碰螢幕再玩一次</div>
+        </div>
     </div>
 
     <!-- 遊戲 2: 2248 3x3 -->
@@ -374,6 +392,13 @@
             <button class="btn-tool" id="btn-shuffle" onclick="useShuffle()">🔄洗牌</button>
             <button class="btn-tool" id="btn-hammer" onclick="toggleHammer()">🔨鐵錘</button>
         </div>
+
+        <!-- 無路可走時全螢幕覆蓋 -->
+        <div class="touch-mask hidden" id="g2-touch-mask" onclick="init2248Board()">
+            <div class="touch-mask-title">遊戲結束</div>
+            <div class="touch-mask-title" id="g2-mask-score" style="font-size:13px; color:#fff; margin-bottom:8px;">得分: 0</div>
+            <div class="touch-mask-tip">👉 觸碰螢幕重新開始</div>
+        </div>
     </div>
 
     <!-- 遊戲 3: 貪食蛇 -->
@@ -384,6 +409,13 @@
         </div>
         <canvas id="snake-canvas" width="180" height="180"></canvas>
         <div class="snake-tip">螢幕滑動控制轉向</div>
+
+        <!-- 死亡時全螢幕覆蓋 -->
+        <div class="touch-mask hidden" id="snake-touch-mask" onclick="resetSnake()">
+            <div class="touch-mask-title">遊戲結束</div>
+            <div class="touch-mask-title" id="snake-mask-score" style="font-size:13px; color:#fff; margin-bottom:8px;">得分: 0</div>
+            <div class="touch-mask-tip">👉 觸碰螢幕重新開始</div>
+        </div>
     </div>
 
     <!-- 遊戲 4: 打地鼠 -->
@@ -393,16 +425,13 @@
             <span>倒數: <span id="mole-time" style="color:#e74c3c; font-size:14px;">30</span>s</span>
         </div>
         <div id="mole-board"></div>
-        <button class="btn-reset" id="btn-mole-start" onclick="startMoleGame()">開始遊戲</button>
-    </div>
-</div>
 
-<!-- 通用結算彈窗 -->
-<div class="modal-overlay" id="common-modal">
-    <div class="modal-card">
-        <h3 id="modal-title">遊戲結束</h3>
-        <p id="modal-msg">得分: 0</p>
-        <button class="modal-btn" onclick="closeCommonModal()">確認</button>
+        <!-- 未開始 / 結束時覆蓋：觸碰直接開始 -->
+        <div class="touch-mask" id="mole-touch-mask" onclick="startMoleGame()">
+            <div class="touch-mask-title" id="mole-mask-title">🐹 瘋狂打地鼠</div>
+            <div class="touch-mask-title" id="mole-mask-sub" style="font-size:12px; color:#aaa; margin-bottom:8px;">限時 30 秒挑戰</div>
+            <div class="touch-mask-tip">👉 觸碰螢幕開始遊戲</div>
+        </div>
     </div>
 </div>
 
@@ -429,21 +458,6 @@
             if (viewId === '2248') navTitle.textContent = '🔢 2248 3x3';
             if (viewId === 'snake') navTitle.textContent = '🐍 貪食蛇';
             if (viewId === 'mole') navTitle.textContent = '🐹 瘋狂打地鼠';
-        }
-    }
-
-    function showCommonModal(title, msg, onOk) {
-        document.getElementById('modal-title').textContent = title;
-        document.getElementById('modal-msg').textContent = msg;
-        const modal = document.getElementById('common-modal');
-        modal.classList.add('show');
-        window.currentModalOk = onOk;
-    }
-    function closeCommonModal() {
-        document.getElementById('common-modal').classList.remove('show');
-        if (typeof window.currentModalOk === 'function') {
-            window.currentModalOk();
-            window.currentModalOk = null;
         }
     }
 
@@ -476,6 +490,7 @@
         resetTTT();
     }
     function resetTTT() {
+        document.getElementById('ttt-touch-mask').classList.add('hidden');
         tttBoard = Array(9).fill('');
         tttTurn = 'X';
         tttActive = true;
@@ -494,13 +509,11 @@
         makeTTTMove(index, tttTurn);
 
         if (checkTTTWinner(tttBoard, tttTurn)) {
-            tttActive = false;
-            document.getElementById('ttt-status').textContent = `${tttTurn} 獲勝！🎉`;
+            finishTTT(`${tttTurn} 獲勝！🎉`);
             return;
         }
         if (tttBoard.every(v => v !== '')) {
-            tttActive = false;
-            document.getElementById('ttt-status').textContent = '平手握手！🤝';
+            finishTTT('平手握手！🤝');
             return;
         }
 
@@ -510,6 +523,12 @@
         if (tttMode === 'pve' && tttTurn === 'O' && tttActive) {
             setTimeout(botTTTMove, 250);
         }
+    }
+    function finishTTT(msg) {
+        tttActive = false;
+        document.getElementById('ttt-status').textContent = msg;
+        document.getElementById('ttt-mask-title').textContent = msg;
+        document.getElementById('ttt-touch-mask').classList.remove('hidden');
     }
     function makeTTTMove(idx, player) {
         tttBoard[idx] = player;
@@ -538,13 +557,11 @@
 
         makeTTTMove(bestMove, 'O');
         if (checkTTTWinner(tttBoard, 'O')) {
-            tttActive = false;
-            document.getElementById('ttt-status').textContent = '電腦 O 獲勝！🤖';
+            finishTTT('電腦 O 獲勝！🤖');
             return;
         }
         if (tttBoard.every(v => v !== '')) {
-            tttActive = false;
-            document.getElementById('ttt-status').textContent = '平手！🤝';
+            finishTTT('平手握手！🤝');
             return;
         }
         tttTurn = 'X';
@@ -604,6 +621,7 @@
     }
 
     function init2248Board() {
+        document.getElementById('g2-touch-mask').classList.add('hidden');
         g2_score = 0;
         minAllowedValue = 2;
         lastState = null;
@@ -789,7 +807,8 @@
             }
         }
         if (g2_coins >= 100) return;
-        showCommonModal('遊戲結束', `2248 最終得分: ${g2_score}`, init2248Board);
+        document.getElementById('g2-mask-score').textContent = `得分: ${g2_score}`;
+        document.getElementById('g2-touch-mask').classList.remove('hidden');
     }
     function updateToolsState() {
         document.getElementById('btn-undo').disabled = !lastState || g2_coins < 50;
@@ -852,6 +871,7 @@
         resetSnake();
     }
     function resetSnake() {
+        document.getElementById('snake-touch-mask').classList.add('hidden');
         snake = [{ x: 7, y: 7 }, { x: 6, y: 7 }, { x: 5, y: 7 }];
         snakeDir = { x: 1, y: 0 };
         nextDir = { x: 1, y: 0 };
@@ -883,7 +903,8 @@
                 localStorage.setItem('watch_snake_best', snakeBest);
                 document.getElementById('snake-best').textContent = snakeBest;
             }
-            showCommonModal('遊戲結束', `貪食蛇得分: ${snakeScore}`, resetSnake);
+            document.getElementById('snake-mask-score').textContent = `得分: ${snakeScore}`;
+            document.getElementById('snake-touch-mask').classList.remove('hidden');
             return;
         }
 
@@ -901,11 +922,13 @@
         sctx.fillStyle = '#1a1a20';
         sctx.fillRect(0, 0, snakeCanvas.width, snakeCanvas.height);
 
+        // 食物
         sctx.fillStyle = '#e74c3c';
         sctx.beginPath();
         sctx.arc(food.x * SNAKE_GRID + SNAKE_GRID/2, food.y * SNAKE_GRID + SNAKE_GRID/2, SNAKE_GRID/2 - 1, 0, Math.PI * 2);
         sctx.fill();
 
+        // 蛇身
         snake.forEach((seg, idx) => {
             sctx.fillStyle = idx === 0 ? '#2ecc71' : '#27ae60';
             sctx.fillRect(seg.x * SNAKE_GRID + 1, seg.y * SNAKE_GRID + 1, SNAKE_GRID - 2, SNAKE_GRID - 2);
@@ -969,14 +992,17 @@
         }
         document.getElementById('mole-score').textContent = '0';
         document.getElementById('mole-time').textContent = '30';
-        document.getElementById('btn-mole-start').style.display = 'block';
+        // 顯示全螢幕觸碰開始層
+        document.getElementById('mole-mask-title').textContent = '🐹 瘋狂打地鼠';
+        document.getElementById('mole-mask-sub').textContent = '限時 30 秒挑戰';
+        document.getElementById('mole-touch-mask').classList.remove('hidden');
     }
     function startMoleGame() {
+        document.getElementById('mole-touch-mask').classList.add('hidden');
         moleScore = 0;
         moleTime = 30;
         document.getElementById('mole-score').textContent = moleScore;
         document.getElementById('mole-time').textContent = moleTime;
-        document.getElementById('btn-mole-start').style.display = 'none';
 
         stopMole();
         moleTimer = setInterval(() => {
@@ -984,8 +1010,9 @@
             document.getElementById('mole-time').textContent = moleTime;
             if (moleTime <= 0) {
                 stopMole();
-                document.getElementById('btn-mole-start').style.display = 'block';
-                showCommonModal('時間到！', `打地鼠得分: ${moleScore}`);
+                document.getElementById('mole-mask-title').textContent = '時間到！';
+                document.getElementById('mole-mask-sub').textContent = `得分: ${moleScore}`;
+                document.getElementById('mole-touch-mask').classList.remove('hidden');
             }
         }, 1000);
         popMole();
