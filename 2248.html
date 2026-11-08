@@ -566,38 +566,56 @@
         renderTTT();
     }
     function botTTTMove() {
-        if (!tttActive) return;
-        let emptyIndices = tttBoard.map((v, i) => v === '' ? i : null).filter(v => v !== null);
-        if (emptyIndices.length === 0) return;
+    if (!tttActive) return;
+    let emptyIndices = tttBoard.map((v, i) => v === '' ? i : null).filter(v => v !== null);
+    if (emptyIndices.length === 0) return;
 
-        let bestMove = null;
-        for (let idx of emptyIndices) {
-            let b = [...tttBoard]; b[idx] = 'O';
-            if (checkTTTWinner(b, 'O')) { bestMove = idx; break; }
+    let bestMove = null;
+
+    // 規則 1：電腦如果有勝著（即將連成三子），90% 依然會走去獲勝
+    for (let idx of emptyIndices) {
+        let b = [...tttBoard]; b[idx] = 'O';
+        if (checkTTTWinner(b, 'O')) {
+            if (Math.random() < 0.9) { bestMove = idx; break; }
         }
-        if (bestMove === null) {
-            for (let idx of emptyIndices) {
-                let b = [...tttBoard]; b[idx] = 'X';
-                if (checkTTTWinner(b, 'X')) { bestMove = idx; break; }
+    }
+
+    // 規則 2：防守玩家（堵玩家的連線）
+    // 加入 40% 的「放水/疏忽」機率：電腦有 40% 機率不堵人，讓玩家成功連線獲勝！
+    if (bestMove === null) {
+        for (let idx of emptyIndices) {
+            let b = [...tttBoard]; b[idx] = 'X';
+            if (checkTTTWinner(b, 'X')) {
+                // 60% 智商正常去防守，30% 粗心漏看讓玩家贏
+                if (Math.random() < 0.7) {
+                    bestMove = idx;
+                }
+                break;
             }
         }
-        if (bestMove === null) {
-            if (emptyIndices.includes(4)) bestMove = 4;
-            else bestMove = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
-        }
-
-        makeTTTMove(bestMove, 'O');
-        if (checkTTTWinner(tttBoard, 'O')) {
-            finishTTT('電腦 O 獲勝！🤖');
-            return;
-        }
-        if (tttBoard.every(v => v !== '')) {
-            finishTTT('平手握手！🤝');
-            return;
-        }
-        tttTurn = 'X';
-        document.getElementById('ttt-status').textContent = '輪到 X 下子';
     }
+
+    // 規則 3：一般走子，50% 佔中心，其他隨機落子
+    if (bestMove === null) {
+        if (emptyIndices.includes(4) && Math.random() < 0.5) {
+            bestMove = 4;
+        } else {
+            bestMove = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+        }
+    }
+
+    makeTTTMove(bestMove, 'O');
+    if (checkTTTWinner(tttBoard, 'O')) {
+        finishTTT('電腦 O 獲勝！🤖');
+        return;
+    }
+    if (tttBoard.every(v => v !== '')) {
+        finishTTT('平手握手！🤝');
+        return;
+    }
+    tttTurn = 'X';
+    document.getElementById('ttt-status').textContent = '輪到 X 下子';
+}
     function checkTTTWinner(b, p) {
         const wins = [
             [0,1,2], [3,4,5], [6,7,8],
