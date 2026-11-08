@@ -33,7 +33,7 @@
         padding: 2px 4px;
     }
 
-    /* 頂部通用導航列 (極緊湊) */
+    /* 頂部通用導航列 */
     .top-nav {
         display: flex;
         justify-content: space-between;
@@ -75,33 +75,50 @@
         display: flex;
     }
 
-    /* === 首頁：遊戲選單 === */
+    /* === 首頁：2x2 方塊大按鈕選單 === */
     #view-menu {
         justify-content: center;
+        padding: 4px;
+    }
+    .menu-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 92px);
+        grid-template-rows: repeat(2, 85px);
         gap: 8px;
-        padding: 6px 4px;
+        justify-content: center;
+        align-content: center;
+        width: 100%;
+        height: 100%;
     }
     .menu-btn {
-        width: 100%;
-        max-width: 195px;
-        height: 42px;
-        border-radius: 8px;
+        width: 92px;
+        height: 85px;
+        border-radius: 12px;
         border: none;
         color: #fff;
-        font-size: 15px;
-        font-weight: 900;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 8px;
+        gap: 4px;
         cursor: pointer;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+        box-shadow: 0 3px 6px rgba(0,0,0,0.5);
+        padding: 4px;
     }
-    .menu-btn:active { transform: scale(0.96); filter: brightness(0.9); }
-    .bg-ttt { background: #3498db; }
-    .bg-2248 { background: #9b59b6; }
-    .bg-snake { background: #27ae60; }
-    .bg-mole { background: #e67e22; }
+    .menu-btn:active { transform: scale(0.94); filter: brightness(0.9); }
+    .menu-btn .btn-icon {
+        font-size: 26px;
+        line-height: 1;
+    }
+    .menu-btn .btn-text {
+        font-size: 13px;
+        font-weight: 900;
+        letter-spacing: -0.5px;
+    }
+    .bg-ttt { background: linear-gradient(145deg, #2980b9, #3498db); }
+    .bg-2248 { background: linear-gradient(145deg, #8e44ad, #9b59b6); }
+    .bg-snake { background: linear-gradient(145deg, #229954, #27ae60); }
+    .bg-mole { background: linear-gradient(145deg, #d35400, #e67e22); }
 
     /* === 全螢幕覆蓋層：點擊即開始/重新開始 === */
     .touch-mask {
@@ -351,12 +368,26 @@
         <button class="btn-home" id="btn-back-home" style="display:none;" onclick="showView('menu')">選單</button>
     </div>
 
-    <!-- 首頁：4個遊戲選單按鈕 -->
+    <!-- 首頁：2x2 方塊大按鈕選單 -->
     <div class="view-container active" id="view-menu">
-        <button class="menu-btn bg-ttt" onclick="startTTT()">❌⭕ 圈圈叉叉</button>
-        <button class="menu-btn bg-2248" onclick="start2248()">🔢 2248 合成</button>
-        <button class="menu-btn bg-snake" onclick="startSnake()">🐍 貪食蛇</button>
-        <button class="menu-btn bg-mole" onclick="startMole()">🐹 瘋狂打地鼠</button>
+        <div class="menu-grid">
+            <button class="menu-btn bg-ttt" onclick="startTTT()">
+                <span class="btn-icon">⭕❌</span>
+                <span class="btn-text">圈圈叉叉</span>
+            </button>
+            <button class="menu-btn bg-2248" onclick="start2248()">
+                <span class="btn-icon">🔢</span>
+                <span class="btn-text">2248 合成</span>
+            </button>
+            <button class="menu-btn bg-snake" onclick="startSnake()">
+                <span class="btn-icon">🐍</span>
+                <span class="btn-text">貪食蛇</span>
+            </button>
+            <button class="menu-btn bg-mole" onclick="startMole()">
+                <span class="btn-icon">🐹</span>
+                <span class="btn-text">打地鼠</span>
+            </button>
+        </div>
     </div>
 
     <!-- 遊戲 1: 圈圈叉叉 -->
@@ -992,7 +1023,6 @@
         }
         document.getElementById('mole-score').textContent = '0';
         document.getElementById('mole-time').textContent = '30';
-        // 顯示全螢幕觸碰開始層
         document.getElementById('mole-mask-title').textContent = '🐹 瘋狂打地鼠';
         document.getElementById('mole-mask-sub').textContent = '限時 30 秒挑戰';
         document.getElementById('mole-touch-mask').classList.remove('hidden');
