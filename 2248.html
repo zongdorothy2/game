@@ -89,25 +89,30 @@
         display: flex;
     }
 
-    /* === 首頁：2x2 方塊大按鈕選單 === */
+    /* === 首頁：五合一 2-1-2 佈局 (中間插入第 5 個遊戲) === */
     #view-menu {
         justify-content: center;
-        padding: 4px;
+        padding: 2px 4px;
         height: 100%;
     }
-    .menu-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 92px);
-        grid-template-rows: repeat(2, 85px);
-        gap: 8px;
-        justify-content: center;
-        align-content: center;
+    .menu-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
         width: 100%;
-        height: 100%;
+        max-width: 196px;
+        justify-content: center;
+        align-items: center;
     }
-    .menu-btn {
-        width: 92px;
-        height: 85px;
+    .menu-row {
+        display: flex;
+        gap: 8px;
+        width: 100%;
+        justify-content: center;
+    }
+    .menu-btn-square {
+        width: 94px;
+        height: 68px;
         border-radius: 12px;
         border: none;
         color: #fff;
@@ -115,21 +120,54 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 4px;
+        gap: 3px;
         cursor: pointer;
         box-shadow: 0 3px 6px rgba(0,0,0,0.5);
         padding: 4px;
     }
-    .menu-btn:active { transform: scale(0.94); filter: brightness(0.9); }
-    .menu-btn .btn-icon {
-        font-size: 26px;
+    .menu-btn-square:active { transform: scale(0.94); filter: brightness(0.9); }
+    .menu-btn-square .btn-icon {
+        font-size: 24px;
         line-height: 1;
     }
-    .menu-btn .btn-text {
-        font-size: 13px;
+    .menu-btn-square .btn-text {
+        font-size: 12px;
         font-weight: 900;
         letter-spacing: -0.5px;
     }
+
+    /* 中間第 5 個遊戲：超大吸睛橫條按鈕 */
+    .menu-btn-center {
+        width: 100%;
+        height: 48px;
+        border-radius: 12px;
+        border: none;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+        padding: 2px 10px;
+        background: linear-gradient(135deg, #e91e63, #ff5722);
+        animation: glow 2.5s infinite alternate;
+    }
+    .menu-btn-center:active { transform: scale(0.95); filter: brightness(0.9); }
+    .menu-btn-center .btn-icon {
+        font-size: 26px;
+        line-height: 1;
+    }
+    .menu-btn-center .btn-text {
+        font-size: 14px;
+        font-weight: 900;
+        letter-spacing: -0.5px;
+    }
+    @keyframes glow {
+        0% { box-shadow: 0 2px 8px rgba(233, 30, 99, 0.4); }
+        100% { box-shadow: 0 4px 14px rgba(255, 87, 34, 0.8); }
+    }
+
     .bg-ttt { background: linear-gradient(145deg, #2980b9, #3498db); }
     .bg-2248 { background: linear-gradient(145deg, #8e44ad, #9b59b6); }
     .bg-snake { background: linear-gradient(145deg, #229954, #27ae60); }
@@ -374,6 +412,56 @@
     }
     .mole-hole:active { transform: scale(0.95); }
     .mole-hole.active { background: #5d4037; }
+
+    /* === 遊戲 5: 翻牌對對碰 (Memory Match) === */
+    .memory-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        max-width: 195px;
+        font-size: 12px;
+        font-weight: bold;
+        margin-bottom: 4px;
+        flex-shrink: 0;
+    }
+    #memory-board {
+        display: grid;
+        grid-template-columns: repeat(4, 44px);
+        grid-template-rows: repeat(2, 68px);
+        gap: 5px;
+        background: #1e1e24;
+        padding: 4px;
+        border-radius: 10px;
+    }
+    .memory-card {
+        background: #2b2d38;
+        border: 2px solid #4a4e69;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        cursor: pointer;
+        transition: transform 0.25s, background-color 0.25s;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    }
+    .memory-card:active { transform: scale(0.94); }
+    .memory-card.flipped {
+        background: #3f51b5;
+        border-color: #7986cb;
+        transform: rotateY(180deg);
+    }
+    .memory-card.matched {
+        background: #27ae60 !important;
+        border-color: #2ecc71 !important;
+        animation: matchPop 0.35s ease;
+    }
+    @keyframes matchPop {
+        0% { transform: scale(0.85); }
+        50% { transform: scale(1.08); }
+        100% { transform: scale(1); }
+    }
 </style>
 </head>
 <body>
@@ -389,25 +477,38 @@
         ◀ 選單
     </button>
 
-    <!-- 首頁：2x2 方塊大按鈕選單 -->
+    <!-- 首頁：2-1-2 佈局 (在中間正中央置入第5個遊戲) -->
     <div class="view-container active" id="view-menu">
-        <div class="menu-grid">
-            <button class="menu-btn bg-ttt" onclick="startTTT()">
-                <span class="btn-icon">⭕❌</span>
-                <span class="btn-text">圈圈叉叉</span>
+        <div class="menu-wrap">
+            <!-- 上方 2 個遊戲 -->
+            <div class="menu-row">
+                <button class="menu-btn-square bg-ttt" onclick="startTTT()">
+                    <span class="btn-icon">⭕❌</span>
+                    <span class="btn-text">圈圈叉叉</span>
+                </button>
+                <button class="menu-btn-square bg-2248" onclick="start2248()">
+                    <span class="btn-icon">🔢</span>
+                    <span class="btn-text">2248 合成</span>
+                </button>
+            </div>
+
+            <!-- 正中間：第 5 個遊戲「翻牌對對碰」 -->
+            <button class="menu-btn-center" onclick="startMemory()">
+                <span class="btn-icon">🃏</span>
+                <span class="btn-text">翻牌對對碰</span>
             </button>
-            <button class="menu-btn bg-2248" onclick="start2248()">
-                <span class="btn-icon">🔢</span>
-                <span class="btn-text">2248 合成</span>
-            </button>
-            <button class="menu-btn bg-snake" onclick="startSnake()">
-                <span class="btn-icon">🐍</span>
-                <span class="btn-text">貪食蛇</span>
-            </button>
-            <button class="menu-btn bg-mole" onclick="startMole()">
-                <span class="btn-icon">🐹</span>
-                <span class="btn-text">打地鼠</span>
-            </button>
+
+            <!-- 下方 2 個遊戲 -->
+            <div class="menu-row">
+                <button class="menu-btn-square bg-snake" onclick="startSnake()">
+                    <span class="btn-icon">🐍</span>
+                    <span class="btn-text">貪食蛇</span>
+                </button>
+                <button class="menu-btn-square bg-mole" onclick="startMole()">
+                    <span class="btn-icon">🐹</span>
+                    <span class="btn-text">打地鼠</span>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -485,6 +586,23 @@
             <div class="touch-mask-tip">👉 觸碰螢幕開始遊戲</div>
         </div>
     </div>
+
+    <!-- 遊戲 5: 翻牌對對碰 -->
+    <div class="view-container" id="view-memory">
+        <div class="memory-header">
+            <span>步數: <span id="mem-flips" style="color:#f1c40f;">0</span></span>
+            <span>配對: <span id="mem-pairs" style="color:#2ecc71;">0/4</span></span>
+            <span>時間: <span id="mem-timer" style="color:#3498db;">0</span>s</span>
+        </div>
+        <div id="memory-board"></div>
+
+        <!-- 通關全螢幕覆蓋：觸碰直接重玩 -->
+        <div class="touch-mask hidden" id="mem-touch-mask" onclick="initMemoryBoard()">
+            <div class="touch-mask-title" style="color:#2ecc71;">🎉 挑戰成功！</div>
+            <div class="touch-mask-title" id="mem-mask-result" style="font-size:13px; color:#fff; margin-bottom:8px;">成績結算中</div>
+            <div class="touch-mask-tip">👉 觸碰螢幕再玩一次</div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -501,15 +619,17 @@
 
         if (viewId === 'menu') {
             btnBack.style.display = 'none';
-            navTitle.textContent = '🎮 手錶遊戲廳';
+            navTitle.textContent = '🎮 手鏢遊戲廳';
             stopSnake();
             stopMole();
+            stopMemoryTimer();
         } else {
             btnBack.style.display = 'flex';
             if (viewId === 'ttt') navTitle.textContent = '❌⭕ 圈圈叉叉';
             if (viewId === '2248') navTitle.textContent = '🔢 2248 3x3';
             if (viewId === 'snake') navTitle.textContent = '🐍 貪食蛇';
             if (viewId === 'mole') navTitle.textContent = '🐹 瘋狂打地鼠';
+            if (viewId === 'memory') navTitle.textContent = '🃏 翻牌對對碰';
         }
     }
 
@@ -601,8 +721,7 @@
             }
         }
 
-        // 規則 2：防守玩家
-        // 70% 正常防守，30% 疏忽漏看讓玩家贏
+        // 規則 2：防守玩家 (70% 正常防守，30% 疏忽漏看讓玩家贏)
         if (bestMove === null) {
             for (let idx of emptyIndices) {
                 let b = [...tttBoard]; b[idx] = 'X';
@@ -665,7 +784,7 @@
     let isHammerMode = false;
     let lastState = null;
     let cellRects = [];
-    let hasFreeRescue = true; // 每局擁有一次免費死局「消除最小數字」機會
+    let hasFreeRescue = true;
 
     bestScoreElement.textContent = g2_bestScore;
     coinsElement.textContent = g2_coins;
@@ -707,7 +826,6 @@
         updateToolsState();
     }
 
-    // 數值平滑化：主要鎖定在 2 與 4（75% 生成 2，25% 生成 4），完全避免大數卡死
     function generateSmoothBlock() {
         return Math.random() < 0.75 ? 2 : 4;
     }
@@ -861,7 +979,6 @@
         updateBoardRects();
     }
     function check2248GameOver() {
-        // 檢查是否有相鄰相同或相鄰兩倍可連
         for (let r = 0; r < G2_ROWS; r++) {
             for (let c = 0; c < G2_COLS; c++) {
                 let v = g2_board[r][c];
@@ -874,7 +991,6 @@
             }
         }
 
-        // 若無路可走，優先觸發一次免金幣「自動消除最小數字」機會
         if (hasFreeRescue) {
             hasFreeRescue = false;
             triggerAutoClearMinBlock();
@@ -886,7 +1002,6 @@
         document.getElementById('g2-touch-mask').classList.remove('hidden');
     }
 
-    // 自動消除最小方塊救援機制
     function triggerAutoClearMinBlock() {
         let minVal = Infinity;
         for (let r = 0; r < G2_ROWS; r++) {
@@ -907,7 +1022,6 @@
             previewBox.textContent = `✨ 神救援！已免費消除 ${minVal}！`;
             setTimeout(() => {
                 applyGravity();
-                // 再次檢查
                 check2248GameOver();
             }, 500);
         }
@@ -1025,13 +1139,11 @@
         sctx.fillStyle = '#1a1a20';
         sctx.fillRect(0, 0, snakeCanvas.width, snakeCanvas.height);
 
-        // 食物
         sctx.fillStyle = '#e74c3c';
         sctx.beginPath();
         sctx.arc(food.x * SNAKE_GRID + SNAKE_GRID/2, food.y * SNAKE_GRID + SNAKE_GRID/2, SNAKE_GRID/2 - 1, 0, Math.PI * 2);
         sctx.fill();
 
-        // 蛇身
         snake.forEach((seg, idx) => {
             sctx.fillStyle = idx === 0 ? '#2ecc71' : '#27ae60';
             sctx.fillRect(seg.x * SNAKE_GRID + 1, seg.y * SNAKE_GRID + 1, SNAKE_GRID - 2, SNAKE_GRID - 2);
@@ -1154,6 +1266,108 @@
         moleActiveIndex = -1;
         if (molePopTimer) clearTimeout(molePopTimer);
         setTimeout(popMole, 250);
+    }
+
+    /* ================= 遊戲 5: 翻牌對對碰 (Memory Match) ================= */
+    // 專為小螢幕設計 6 張大卡牌 (2x3，3組配對)，單格達 58x72px，超大好按
+    const EMOJI_POOL = ['🍎', '🍌', '🍇', '🍉', '🍓', '🍒', '🥑', '🍍', '🐰', '🐼', '🦊', '🦁'];
+    let memCards = [];
+    let memFlipped = [];
+    let memMatchedCount = 0;
+    let memFlips = 0;
+    let memTime = 0;
+    let memTimer = null;
+    let memIsBusy = false;
+
+    function startMemory() {
+        showView('memory');
+        initMemoryBoard();
+    }
+
+    function initMemoryBoard() {
+        stopMemoryTimer();
+        document.getElementById('mem-touch-mask').classList.add('hidden');
+        memFlipped = [];
+        memMatchedCount = 0;
+        memFlips = 0;
+        memTime = 0;
+        memIsBusy = false;
+        document.getElementById('mem-flips').textContent = '0';
+        document.getElementById('mem-pairs').textContent = '0/4';
+        document.getElementById('mem-timer').textContent = '0';
+
+        // 隨機選 4 種 Emoji，每種 2 張組成 8 張卡牌 (4組配對)
+        const shuffledPool = [...EMOJI_POOL].sort(() => 0.5 - Math.random());
+        const chosen = shuffledPool.slice(0, 4);
+        const deck = [...chosen, ...chosen].sort(() => 0.5 - Math.random());
+
+        const boardEl = document.getElementById('memory-board');
+        boardEl.innerHTML = '';
+        memCards = deck.map((emoji, index) => {
+            const card = document.createElement('div');
+            card.className = 'memory-card';
+            card.dataset.index = index;
+            card.dataset.emoji = emoji;
+            card.textContent = '❓';
+            card.onclick = () => onMemoryCardClick(card, emoji);
+            boardEl.appendChild(card);
+            return card;
+        });
+
+        memTimer = setInterval(() => {
+            memTime++;
+            document.getElementById('mem-timer').textContent = memTime;
+        }, 1000);
+    }
+
+    function stopMemoryTimer() {
+        if (memTimer) { clearInterval(memTimer); memTimer = null; }
+    }
+
+    function onMemoryCardClick(card, emoji) {
+        if (memIsBusy || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+
+        // 翻開卡牌
+        card.classList.add('flipped');
+        card.textContent = emoji;
+        memFlipped.push({ card, emoji });
+
+        if (memFlipped.length === 2) {
+            memFlips++;
+            document.getElementById('mem-flips').textContent = memFlips;
+            memIsBusy = true;
+
+            const [first, second] = memFlipped;
+            if (first.emoji === second.emoji) {
+                // 配對成功！
+                setTimeout(() => {
+                    first.card.classList.add('matched');
+                    second.card.classList.add('matched');
+                    memMatchedCount++;
+                    document.getElementById('mem-pairs').textContent = `${memMatchedCount}/4`;
+                    memFlipped = [];
+                    memIsBusy = false;
+
+                    if (memMatchedCount === 4) {
+                        stopMemoryTimer();
+                        document.getElementById('mem-mask-result').textContent = `耗時: ${memTime}秒 | 翻牌: ${memFlips}次`;
+                        setTimeout(() => {
+                            document.getElementById('mem-touch-mask').classList.remove('hidden');
+                        }, 300);
+                    }
+                }, 300);
+            } else {
+                // 配對失敗，短暫記憶後翻回
+                setTimeout(() => {
+                    first.card.classList.remove('flipped');
+                    first.card.textContent = '❓';
+                    second.card.classList.remove('flipped');
+                    second.card.textContent = '❓';
+                    memFlipped = [];
+                    memIsBusy = false;
+                }, 700);
+            }
+        }
     }
 
     window.addEventListener('resize', updateBoardRects);
