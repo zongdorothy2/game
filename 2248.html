@@ -243,14 +243,28 @@
         margin-bottom: 2px;
         flex-shrink: 0;
     }
+    .ttt-board-wrap {
+        position: relative;
+        background: #1e1e24;
+        padding: 4px;
+        border-radius: 10px;
+    }
+    #ttt-win-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 15;
+    }
     #ttt-board {
         display: grid;
         grid-template-columns: repeat(3, 56px);
         grid-template-rows: repeat(3, 56px);
         gap: 5px;
-        background: #1e1e24;
-        padding: 4px;
-        border-radius: 10px;
+        position: relative;
+        z-index: 5;
     }
     .ttt-cell {
         background: #2b2d38;
@@ -412,6 +426,16 @@
     }
     .mole-hole:active { transform: scale(0.95); }
     .mole-hole.active { background: #5d4037; }
+    .mole-hole.golden { background: #b78103 !important; box-shadow: 0 0 10px #f1c40f, inset 0 3px 6px rgba(0,0,0,0.6) !important; }
+    .mole-frenzy-header {
+        animation: frenzyPulse 0.6s infinite alternate;
+        color: #ff3838 !important;
+        font-weight: 900;
+    }
+    @keyframes frenzyPulse {
+        0% { transform: scale(1); text-shadow: 0 0 4px #ff3838; }
+        100% { transform: scale(1.08); text-shadow: 0 0 10px #ff9f1a; }
+    }
 
     /* === 遊戲 5: 翻牌對對碰 (Memory Match) === */
     .memory-header {
@@ -519,7 +543,10 @@
             <button class="mode-btn" id="btn-pvp" onclick="setTTTMode('pvp')">雙人對戰</button>
         </div>
         <div class="ttt-status" id="ttt-status">輪到 X 下子</div>
-        <div id="ttt-board"></div>
+        <div class="ttt-board-wrap" id="ttt-board-wrap">
+            <canvas id="ttt-win-canvas"></canvas>
+            <div id="ttt-board"></div>
+        </div>
 
         <!-- 結束時全螢幕覆蓋：觸碰即可重新開始 -->
         <div class="touch-mask hidden" id="ttt-touch-mask" onclick="resetTTT()">
@@ -561,7 +588,7 @@
             <span style="color:#888;">最高: <span id="snake-best">0</span></span>
         </div>
         <canvas id="snake-canvas" width="180" height="180"></canvas>
-        <div class="snake-tip">螢幕滑動控制轉向</div>
+        <div class="snake-tip">螢幕任一處滑動皆可即時轉向</div>
 
         <!-- 死亡時全螢幕覆蓋 -->
         <div class="touch-mask hidden" id="snake-touch-mask" onclick="resetSnake()">
@@ -633,7 +660,7 @@
         }
     }
 
-    /* ================= 遊戲 1: 圈圈叉叉 ================= */
+    /* ================= 遊戲 1: 圈圈叉叉 (含勝利劃線特效) ================= */
     let tttMode = 'pve';
     let tttBoard = Array(9).fill('');
     let tttTurn = 'X';
@@ -661,8 +688,16 @@
         }
         resetTTT();
     }
+    function clearTTTWinLine() {
+        const canvas = document.getElementById('ttt-win-canvas');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    }
     function resetTTT() {
         document.getElementById('ttt-touch-mask').classList.add('hidden');
+        clearTTTWinLine();
         tttBoard = Array(9).fill('');
         tttTurn = 'X';
         tttActive = true;
@@ -676,12 +711,60 @@
             cell.className = 'ttt-cell ' + (tttBoard[i] ? tttBoard[i].toLowerCase() : '');
         });
     }
+    function drawTTTWinLine(combo, winner) {
+        const wrap = document.getElementById('ttt-board-wrap');
+        const canvas = document.getElementById('ttt-win-canvas');
+        if (!wrap || !canvas) return;
+        const wrapRect = wrap.getBoundingClientRect();
+        canvas.width = wrapRect.width;
+        canvas.height = wrapRect.height;
+
+        const cells = document.querySelectorAll('.ttt-cell');
+        const startCell = cells[combo[0]].getBoundingClientRect();
+        const endCell = cells[combo[2]].getBoundingClientRect();
+
+        const x1 = startCell.left + startCell.width / 2 - wrapRect.left;
+        const y1 = startCell.top + startCell.height / 2 - wrapRect.top;
+        const x2 = endCell.left + endCell.width / 2 - wrapRect.left;
+        const y2 = endCell.top + endCell.height / 2 - wrapRect.top;
+
+        const ctx = canvas.getContext('2d');
+        const color = winner === 'X' ? '#e74c3c' : '#3498db';
+
+        // 動畫劃線
+        let progress = 0;
+        const anim = () => {
+            progress += 0.15;
+            if (progress > 1) progress = 1;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            ctx.lineWidth = 7;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = color;
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 10;
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x1 + (x2 - x1) * progress, y1 + (y2 - y1) * progress);
+            ctx.stroke();
+
+            if (progress < 1) {
+                requestAnimationFrame(anim);
+            }
+        };
+        requestAnimationFrame(anim);
+    }
+
     function onTTTClick(index) {
         if (!tttActive || tttBoard[index] !== '') return;
         makeTTTMove(index, tttTurn);
 
-        if (checkTTTWinner(tttBoard, tttTurn)) {
-            finishTTT(`${tttTurn} 獲勝！🎉`);
+        const winCombo = getTTTWinCombo(tttBoard, tttTurn);
+        if (winCombo) {
+            tttActive = false;
+            drawTTTWinLine(winCombo, tttTurn);
+            setTimeout(() => {
+                finishTTT(`${tttTurn} 獲勝！🎉`);
+            }, 550);
             return;
         }
         if (tttBoard.every(v => v !== '')) {
@@ -716,7 +799,7 @@
         // 規則 1：電腦如果有勝著，90% 依然會走去獲勝
         for (let idx of emptyIndices) {
             let b = [...tttBoard]; b[idx] = 'O';
-            if (checkTTTWinner(b, 'O')) {
+            if (getTTTWinCombo(b, 'O')) {
                 if (Math.random() < 0.9) { bestMove = idx; break; }
             }
         }
@@ -725,7 +808,7 @@
         if (bestMove === null) {
             for (let idx of emptyIndices) {
                 let b = [...tttBoard]; b[idx] = 'X';
-                if (checkTTTWinner(b, 'X')) {
+                if (getTTTWinCombo(b, 'X')) {
                     if (Math.random() < 0.7) {
                         bestMove = idx;
                     }
@@ -744,8 +827,13 @@
         }
 
         makeTTTMove(bestMove, 'O');
-        if (checkTTTWinner(tttBoard, 'O')) {
-            finishTTT('電腦 O 獲勝！🤖');
+        const winCombo = getTTTWinCombo(tttBoard, 'O');
+        if (winCombo) {
+            tttActive = false;
+            drawTTTWinLine(winCombo, 'O');
+            setTimeout(() => {
+                finishTTT('電腦 O 獲勝！🤖');
+            }, 550);
             return;
         }
         if (tttBoard.every(v => v !== '')) {
@@ -755,13 +843,21 @@
         tttTurn = 'X';
         document.getElementById('ttt-status').textContent = '輪到 X 下子';
     }
-    function checkTTTWinner(b, p) {
+    function getTTTWinCombo(b, p) {
         const wins = [
-            [0,1,2], [3,4,5], [6,7,8],
-            [0,3,6], [1,4,7], [2,5,8],
-            [0,4,8], [2,4,6]
+            [0,1,2], [3,4,5], [6,7,8], // 橫排
+            [0,3,6], [1,4,7], [2,5,8], // 直排
+            [0,4,8], [2,4,6]           // 斜線
         ];
-        return wins.some(([x, y, z]) => b[x] === p && b[y] === p && b[z] === p);
+        for (let combo of wins) {
+            if (b[combo[0]] === p && b[combo[1]] === p && b[combo[2]] === p) {
+                return combo;
+            }
+        }
+        return null;
+    }
+    function checkTTTWinner(b, p) {
+        return !!getTTTWinCombo(b, p);
     }
 
     /* ================= 遊戲 2: 2248 (3x3 平滑版) ================= */
@@ -1150,17 +1246,36 @@
         });
     }
 
-    /* 手勢識別 (滑動轉向) */
+    /* 手勢識別 (貪食蛇滑動感應區擴大至全螢幕 + 靈敏低門檻) */
     let touchStartX = 0, touchStartY = 0;
+    let snakeSwipeHandled = false;
+
     window.addEventListener('touchstart', e => {
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
+        snakeSwipeHandled = false;
         if (currentView === '2248') handleG2Start(touchStartX, touchStartY);
     }, { passive: false });
 
     window.addEventListener('touchmove', e => {
         if (currentView === '2248') {
             handleG2Move(e.touches[0].clientX, e.touches[0].clientY);
+        }
+        // 貪食蛇即時滑動偵測：手指滑動達到 8px 即刻換向，不用等放開手指！手指在螢幕邊界或空白處都能靈敏轉向
+        if (currentView === 'snake' && !snakeSwipeHandled) {
+            const curX = e.touches[0].clientX;
+            const curY = e.touches[0].clientY;
+            const dx = curX - touchStartX;
+            const dy = curY - touchStartY;
+            if (Math.abs(dx) >= 8 || Math.abs(dy) >= 8) {
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    if (dx > 0 && snakeDir.x === 0) { nextDir = { x: 1, y: 0 }; snakeSwipeHandled = true; }
+                    else if (dx < 0 && snakeDir.x === 0) { nextDir = { x: -1, y: 0 }; snakeSwipeHandled = true; }
+                } else {
+                    if (dy > 0 && snakeDir.y === 0) { nextDir = { x: 0, y: 1 }; snakeSwipeHandled = true; }
+                    else if (dy < 0 && snakeDir.y === 0) { nextDir = { x: 0, y: -1 }; snakeSwipeHandled = true; }
+                }
+            }
         }
     }, { passive: false });
 
@@ -1169,10 +1284,11 @@
             handleG2End();
             return;
         }
-        if (currentView === 'snake') {
+        // 若滑動剛好在釋放時才達標，補足轉向判定
+        if (currentView === 'snake' && !snakeSwipeHandled) {
             const dx = e.changedTouches[0].clientX - touchStartX;
             const dy = e.changedTouches[0].clientY - touchStartY;
-            if (Math.abs(dx) > 15 || Math.abs(dy) > 15) {
+            if (Math.abs(dx) >= 8 || Math.abs(dy) >= 8) {
                 if (Math.abs(dx) > Math.abs(dy)) {
                     if (dx > 0 && snakeDir.x === 0) nextDir = { x: 1, y: 0 };
                     else if (dx < 0 && snakeDir.x === 0) nextDir = { x: -1, y: 0 };
@@ -1184,12 +1300,13 @@
         }
     });
 
-    /* ================= 遊戲 4: 瘋狂打地鼠 ================= */
+    /* ================= 遊戲 4: 瘋狂打地鼠 (狂暴模式 + 金地鼠彩蛋) ================= */
     let moleScore = 0;
     let moleTime = 30;
     let moleTimer = null;
     let moleActiveIndex = -1;
     let molePopTimer = null;
+    let isGoldenMole = false; // 金地鼠彩蛋
 
     function startMole() {
         showView('mole');
@@ -1207,8 +1324,9 @@
         }
         document.getElementById('mole-score').textContent = '0';
         document.getElementById('mole-time').textContent = '30';
+        document.getElementById('mole-time').classList.remove('mole-frenzy-header');
         document.getElementById('mole-mask-title').textContent = '🐹 瘋狂打地鼠';
-        document.getElementById('mole-mask-sub').textContent = '限時 30 秒挑戰';
+        document.getElementById('mole-mask-sub').textContent = '限時 30 秒挑戰 (含狂暴金鼠！)';
         document.getElementById('mole-touch-mask').classList.remove('hidden');
     }
     function startMoleGame() {
@@ -1217,13 +1335,21 @@
         moleTime = 30;
         document.getElementById('mole-score').textContent = moleScore;
         document.getElementById('mole-time').textContent = moleTime;
+        document.getElementById('mole-time').classList.remove('mole-frenzy-header');
 
         stopMole();
         moleTimer = setInterval(() => {
             moleTime--;
             document.getElementById('mole-time').textContent = moleTime;
+
+            // 狂暴模式 (最後 10 秒)
+            if (moleTime <= 10 && moleTime > 0) {
+                document.getElementById('mole-time').classList.add('mole-frenzy-header');
+            }
+
             if (moleTime <= 0) {
                 stopMole();
+                document.getElementById('mole-time').classList.remove('mole-frenzy-header');
                 document.getElementById('mole-mask-title').textContent = '時間到！';
                 document.getElementById('mole-mask-sub').textContent = `得分: ${moleScore}`;
                 document.getElementById('mole-touch-mask').classList.remove('hidden');
@@ -1238,34 +1364,58 @@
     }
     function clearActiveMole() {
         const holes = document.querySelectorAll('.mole-hole');
-        holes.forEach(h => { h.textContent = ''; h.classList.remove('active'); });
+        holes.forEach(h => { 
+            h.textContent = ''; 
+            h.classList.remove('active', 'golden'); 
+        });
         moleActiveIndex = -1;
+        isGoldenMole = false;
     }
     function popMole() {
         if (moleTime <= 0) return;
         clearActiveMole();
         const rand = Math.floor(Math.random() * 9);
         moleActiveIndex = rand;
+
+        // 彩蛋：20% 機率冒出「金地鼠 👑」
+        isGoldenMole = Math.random() < 0.22;
+
         const holes = document.querySelectorAll('.mole-hole');
         if (holes[rand]) {
-            holes[rand].textContent = '🐹';
+            holes[rand].textContent = isGoldenMole ? '👑' : '🐹';
             holes[rand].classList.add('active');
+            if (isGoldenMole) holes[rand].classList.add('golden');
         }
-        const delay = 650 + Math.random() * 350;
+
+        // 速度曲線：狂暴模式（最後 10 秒）提速 50%
+        let delay;
+        if (moleTime <= 10) {
+            delay = 380 + Math.random() * 240; // 狂暴快速
+        } else {
+            delay = 600 + Math.random() * 320; // 正常節奏
+        }
         molePopTimer = setTimeout(popMole, delay);
     }
     function onMoleHit(index) {
         if (moleTime <= 0 || index !== moleActiveIndex) return;
-        moleScore += 10;
+
+        // 金地鼠雙倍獎勵 (+20分)，普通地鼠 +10分
+        const gained = isGoldenMole ? 20 : 10;
+        moleScore += gained;
         document.getElementById('mole-score').textContent = moleScore;
+
         const holes = document.querySelectorAll('.mole-hole');
         if (holes[index]) {
-            holes[index].textContent = '💥';
+            holes[index].textContent = isGoldenMole ? '🌟+20' : '💥+10';
             holes[index].classList.remove('active');
         }
         moleActiveIndex = -1;
+        isGoldenMole = false;
         if (molePopTimer) clearTimeout(molePopTimer);
-        setTimeout(popMole, 250);
+
+        // 擊中後短暫暫停再冒出新地鼠
+        const hitPause = moleTime <= 10 ? 150 : 220;
+        setTimeout(popMole, hitPause);
     }
 
     /* ================= 遊戲 5: 翻牌對對碰 (Memory Match) ================= */
