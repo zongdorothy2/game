@@ -1,0 +1,1872 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>手錶多合一遊戲機</title>
+<style>
+    * {
+        box-sizing: border-box;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: none;
+        margin: 0;
+        padding: 0;
+    }
+    html, body {
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        background-color: #121214;
+        color: #ffffff;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    #app {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 4px 6px;
+    }
+
+    /* 浮動大按鈕 (選單 / 返回) */
+    .floating-home-btn {
+        position: absolute;
+        top: 4px;
+        right: 6px;
+        background: #3e445b;
+        border: 2px solid #6b7294;
+        color: #ffffff;
+        border-radius: 16px;
+        font-size: 13px;
+        font-weight: 900;
+        padding: 3px 9px;
+        z-index: 60;
+        cursor: pointer;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.6);
+        display: none;
+        align-items: center;
+        justify-content: center;
+    }
+    .floating-home-btn:active {
+        transform: scale(0.92);
+        background: #565d7c;
+    }
+
+    /* 頂部標題列 (解除寫死寬度限制，滿版排列) */
+    .top-header-bar {
+        width: 100%;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 0 6px;
+        flex-shrink: 0;
+    }
+    .top-header-title {
+        font-size: 14px;
+        font-weight: 900;
+        color: #f1c40f;
+    }
+
+    /* 遊戲主畫面容器 */
+    .view-container {
+        display: none;
+        width: 100%;
+        height: calc(100% - 24px);
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+    .view-container.active {
+        display: flex;
+    }
+
+    /* === 首頁：七合一 彈性滿版撐開設定 === */
+    #view-menu {
+        justify-content: center;
+        align-items: center;
+        padding: 2px;
+        height: calc(100% - 24px);
+        width: 100%;
+    }
+
+    .menu-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        width: 96%;
+        height: 95%;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .menu-row {
+        display: flex;
+        gap: 6px;
+        width: 100%;
+        flex: 1;
+        justify-content: center;
+    }
+    .menu-btn-square {
+        flex: 1;
+        height: 100%;
+        border-radius: 13px;
+        border: none;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        cursor: pointer;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.5);
+        padding: 2px;
+    }
+    .menu-btn-square:active { transform: scale(0.94); filter: brightness(0.9); }
+    .menu-btn-square .btn-icon { font-size: 24px; line-height: 1; }
+    .menu-btn-square .btn-text { font-size: 12px; font-weight: 900; letter-spacing: -0.5px; }
+
+    .menu-btn-center {
+        width: 100%;
+        flex: 0.85;
+        border-radius: 12px;
+        border: none;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+        padding: 2px 10px;
+        background: linear-gradient(135deg, #e91e63, #ff5722);
+        animation: glow 2.5s infinite alternate;
+    }
+    .menu-btn-center:active { transform: scale(0.95); filter: brightness(0.9); }
+    .menu-btn-center .btn-icon { font-size: 24px; line-height: 1; }
+    .menu-btn-center .btn-text { font-size: 14px; font-weight: 900; }
+
+    @keyframes glow {
+        0% { box-shadow: 0 2px 8px rgba(233, 30, 99, 0.4); }
+        100% { box-shadow: 0 4px 14px rgba(255, 87, 34, 0.8); }
+    }
+
+    .bg-ttt { background: linear-gradient(145deg, #2980b9, #3498db); }
+    .bg-2248 { background: linear-gradient(145deg, #8e44ad, #9b59b6); }
+    .bg-snake { background: linear-gradient(145deg, #229954, #27ae60); }
+    .bg-mole { background: linear-gradient(145deg, #d35400, #e67e22); }
+    .bg-maze { background: linear-gradient(145deg, #00897b, #26a69a); }
+    .bg-fruit { background: linear-gradient(145deg, #f39c12, #f1c40f); color: #222 !important; }
+    .bg-fruit .btn-text { color: #222 !important; }
+
+    /* === 全螢幕覆蓋結算層 === */
+    .touch-mask {
+        position: absolute;
+        inset: 0;
+        background: rgba(18, 18, 20, 0.92);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+        cursor: pointer;
+        border-radius: 8px;
+    }
+    .touch-mask.hidden { display: none !important; }
+    .touch-mask-title {
+        font-size: 17px;
+        font-weight: 900;
+        color: #f1c40f;
+        margin-bottom: 6px;
+        text-align: center;
+        padding: 0 10px;
+    }
+    .touch-mask-tip {
+        font-size: 14px;
+        font-weight: bold;
+        color: #2ecc71;
+        background: rgba(46, 204, 113, 0.15);
+        padding: 6px 14px;
+        border-radius: 20px;
+        border: 1px solid #2ecc71;
+        animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.75; transform: scale(0.96); }
+    }
+
+    /* === 遊戲 1: 圈圈叉叉 (自適應滿版) === */
+    .sub-bar {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 2px;
+        flex-shrink: 0;
+    }
+    .mode-btn {
+        background: #23242b;
+        border: 1px solid #555;
+        color: #bbb;
+        font-size: 12px;
+        padding: 2px 10px;
+        border-radius: 4px;
+    }
+    .mode-btn.active {
+        background: #3498db;
+        border-color: #2980b9;
+        color: #fff;
+        font-weight: bold;
+    }
+    .ttt-status {
+        font-size: 12px;
+        font-weight: bold;
+        color: #2ecc71;
+        height: 18px;
+        line-height: 18px;
+        margin-bottom: 2px;
+        flex-shrink: 0;
+    }
+    .ttt-board-wrap {
+        position: relative;
+        background: #1e1e24;
+        padding: 4px;
+        border-radius: 12px;
+        width: 76vmin;
+        height: 76vmin;
+    }
+    #ttt-win-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 15;
+    }
+    #ttt-board {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap: 6px;
+        width: 100%;
+        height: 100%;
+        position: relative;
+        z-index: 5;
+    }
+    .ttt-cell {
+        background: #2b2d38;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 38px;
+        font-weight: 900;
+        cursor: pointer;
+    }
+    .ttt-cell.x { color: #e74c3c; }
+    .ttt-cell.o { color: #3498db; }
+
+    /* === 遊戲 2: 2248 === */
+    .header-2248 {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 90%;
+        font-size: 12px;
+        font-weight: bold;
+        flex-shrink: 0;
+        margin-bottom: 2px;
+    }
+    #preview-box {
+        height: 16px;
+        line-height: 16px;
+        font-size: 12px;
+        font-weight: 900;
+        color: #2ecc71;
+        text-align: center;
+        flex-shrink: 0;
+    }
+    .board-wrap {
+        position: relative;
+        background: #1e1e24;
+        padding: 4px;
+        border-radius: 12px;
+        width: 72vmin;
+        height: 72vmin;
+    }
+    #line-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 10;
+    }
+    #game-board {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap: 6px;
+        width: 100%;
+        height: 100%;
+        position: relative;
+        z-index: 5;
+    }
+    .cell {
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+        font-weight: 900;
+        color: #ffffff;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+    }
+    .cell.selected {
+        outline: 3px solid #ffffff;
+        transform: scale(0.94);
+    }
+    .cell.num-3 { font-size: 22px; }
+    .cell.num-4 { font-size: 18px; }
+    .cell.num-5 { font-size: 14px; }
+    .tools-bar {
+        display: flex;
+        gap: 6px;
+        width: 90%;
+        justify-content: space-between;
+        margin-top: 4px;
+        flex-shrink: 0;
+    }
+    .btn-tool {
+        flex: 1;
+        background: #2b2d38;
+        border: 1px solid #3e4152;
+        color: #fff;
+        border-radius: 6px;
+        height: 26px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: bold;
+    }
+    .btn-tool:active { background: #3e4152; }
+    .btn-tool.active { background: #c0392b; }
+
+    /* === 遊戲 3: 貪食蛇 === */
+    .snake-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 88%;
+        font-size: 13px;
+        font-weight: bold;
+        margin-bottom: 2px;
+        flex-shrink: 0;
+    }
+    #snake-canvas {
+        background: #1a1a20;
+        border: 2px solid #333;
+        border-radius: 8px;
+        width: 76vmin;
+        height: 76vmin;
+    }
+    .snake-tip {
+        font-size: 11px;
+        color: #888;
+        text-align: center;
+        margin-top: 4px;
+        flex-shrink: 0;
+    }
+
+    /* === 遊戲 4: 打地鼠 === */
+    .mole-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 88%;
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 4px;
+        flex-shrink: 0;
+    }
+    #mole-board {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap: 6px;
+        background: #1e1e24;
+        padding: 4px;
+        border-radius: 12px;
+        width: 78vmin;
+        height: 78vmin;
+    }
+    .mole-hole {
+        background: #3e2723;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        cursor: pointer;
+        position: relative;
+        box-shadow: inset 0 3px 6px rgba(0,0,0,0.6);
+    }
+    .mole-hole:active { transform: scale(0.95); }
+    .mole-hole.active { background: #5d4037; }
+    .mole-hole.golden { background: #b78103 !important; box-shadow: 0 0 10px #f1c40f, inset 0 3px 6px rgba(0,0,0,0.6) !important; }
+    .mole-frenzy-header {
+        animation: frenzyPulse 0.6s infinite alternate;
+        color: #ff3838 !important;
+        font-weight: 900;
+    }
+    @keyframes frenzyPulse {
+        0% { transform: scale(1); text-shadow: 0 0 4px #ff3838; }
+        100% { transform: scale(1.08); text-shadow: 0 0 10px #ff9f1a; }
+    }
+
+    /* === 遊戲 5: 翻牌對對碰 (8張牌) === */
+    .memory-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 88%;
+        font-size: 13px;
+        font-weight: bold;
+        margin-bottom: 4px;
+        flex-shrink: 0;
+    }
+    #memory-board {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 6px;
+        background: #1e1e24;
+        padding: 6px;
+        border-radius: 12px;
+        width: 84vmin;
+        height: 60vmin;
+    }
+    .memory-card {
+        background: #2b2d38;
+        border: 2px solid #4a4e69;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        cursor: pointer;
+        transition: transform 0.25s, background-color 0.25s;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    }
+    .memory-card:active { transform: scale(0.94); }
+    .memory-card.flipped {
+        background: #3f51b5;
+        border-color: #7986cb;
+        transform: rotateY(180deg);
+    }
+    .memory-card.matched {
+        background: #27ae60 !important;
+        border-color: #2ecc71 !important;
+        animation: matchPop 0.35s ease;
+    }
+    @keyframes matchPop {
+        0% { transform: scale(0.85); }
+        50% { transform: scale(1.08); }
+        100% { transform: scale(1); }
+    }
+
+    /* === 遊戲 6: 平衡球迷宮 (Tilt Maze) === */
+    .maze-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 88%;
+        font-size: 13px;
+        font-weight: bold;
+        margin-bottom: 2px;
+        flex-shrink: 0;
+    }
+    #maze-canvas {
+        background: #16181f;
+        border: 2px solid #00897b;
+        border-radius: 10px;
+        width: 76vmin;
+        height: 76vmin;
+    }
+    .maze-tip {
+        font-size: 11px;
+        color: #80cbc4;
+        text-align: center;
+        margin-top: 4px;
+        flex-shrink: 0;
+    }
+
+    /* === 遊戲 7: 左右傾斜接水果 (Fruit Catcher) === */
+    .fruit-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 88%;
+        font-size: 13px;
+        font-weight: bold;
+        margin-bottom: 2px;
+        flex-shrink: 0;
+    }
+    #fruit-canvas {
+        background: #1c1d24;
+        border: 2px solid #f39c12;
+        border-radius: 10px;
+        width: 78vmin;
+        height: 76vmin;
+    }
+    .fruit-tip {
+        font-size: 11px;
+        color: #f1c40f;
+        text-align: center;
+        margin-top: 4px;
+        flex-shrink: 0;
+    }
+</style>
+</head>
+<body>
+
+<div id="app">
+    <div class="top-header-bar">
+        <span class="top-header-title" id="nav-title">🎮 手錶遊戲廳</span>
+    </div>
+
+    <button class="floating-home-btn" id="btn-back-home" onclick="showView('menu')">
+        ◀ 選單
+    </button>
+
+    <!-- 首頁：七合一 彈性滿版撐開選單 -->
+    <div class="view-container active" id="view-menu">
+        <div class="menu-wrap">
+            <div class="menu-row">
+                <button class="menu-btn-square bg-ttt" onclick="startTTT()">
+                    <span class="btn-icon">⭕❌</span>
+                    <span class="btn-text">圈圈叉叉</span>
+                </button>
+                <button class="menu-btn-square bg-2248" onclick="start2248()">
+                    <span class="btn-icon">🔢</span>
+                    <span class="btn-text">2248 合成</span>
+                </button>
+            </div>
+
+            <button class="menu-btn-center" onclick="startMemory()">
+                <span class="btn-icon">🃏</span>
+                <span class="btn-text">翻牌對對碰</span>
+            </button>
+
+            <div class="menu-row">
+                <button class="menu-btn-square bg-snake" onclick="startSnake()">
+                    <span class="btn-icon">🐍</span>
+                    <span class="btn-text">貪食蛇</span>
+                </button>
+                <button class="menu-btn-square bg-mole" onclick="startMole()">
+                    <span class="btn-icon">🐹</span>
+                    <span class="btn-text">打地鼠</span>
+                </button>
+            </div>
+
+            <div class="menu-row">
+                <button class="menu-btn-square bg-maze" onclick="startMaze()">
+                    <span class="btn-icon">🌀</span>
+                    <span class="btn-text">體感迷宮</span>
+                </button>
+                <button class="menu-btn-square bg-fruit" onclick="startFruit()">
+                    <span class="btn-icon">🧺</span>
+                    <span class="btn-text">傾斜接水果</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 遊戲 1: 圈圈叉叉 -->
+    <div class="view-container" id="view-ttt">
+        <div class="sub-bar">
+            <button class="mode-btn active" id="btn-pve" onclick="setTTTMode('pve')">人機對戰</button>
+            <button class="mode-btn" id="btn-pvp" onclick="setTTTMode('pvp')">雙人對戰</button>
+        </div>
+        <div class="ttt-status" id="ttt-status">輪到 X 下子</div>
+        <div class="ttt-board-wrap" id="ttt-board-wrap">
+            <canvas id="ttt-win-canvas"></canvas>
+            <div id="ttt-board"></div>
+        </div>
+
+        <div class="touch-mask hidden" id="ttt-touch-mask" onclick="resetTTT()">
+            <div class="touch-mask-title" id="ttt-mask-title">獲勝！</div>
+            <div class="touch-mask-tip">👉 觸碰螢幕再玩一次</div>
+        </div>
+    </div>
+
+    <!-- 遊戲 2: 2248 3x3 -->
+    <div class="view-container" id="view-2248">
+        <div class="header-2248">
+            <span style="color:#f39c12;">🪙<span id="g2-coins">100</span></span>
+            <span>分:<span id="g2-score">0</span></span>
+            <span style="color:#8d99ae;">冠:<span id="g2-best">0</span></span>
+        </div>
+        <div id="preview-box"></div>
+        <div class="board-wrap" id="board-wrap">
+            <canvas id="line-canvas"></canvas>
+            <div id="game-board"></div>
+        </div>
+        <div class="tools-bar">
+            <button class="btn-tool" id="btn-undo" onclick="useUndo()">↩️復原</button>
+            <button class="btn-tool" id="btn-shuffle" onclick="useShuffle()">🔄洗牌</button>
+            <button class="btn-tool" id="btn-hammer" onclick="toggleHammer()">🔨鐵錘</button>
+        </div>
+
+        <div class="touch-mask hidden" id="g2-touch-mask" onclick="init2248Board()">
+            <div class="touch-mask-title">遊戲結束</div>
+            <div class="touch-mask-title" id="g2-mask-score" style="font-size:13px; color:#fff; margin-bottom:8px;">得分: 0</div>
+            <div class="touch-mask-tip">👉 觸碰螢幕重新開始</div>
+        </div>
+    </div>
+
+    <!-- 遊戲 3: 貪食蛇 -->
+    <div class="view-container" id="view-snake">
+        <div class="snake-header">
+            <span>得分: <span id="snake-score" style="color:#2ecc71;">0</span></span>
+            <span style="color:#888;">最高: <span id="snake-best">0</span></span>
+        </div>
+        <canvas id="snake-canvas" width="240" height="240"></canvas>
+        <div class="snake-tip">螢幕任一處滑動皆可即時轉向</div>
+
+        <div class="touch-mask hidden" id="snake-touch-mask" onclick="resetSnake()">
+            <div class="touch-mask-title" id="snake-mask-score" style="font-size:13px; color:#fff; margin-bottom:8px;">得分: 0</div>
+            <div class="touch-mask-tip">👉 觸碰螢幕重新開始</div>
+        </div>
+    </div>
+
+    <!-- 遊戲 4: 打地鼠 -->
+    <div class="view-container" id="view-mole">
+        <div class="mole-header">
+            <span>得分: <span id="mole-score" style="color:#f39c12; font-size:15px;">0</span></span>
+            <span>倒數: <span id="mole-time" style="color:#e74c3c; font-size:15px;">30</span>s</span>
+        </div>
+        <div id="mole-board"></div>
+
+        <div class="touch-mask" id="mole-touch-mask" onclick="startMoleGame()">
+            <div class="touch-mask-title" id="mole-mask-title">🐹 瘋狂打地鼠</div>
+            <div class="touch-mask-title" id="mole-mask-sub" style="font-size:12px; color:#aaa; margin-bottom:8px;">限時 30 秒挑戰 (含狂暴金鼠！)</div>
+            <div class="touch-mask-tip">👉 觸碰螢幕開始遊戲</div>
+        </div>
+    </div>
+
+    <!-- 遊戲 5: 翻牌對對碰 -->
+    <div class="view-container" id="view-memory">
+        <div class="memory-header">
+            <span>步數: <span id="mem-flips" style="color:#f1c40f;">0</span></span>
+            <span>配對: <span id="mem-pairs" style="color:#2ecc71;">0/4</span></span>
+            <span>時間: <span id="mem-timer" style="color:#3498db;">0</span>s</span>
+        </div>
+        <div id="memory-board"></div>
+
+        <div class="touch-mask hidden" id="mem-touch-mask" onclick="initMemoryBoard()">
+            <div class="touch-mask-title" style="color:#2ecc71;">🎉 挑戰成功！</div>
+            <div class="touch-mask-title" id="mem-mask-result" style="font-size:13px; color:#fff; margin-bottom:8px;">成績結算中</div>
+            <div class="touch-mask-tip">👉 觸碰螢幕再玩一次</div>
+        </div>
+    </div>
+
+    <!-- 遊戲 6: 平衡球迷宮 (Tilt Maze) -->
+    <div class="view-container" id="view-maze">
+        <div class="maze-header">
+            <span>關卡: <span id="maze-level" style="color:#00e676;">1</span></span>
+            <span>時間: <span id="maze-time" style="color:#f1c40f;">0</span>s</span>
+        </div>
+        <canvas id="maze-canvas" width="220" height="220"></canvas>
+        <div class="maze-tip">手腕傾斜控制滾球進 🏁 (或觸碰拖曳)</div>
+
+        <div class="touch-mask hidden" id="maze-touch-mask" onclick="nextMazeLevel()">
+            <div class="touch-mask-title" style="color:#00e676;">🎉 抵達終點！</div>
+            <div class="touch-mask-title" id="maze-mask-msg" style="font-size:13px; color:#fff; margin-bottom:8px;">過關！</div>
+            <div class="touch-mask-tip">👉 觸碰螢幕下一關</div>
+        </div>
+    </div>
+
+    <!-- 遊戲 7: 左右傾斜接水果 (Fruit Catcher) -->
+    <div class="view-container" id="view-fruit">
+        <div class="fruit-header">
+            <span>得分: <span id="fruit-score" style="color:#f1c40f; font-size:15px;">0</span></span>
+            <span>倒數: <span id="fruit-time" style="color:#e74c3c; font-size:15px;">30</span>s</span>
+        </div>
+        <canvas id="fruit-canvas" width="220" height="220"></canvas>
+        <div class="fruit-tip">手腕左右傾斜接水果，避開 💣</div>
+
+        <div class="touch-mask hidden" id="fruit-touch-mask" onclick="initFruitGame()">
+            <div class="touch-mask-title" id="fruit-mask-title">時間到！</div>
+            <div class="touch-mask-title" id="fruit-mask-score" style="font-size:14px; color:#fff; margin-bottom:8px;">得分: 0</div>
+            <div class="touch-mask-tip">👉 觸碰螢幕再接一次</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    /* ================= 頁面路由切換 ================= */
+    let currentView = 'menu';
+    function showView(viewId) {
+        currentView = viewId;
+        document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
+        const target = document.getElementById('view-' + viewId);
+        if (target) target.classList.add('active');
+
+        const btnBack = document.getElementById('btn-back-home');
+        const navTitle = document.getElementById('nav-title');
+
+        stopSnake();
+        stopMole();
+        stopMemoryTimer();
+        stopMaze();
+        stopFruit();
+
+        if (viewId === 'menu') {
+            btnBack.style.display = 'none';
+            navTitle.textContent = '🎮 手錶遊戲廳';
+        } else {
+            btnBack.style.display = 'flex';
+            if (viewId === 'ttt') navTitle.textContent = '❌⭕ 圈圈叉叉';
+            if (viewId === '2248') navTitle.textContent = '🔢 2248 3x3';
+            if (viewId === 'snake') navTitle.textContent = '🐍 貪食蛇';
+            if (viewId === 'mole') navTitle.textContent = '🐹 瘋狂打地鼠';
+            if (viewId === 'memory') navTitle.textContent = '🃏 翻牌對對碰';
+            if (viewId === 'maze') navTitle.textContent = '🌀 體感迷宮';
+            if (viewId === 'fruit') navTitle.textContent = '🧺 傾斜接水果';
+        }
+    }
+
+    /* ================= 通用重力感應傾斜監聽 (Sensor API) ================= */
+    let tiltX = 0, tiltY = 0;
+    window.addEventListener('deviceorientation', e => {
+        if (e.gamma !== null) tiltX = e.gamma;
+        if (e.beta !== null) tiltY = e.beta;
+    });
+
+    /* ================= 遊戲 1: 圈圈叉叉 ================= */
+    let tttMode = 'pve';
+    let tttBoard = Array(9).fill('');
+    let tttTurn = 'X';
+    let tttActive = true;
+
+    function startTTT() {
+        showView('ttt');
+        initTTTBoard();
+    }
+    function setTTTMode(mode) {
+        tttMode = mode;
+        document.getElementById('btn-pve').classList.toggle('active', mode === 'pve');
+        document.getElementById('btn-pvp').classList.toggle('active', mode === 'pvp');
+        resetTTT();
+    }
+    function initTTTBoard() {
+        const boardEl = document.getElementById('ttt-board');
+        boardEl.innerHTML = '';
+        for (let i = 0; i < 9; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'ttt-cell';
+            cell.dataset.index = i;
+            cell.onclick = () => onTTTClick(i);
+            boardEl.appendChild(cell);
+        }
+        resetTTT();
+    }
+    function clearTTTWinLine() {
+        const canvas = document.getElementById('ttt-win-canvas');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    }
+    function resetTTT() {
+        document.getElementById('ttt-touch-mask').classList.add('hidden');
+        clearTTTWinLine();
+        tttBoard = Array(9).fill('');
+        tttTurn = 'X';
+        tttActive = true;
+        document.getElementById('ttt-status').textContent = '輪到 X 下子';
+        renderTTT();
+    }
+    function renderTTT() {
+        const cells = document.querySelectorAll('.ttt-cell');
+        cells.forEach((cell, i) => {
+            cell.textContent = tttBoard[i];
+            cell.className = 'ttt-cell ' + (tttBoard[i] ? tttBoard[i].toLowerCase() : '');
+        });
+    }
+    function drawTTTWinLine(combo, winner) {
+        const wrap = document.getElementById('ttt-board-wrap');
+        const canvas = document.getElementById('ttt-win-canvas');
+        if (!wrap || !canvas) return;
+        const wrapRect = wrap.getBoundingClientRect();
+        canvas.width = wrapRect.width;
+        canvas.height = wrapRect.height;
+
+        const cells = document.querySelectorAll('.ttt-cell');
+        const startCell = cells[combo[0]].getBoundingClientRect();
+        const endCell = cells[combo[2]].getBoundingClientRect();
+
+        const x1 = startCell.left + startCell.width / 2 - wrapRect.left;
+        const y1 = startCell.top + startCell.height / 2 - wrapRect.top;
+        const x2 = endCell.left + endCell.width / 2 - wrapRect.left;
+        const y2 = endCell.top + endCell.height / 2 - wrapRect.top;
+
+        const ctx = canvas.getContext('2d');
+        const color = winner === 'X' ? '#e74c3c' : '#3498db';
+
+        let progress = 0;
+        const anim = () => {
+            progress += 0.15;
+            if (progress > 1) progress = 1;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            ctx.lineWidth = 7;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = color;
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 10;
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x1 + (x2 - x1) * progress, y1 + (y2 - y1) * progress);
+            ctx.stroke();
+
+            if (progress < 1) requestAnimationFrame(anim);
+        };
+        requestAnimationFrame(anim);
+    }
+    function onTTTClick(index) {
+        if (!tttActive || tttBoard[index] !== '') return;
+        makeTTTMove(index, tttTurn);
+
+        const winCombo = getTTTWinCombo(tttBoard, tttTurn);
+        if (winCombo) {
+            tttActive = false;
+            drawTTTWinLine(winCombo, tttTurn);
+            setTimeout(() => finishTTT(`${tttTurn} 獲勝！🎉`), 550);
+            return;
+        }
+        if (tttBoard.every(v => v !== '')) {
+            finishTTT('平手握手！🤝');
+            return;
+        }
+
+        tttTurn = tttTurn === 'X' ? 'O' : 'X';
+        document.getElementById('ttt-status').textContent = `輪到 ${tttTurn} 下子`;
+
+        if (tttMode === 'pve' && tttTurn === 'O' && tttActive) {
+            setTimeout(botTTTMove, 250);
+        }
+    }
+    function finishTTT(msg) {
+        tttActive = false;
+        document.getElementById('ttt-status').textContent = msg;
+        document.getElementById('ttt-mask-title').textContent = msg;
+        document.getElementById('ttt-touch-mask').classList.remove('hidden');
+    }
+    function makeTTTMove(idx, player) {
+        tttBoard[idx] = player;
+        renderTTT();
+    }
+    function botTTTMove() {
+        if (!tttActive) return;
+        let emptyIndices = tttBoard.map((v, i) => v === '' ? i : null).filter(v => v !== null);
+        if (emptyIndices.length === 0) return;
+
+        let bestMove = null;
+        for (let idx of emptyIndices) {
+            let b = [...tttBoard]; b[idx] = 'O';
+            if (getTTTWinCombo(b, 'O')) {
+                if (Math.random() < 0.9) { bestMove = idx; break; }
+            }
+        }
+        if (bestMove === null) {
+            for (let idx of emptyIndices) {
+                let b = [...tttBoard]; b[idx] = 'X';
+                if (getTTTWinCombo(b, 'X')) {
+                    if (Math.random() < 0.7) bestMove = idx;
+                    break;
+                }
+            }
+        }
+        if (bestMove === null) {
+            if (emptyIndices.includes(4) && Math.random() < 0.5) bestMove = 4;
+            else bestMove = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+        }
+
+        makeTTTMove(bestMove, 'O');
+        const winCombo = getTTTWinCombo(tttBoard, 'O');
+        if (winCombo) {
+            tttActive = false;
+            drawTTTWinLine(winCombo, 'O');
+            setTimeout(() => finishTTT('電腦 O 獲勝！🤖'), 550);
+            return;
+        }
+        if (tttBoard.every(v => v !== '')) {
+            finishTTT('平手握手！🤝');
+            return;
+        }
+        tttTurn = 'X';
+        document.getElementById('ttt-status').textContent = '輪到 X 下子';
+    }
+    function getTTTWinCombo(b, p) {
+        const wins = [
+            [0,1,2], [3,4,5], [6,7,8],
+            [0,3,6], [1,4,7], [2,5,8],
+            [0,4,8], [2,4,6]
+        ];
+        for (let combo of wins) {
+            if (b[combo[0]] === p && b[combo[1]] === p && b[combo[2]] === p) return combo;
+        }
+        return null;
+    }
+
+    /* ================= 遊戲 2: 2248 ================= */
+    const G2_ROWS = 3, G2_COLS = 3;
+    const boardElement = document.getElementById('game-board');
+    const boardWrap = document.getElementById('board-wrap');
+    const canvas = document.getElementById('line-canvas');
+    const ctx = canvas.getContext('2d');
+    const scoreElement = document.getElementById('g2-score');
+    const bestScoreElement = document.getElementById('g2-best');
+    const coinsElement = document.getElementById('g2-coins');
+    const previewBox = document.getElementById('preview-box');
+
+    let g2_board = [];
+    let g2_score = 0;
+    let g2_coins = 100;
+    let g2_bestScore = parseInt(localStorage.getItem('watch_2248_best') || '0', 10);
+    let isDragging = false;
+    let selectedCells = [];
+    let isHammerMode = false;
+    let lastState = null;
+    let cellRects = [];
+    let hasFreeRescue = true;
+
+    bestScoreElement.textContent = g2_bestScore;
+    coinsElement.textContent = g2_coins;
+
+    const COLOR_MAP = {
+        2: '#27ae60', 4: '#16a085', 8: '#2980b9', 16: '#8e44ad',
+        32: '#d35400', 64: '#c0392b', 128: '#f39c12', 256: '#1abc9c',
+        512: '#3498db', 1024: '#9b59b6', 2048: '#e67e22', 4096: '#e74c3c'
+    };
+    function getCellColor(val) { return COLOR_MAP[val] || '#34495e'; }
+    function formatNumber(val) {
+        if (val < 10000) return val.toString();
+        if (val < 1000000) return Math.floor(val / 1000) + 'K';
+        return Math.floor(val / 1000000) + 'M';
+    }
+
+    function start2248() {
+        showView('2248');
+        setTimeout(() => init2248Board(), 50);
+    }
+    function init2248Board() {
+        document.getElementById('g2-touch-mask').classList.add('hidden');
+        g2_score = 0;
+        hasFreeRescue = true;
+        lastState = null;
+        scoreElement.textContent = g2_score;
+        previewBox.textContent = '';
+        g2_board = [];
+        for (let r = 0; r < G2_ROWS; r++) {
+            let row = [];
+            for (let c = 0; c < G2_COLS; c++) row.push(generateSmoothBlock());
+            g2_board.push(row);
+        }
+        render2248Board();
+        updateBoardRects();
+        updateToolsState();
+    }
+    function generateSmoothBlock() { return Math.random() < 0.75 ? 2 : 4; }
+
+    function updateBoardRects() {
+        if (currentView !== '2248') return;
+        const wrapRect = boardWrap.getBoundingClientRect();
+        canvas.width = wrapRect.width;
+        canvas.height = wrapRect.height;
+        cellRects = [];
+        const cells = boardElement.children;
+        for (let i = 0; i < cells.length; i++) {
+            const rect = cells[i].getBoundingClientRect();
+            cellRects.push({
+                r: parseInt(cells[i].dataset.r, 10),
+                c: parseInt(cells[i].dataset.c, 10),
+                left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom,
+                centerX: rect.left + rect.width / 2 - wrapRect.left,
+                centerY: rect.top + rect.height / 2 - wrapRect.top,
+                element: cells[i]
+            });
+        }
+    }
+    function render2248Board() {
+        boardElement.innerHTML = '';
+        for (let r = 0; r < G2_ROWS; r++) {
+            for (let c = 0; c < G2_COLS; c++) {
+                const cell = document.createElement('div');
+                const val = g2_board[r][c];
+                const text = formatNumber(val);
+                cell.className = 'cell';
+                cell.textContent = text;
+                cell.style.backgroundColor = getCellColor(val);
+                cell.dataset.r = r;
+                cell.dataset.c = c;
+                if (text.length >= 5) cell.classList.add('num-5');
+                else if (text.length === 4) cell.classList.add('num-4');
+                else if (text.length === 3) cell.classList.add('num-3');
+                boardElement.appendChild(cell);
+            }
+        }
+        updateToolsState();
+    }
+    function findCellByPos(x, y) {
+        for (let b of cellRects) {
+            if (x >= b.left && x <= b.right && y >= b.top && y <= b.bottom) return b;
+        }
+        return null;
+    }
+    function handleG2Start(x, y) {
+        if (currentView !== '2248') return;
+        const item = findCellByPos(x, y);
+        if (!item) return;
+        if (isHammerMode) { useHammer(item); return; }
+        isDragging = true;
+        selectedCells = [item];
+        item.element.classList.add('selected');
+        drawLines(x, y);
+    }
+    function handleG2Move(x, y) {
+        if (!isDragging || isHammerMode || currentView !== '2248') return;
+        const item = findCellByPos(x, y);
+        if (item) {
+            const last = selectedCells[selectedCells.length - 1];
+            if (selectedCells.length >= 2 && selectedCells[selectedCells.length - 2] === item) {
+                const popped = selectedCells.pop();
+                popped.element.classList.remove('selected');
+            } else if (!selectedCells.includes(item)) {
+                if (Math.abs(last.r - item.r) <= 1 && Math.abs(last.c - item.c) <= 1) {
+                    const curVal = g2_board[item.r][item.c];
+                    const lastVal = g2_board[last.r][last.c];
+                    if ((selectedCells.length === 1 && curVal === lastVal) ||
+                        (selectedCells.length > 1 && (curVal === lastVal || curVal === lastVal * 2))) {
+                        selectedCells.push(item);
+                        item.element.classList.add('selected');
+                    }
+                }
+            }
+        }
+        drawLines(x, y);
+        updatePreview();
+    }
+    function handleG2End() {
+        if (!isDragging || isHammerMode || currentView !== '2248') return;
+        isDragging = false;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        previewBox.textContent = '';
+        if (selectedCells.length >= 2) mergeCells();
+        else {
+            selectedCells.forEach(i => i.element.classList.remove('selected'));
+            selectedCells = [];
+        }
+    }
+    function drawLines(touchX, touchY) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (selectedCells.length === 0) return;
+        ctx.beginPath();
+        ctx.lineWidth = 6;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.moveTo(selectedCells[0].centerX, selectedCells[0].centerY);
+        for (let i = 1; i < selectedCells.length; i++) {
+            ctx.lineTo(selectedCells[i].centerX, selectedCells[i].centerY);
+        }
+        if (touchX !== undefined && touchY !== undefined) {
+            const wrapRect = boardWrap.getBoundingClientRect();
+            ctx.lineTo(touchX - wrapRect.left, touchY - wrapRect.top);
+        }
+        ctx.stroke();
+    }
+    function updatePreview() {
+        if (selectedCells.length < 2) { previewBox.textContent = ''; return; }
+        const lastVal = g2_board[selectedCells[selectedCells.length - 1].r][selectedCells[selectedCells.length - 1].c];
+        let sum = selectedCells.reduce((acc, cur) => acc + g2_board[cur.r][cur.c], 0);
+        let mergedValue = Math.max(Math.pow(2, Math.floor(Math.log2(sum))), lastVal * 2);
+        previewBox.textContent = `🎯 ${formatNumber(mergedValue)} (+${sum})`;
+    }
+    function mergeCells() {
+        lastState = { board: JSON.parse(JSON.stringify(g2_board)), score: g2_score, coins: g2_coins };
+        const last = selectedCells[selectedCells.length - 1];
+        let sum = selectedCells.reduce((acc, cur) => acc + g2_board[cur.r][cur.c], 0);
+        let mergedValue = Math.max(Math.pow(2, Math.floor(Math.log2(sum))), g2_board[last.r][last.c] * 2);
+
+        selectedCells.forEach(item => g2_board[item.r][item.c] = 0);
+        g2_board[last.r][last.c] = mergedValue;
+        g2_score += sum;
+        g2_coins += Math.max(1, Math.floor(sum / 10));
+        scoreElement.textContent = g2_score;
+        coinsElement.textContent = g2_coins;
+
+        if (g2_score > g2_bestScore) {
+            g2_bestScore = g2_score;
+            bestScoreElement.textContent = g2_bestScore;
+            localStorage.setItem('watch_2248_best', g2_bestScore);
+        }
+        applyGravity();
+        selectedCells = [];
+        check2248GameOver();
+    }
+    function applyGravity() {
+        for (let c = 0; c < G2_COLS; c++) {
+            let col = [];
+            for (let r = 0; r < G2_ROWS; r++) {
+                if (g2_board[r][c] !== 0) col.push(g2_board[r][c]);
+            }
+            while (col.length < G2_ROWS) col.unshift(generateSmoothBlock());
+            for (let r = 0; r < G2_ROWS; r++) g2_board[r][c] = col[r];
+        }
+        render2248Board();
+        updateBoardRects();
+    }
+    function check2248GameOver() {
+        for (let r = 0; r < G2_ROWS; r++) {
+            for (let c = 0; c < G2_COLS; c++) {
+                let v = g2_board[r][c];
+                const neighbors = [[r+1, c], [r-1, c], [r, c+1], [r, c-1], [r+1, c+1], [r-1, c-1], [r+1, c-1], [r-1, c+1]];
+                for (let [nr, nc] of neighbors) {
+                    if (nr >= 0 && nr < G2_ROWS && nc >= 0 && nc < G2_COLS) {
+                        if (g2_board[nr][nc] === v || g2_board[nr][nc] === v * 2) return;
+                    }
+                }
+            }
+        }
+        if (hasFreeRescue) {
+            hasFreeRescue = false;
+            triggerAutoClearMinBlock();
+            return;
+        }
+        if (g2_coins >= 100) return;
+        document.getElementById('g2-mask-score').textContent = `得分: ${g2_score}`;
+        document.getElementById('g2-touch-mask').classList.remove('hidden');
+    }
+    function triggerAutoClearMinBlock() {
+        let minVal = Infinity;
+        for (let r = 0; r < G2_ROWS; r++) {
+            for (let c = 0; c < G2_COLS; c++) {
+                if (g2_board[r][c] > 0 && g2_board[r][c] < minVal) minVal = g2_board[r][c];
+            }
+        }
+        if (minVal !== Infinity) {
+            for (let r = 0; r < G2_ROWS; r++) {
+                for (let c = 0; c < G2_COLS; c++) {
+                    if (g2_board[r][c] === minVal) g2_board[r][c] = 0;
+                }
+            }
+            previewBox.textContent = `✨ 神救援！已免費消除 ${minVal}！`;
+            setTimeout(() => {
+                applyGravity();
+                check2248GameOver();
+            }, 500);
+        }
+    }
+    function updateToolsState() {
+        document.getElementById('btn-undo').disabled = !lastState || g2_coins < 50;
+        document.getElementById('btn-shuffle').disabled = g2_coins < 150;
+        document.getElementById('btn-hammer').disabled = g2_coins < 100;
+    }
+    function useUndo() {
+        if (!lastState || g2_coins < 50) return;
+        g2_coins -= 50;
+        g2_board = lastState.board;
+        g2_score = lastState.score;
+        scoreElement.textContent = g2_score;
+        coinsElement.textContent = g2_coins;
+        lastState = null;
+        render2248Board();
+        updateBoardRects();
+    }
+    function useShuffle() {
+        if (g2_coins < 150) return;
+        g2_coins -= 150;
+        coinsElement.textContent = g2_coins;
+        for (let r = 0; r < G2_ROWS; r++) {
+            for (let c = 0; c < G2_COLS; c++) g2_board[r][c] = generateSmoothBlock();
+        }
+        render2248Board();
+        updateBoardRects();
+    }
+    function toggleHammer() {
+        if (g2_coins < 100) return;
+        isHammerMode = !isHammerMode;
+        document.getElementById('btn-hammer').classList.toggle('active', isHammerMode);
+    }
+    function useHammer(item) {
+        g2_coins -= 100;
+        coinsElement.textContent = g2_coins;
+        g2_board[item.r][item.c] = 0;
+        isHammerMode = false;
+        document.getElementById('btn-hammer').classList.remove('active');
+        applyGravity();
+        check2248GameOver();
+    }
+
+    /* ================= 遊戲 3: 貪食蛇 ================= */
+    const snakeCanvas = document.getElementById('snake-canvas');
+    const sctx = snakeCanvas.getContext('2d');
+    const SNAKE_COLS = 15;
+    let SNAKE_GRID = 16;
+    let snake = [];
+    let food = { x: 0, y: 0 };
+    let snakeDir = { x: 1, y: 0 };
+    let nextDir = { x: 1, y: 0 };
+    let snakeScore = 0;
+    let snakeBest = parseInt(localStorage.getItem('watch_snake_best') || '0', 10);
+    let snakeTimer = null;
+
+    document.getElementById('snake-best').textContent = snakeBest;
+
+    function startSnake() {
+        showView('snake');
+        resetSnake();
+    }
+    function resetSnake() {
+        document.getElementById('snake-touch-mask').classList.add('hidden');
+        snake = [{ x: 7, y: 7 }, { x: 6, y: 7 }, { x: 5, y: 7 }];
+        snakeDir = { x: 1, y: 0 };
+        nextDir = { x: 1, y: 0 };
+        snakeScore = 0;
+        document.getElementById('snake-score').textContent = snakeScore;
+        
+        const rect = snakeCanvas.getBoundingClientRect();
+        snakeCanvas.width = rect.width;
+        snakeCanvas.height = rect.height;
+        SNAKE_GRID = rect.width / SNAKE_COLS;
+
+        spawnFood();
+        stopSnake();
+        snakeTimer = setInterval(stepSnake, 180);
+    }
+    function stopSnake() {
+        if (snakeTimer) { clearInterval(snakeTimer); snakeTimer = null; }
+    }
+    function spawnFood() {
+        while (true) {
+            food.x = Math.floor(Math.random() * SNAKE_COLS);
+            food.y = Math.floor(Math.random() * SNAKE_COLS);
+            if (!snake.some(s => s.x === food.x && s.y === food.y)) break;
+        }
+    }
+    function stepSnake() {
+        snakeDir = nextDir;
+        const head = { x: snake[0].x + snakeDir.x, y: snake[0].y + snakeDir.y };
+
+        if (head.x < 0 || head.x >= SNAKE_COLS || head.y < 0 || head.y >= SNAKE_COLS ||
+            snake.some(s => s.x === head.x && s.y === head.y)) {
+            stopSnake();
+            if (snakeScore > snakeBest) {
+                snakeBest = snakeScore;
+                localStorage.setItem('watch_snake_best', snakeBest);
+                document.getElementById('snake-best').textContent = snakeBest;
+            }
+            document.getElementById('snake-mask-score').textContent = `得分: ${snakeScore}`;
+            document.getElementById('snake-touch-mask').classList.remove('hidden');
+            return;
+        }
+
+        snake.unshift(head);
+        if (head.x === food.x && head.y === food.y) {
+            snakeScore += 10;
+            document.getElementById('snake-score').textContent = snakeScore;
+            spawnFood();
+        } else {
+            snake.pop();
+        }
+        drawSnake();
+    }
+    function drawSnake() {
+        sctx.fillStyle = '#1a1a20';
+        sctx.fillRect(0, 0, snakeCanvas.width, snakeCanvas.height);
+
+        sctx.fillStyle = '#e74c3c';
+        sctx.beginPath();
+        sctx.arc(food.x * SNAKE_GRID + SNAKE_GRID/2, food.y * SNAKE_GRID + SNAKE_GRID/2, SNAKE_GRID/2 - 1, 0, Math.PI * 2);
+        sctx.fill();
+
+        snake.forEach((seg, idx) => {
+            sctx.fillStyle = idx === 0 ? '#2ecc71' : '#27ae60';
+            sctx.fillRect(seg.x * SNAKE_GRID + 1, seg.y * SNAKE_GRID + 1, SNAKE_GRID - 2, SNAKE_GRID - 2);
+        });
+    }
+
+    /* 手勢滑動判定 (全域監聽) */
+    let touchStartX = 0, touchStartY = 0;
+    let snakeSwipeHandled = false;
+
+    window.addEventListener('touchstart', e => {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        snakeSwipeHandled = false;
+        if (currentView === '2248') handleG2Start(touchStartX, touchStartY);
+        if (currentView === 'maze') handleMazeTouch(touchStartX, touchStartY);
+        if (currentView === 'fruit') handleFruitTouch(touchStartX);
+    }, { passive: false });
+
+    window.addEventListener('touchmove', e => {
+        if (currentView === '2248') {
+            handleG2Move(e.touches[0].clientX, e.touches[0].clientY);
+        }
+        if (currentView === 'maze') {
+            handleMazeTouch(e.touches[0].clientX, e.touches[0].clientY);
+        }
+        if (currentView === 'fruit') {
+            handleFruitTouch(e.touches[0].clientX);
+        }
+        if (currentView === 'snake' && !snakeSwipeHandled) {
+            const curX = e.touches[0].clientX;
+            const curY = e.touches[0].clientY;
+            const dx = curX - touchStartX;
+            const dy = curY - touchStartY;
+            if (Math.abs(dx) >= 8 || Math.abs(dy) >= 8) {
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    if (dx > 0 && snakeDir.x === 0) { nextDir = { x: 1, y: 0 }; snakeSwipeHandled = true; }
+                    else if (dx < 0 && snakeDir.x === 0) { nextDir = { x: -1, y: 0 }; snakeSwipeHandled = true; }
+                } else {
+                    if (dy > 0 && snakeDir.y === 0) { nextDir = { x: 0, y: 1 }; snakeSwipeHandled = true; }
+                    else if (dy < 0 && snakeDir.y === 0) { nextDir = { x: 0, y: -1 }; snakeSwipeHandled = true; }
+                }
+            }
+        }
+    }, { passive: false });
+
+    window.addEventListener('touchend', e => {
+        if (currentView === '2248') {
+            handleG2End();
+            return;
+        }
+        if (currentView === 'snake' && !snakeSwipeHandled) {
+            const dx = e.changedTouches[0].clientX - touchStartX;
+            const dy = e.changedTouches[0].clientY - touchStartY;
+            if (Math.abs(dx) >= 8 || Math.abs(dy) >= 8) {
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    if (dx > 0 && snakeDir.x === 0) nextDir = { x: 1, y: 0 };
+                    else if (dx < 0 && snakeDir.x === 0) nextDir = { x: -1, y: 0 };
+                } else {
+                    if (dy > 0 && snakeDir.y === 0) nextDir = { x: 0, y: 1 };
+                    else if (dy < 0 && snakeDir.y === 0) nextDir = { x: 0, y: -1 };
+                }
+            }
+        }
+    });
+
+    /* ================= 遊戲 4: 瘋狂打地鼠 ================= */
+    let moleScore = 0;
+    let moleTime = 30;
+    let moleTimer = null;
+    let moleActiveIndex = -1;
+    let molePopTimer = null;
+    let isGoldenMole = false;
+
+    function startMole() {
+        showView('mole');
+        initMoleBoard();
+    }
+    function initMoleBoard() {
+        const board = document.getElementById('mole-board');
+        board.innerHTML = '';
+        for (let i = 0; i < 9; i++) {
+            const hole = document.createElement('div');
+            hole.className = 'mole-hole';
+            hole.dataset.idx = i;
+            hole.onclick = () => onMoleHit(i);
+            board.appendChild(hole);
+        }
+        document.getElementById('mole-score').textContent = '0';
+        document.getElementById('mole-time').textContent = '30';
+        document.getElementById('mole-time').classList.remove('mole-frenzy-header');
+        document.getElementById('mole-mask-title').textContent = '🐹 瘋狂打地鼠';
+        document.getElementById('mole-mask-sub').textContent = '限時 30 秒挑戰 (含狂暴金鼠！)';
+        document.getElementById('mole-touch-mask').classList.remove('hidden');
+    }
+    function startMoleGame() {
+        document.getElementById('mole-touch-mask').classList.add('hidden');
+        moleScore = 0;
+        moleTime = 30;
+        document.getElementById('mole-score').textContent = moleScore;
+        document.getElementById('mole-time').textContent = moleTime;
+        document.getElementById('mole-time').classList.remove('mole-frenzy-header');
+
+        stopMole();
+        moleTimer = setInterval(() => {
+            moleTime--;
+            document.getElementById('mole-time').textContent = moleTime;
+
+            if (moleTime <= 10 && moleTime > 0) {
+                document.getElementById('mole-time').classList.add('mole-frenzy-header');
+            }
+
+            if (moleTime <= 0) {
+                stopMole();
+                document.getElementById('mole-time').classList.remove('mole-frenzy-header');
+                document.getElementById('mole-mask-title').textContent = '時間到！';
+                document.getElementById('mole-mask-sub').textContent = `得分: ${moleScore}`;
+                document.getElementById('mole-touch-mask').classList.remove('hidden');
+            }
+        }, 1000);
+        popMole();
+    }
+    function stopMole() {
+        if (moleTimer) { clearInterval(moleTimer); moleTimer = null; }
+        if (molePopTimer) { clearTimeout(molePopTimer); molePopTimer = null; }
+        clearActiveMole();
+    }
+    function clearActiveMole() {
+        const holes = document.querySelectorAll('.mole-hole');
+        holes.forEach(h => { 
+            h.textContent = ''; 
+            h.classList.remove('active', 'golden'); 
+        });
+        moleActiveIndex = -1;
+        isGoldenMole = false;
+    }
+    function popMole() {
+        if (moleTime <= 0) return;
+        clearActiveMole();
+        const rand = Math.floor(Math.random() * 9);
+        moleActiveIndex = rand;
+        isGoldenMole = Math.random() < 0.22;
+
+        const holes = document.querySelectorAll('.mole-hole');
+        if (holes[rand]) {
+            holes[rand].textContent = isGoldenMole ? '👑' : '🐹';
+            holes[rand].classList.add('active');
+            if (isGoldenMole) holes[rand].classList.add('golden');
+        }
+
+        let delay = moleTime <= 10 ? (380 + Math.random() * 240) : (600 + Math.random() * 320);
+        molePopTimer = setTimeout(popMole, delay);
+    }
+    function onMoleHit(index) {
+        if (moleTime <= 0 || index !== moleActiveIndex) return;
+
+        const gained = isGoldenMole ? 20 : 10;
+        moleScore += gained;
+        document.getElementById('mole-score').textContent = moleScore;
+
+        const holes = document.querySelectorAll('.mole-hole');
+        if (holes[index]) {
+            holes[index].textContent = isGoldenMole ? '🌟+20' : '💥+10';
+            holes[index].classList.remove('active');
+        }
+        moleActiveIndex = -1;
+        isGoldenMole = false;
+        if (molePopTimer) clearTimeout(molePopTimer);
+
+        const hitPause = moleTime <= 10 ? 150 : 220;
+        setTimeout(popMole, hitPause);
+    }
+
+    /* ================= 遊戲 5: 翻牌對對碰 ================= */
+    const EMOJI_POOL = ['🍎', '🍌', '🍇', '🍉', '🍓', '🍒', '🥑', '🍍', '🐰', '🐼', '🦊', '🦁'];
+    let memCards = [];
+    let memFlipped = [];
+    let memMatchedCount = 0;
+    let memFlips = 0;
+    let memTime = 0;
+    let memTimer = null;
+    let memIsBusy = false;
+
+    function startMemory() {
+        showView('memory');
+        initMemoryBoard();
+    }
+    function initMemoryBoard() {
+        stopMemoryTimer();
+        document.getElementById('mem-touch-mask').classList.add('hidden');
+        memFlipped = [];
+        memMatchedCount = 0;
+        memFlips = 0;
+        memTime = 0;
+        memIsBusy = false;
+        document.getElementById('mem-flips').textContent = '0';
+        document.getElementById('mem-pairs').textContent = '0/4';
+        document.getElementById('mem-timer').textContent = '0';
+
+        const shuffledPool = [...EMOJI_POOL].sort(() => 0.5 - Math.random());
+        const chosen = shuffledPool.slice(0, 4);
+        const deck = [...chosen, ...chosen].sort(() => 0.5 - Math.random());
+
+        const boardEl = document.getElementById('memory-board');
+        boardEl.innerHTML = '';
+        memCards = deck.map((emoji, index) => {
+            const card = document.createElement('div');
+            card.className = 'memory-card';
+            card.dataset.index = index;
+            card.dataset.emoji = emoji;
+            card.textContent = '❓';
+            card.onclick = () => onMemoryCardClick(card, emoji);
+            boardEl.appendChild(card);
+            return card;
+        });
+
+        memTimer = setInterval(() => {
+            memTime++;
+            document.getElementById('mem-timer').textContent = memTime;
+        }, 1000);
+    }
+    function stopMemoryTimer() {
+        if (memTimer) { clearInterval(memTimer); memTimer = null; }
+    }
+    function onMemoryCardClick(card, emoji) {
+        if (memIsBusy || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+
+        card.classList.add('flipped');
+        card.textContent = emoji;
+        memFlipped.push({ card, emoji });
+
+        if (memFlipped.length === 2) {
+            memFlips++;
+            document.getElementById('mem-flips').textContent = memFlips;
+            memIsBusy = true;
+
+            const [first, second] = memFlipped;
+            if (first.emoji === second.emoji) {
+                setTimeout(() => {
+                    first.card.classList.add('matched');
+                    second.card.classList.add('matched');
+                    memMatchedCount++;
+                    document.getElementById('mem-pairs').textContent = `${memMatchedCount}/4`;
+                    memFlipped = [];
+                    memIsBusy = false;
+
+                    if (memMatchedCount === 4) {
+                        stopMemoryTimer();
+                        document.getElementById('mem-mask-result').textContent = `耗時: ${memTime}秒 | 翻牌: ${memFlips}次`;
+                        setTimeout(() => document.getElementById('mem-touch-mask').classList.remove('hidden'), 300);
+                    }
+                }, 300);
+            } else {
+                setTimeout(() => {
+                    first.card.classList.remove('flipped');
+                    first.card.textContent = '❓';
+                    second.card.classList.remove('flipped');
+                    second.card.textContent = '❓';
+                    memFlipped = [];
+                    memIsBusy = false;
+                }, 700);
+            }
+        }
+    }
+
+    /* ================= 遊戲 6: 平衡球迷宮 (修正不可通關之死胡同Bug，通道保證寬敞通暢) ================= */
+    const mazeCanvas = document.getElementById('maze-canvas');
+    const mctx = mazeCanvas.getContext('2d');
+    let mazeBall = { x: 30, y: 30, vx: 0, vy: 0, r: 8 };
+    let mazeGoal = { x: 190, y: 190, r: 14 };
+    let mazeWalls = [];
+    let mazeLevel = 1;
+    let mazeSeconds = 0;
+    let mazeTimer = null;
+    let mazeAnimFrame = null;
+
+    // 重新設計 3 個保證 100% 可通關、通道寬敞 (>= 60px) 的手錶迷宮
+    const MAZE_CONFIGS = [
+        [ // Level 1: S 型平滑通道 (起點在左上 (25,25)，向右繞過牆1，向左繞過牆2，抵達右下 (195,195))
+            { x: 0, y: 75, w: 155, h: 10 },   // 右側留 65px 開口 (155..220)
+            { x: 65, y: 145, w: 155, h: 10 }  // 左側留 65px 開口 (0..65)
+        ],
+        [ // Level 2: N 型縱向風道 (起點在左上，向下繞過左豎牆，向上繞過右豎牆，向右下進終點)
+            { x: 75, y: 0, w: 10, h: 155 },   // 底部留 65px 開口 (155..220)
+            { x: 145, y: 65, w: 10, h: 155 }  // 頂部留 65px 開口 (0..65)
+        ],
+        [ // Level 3: 環形雙通道 (左右皆可穿透，絕不封死)
+            { x: 60, y: 65, w: 100, h: 10 },  // 浮島橫樑，左右各有 60px 通道
+            { x: 60, y: 145, w: 100, h: 10 }, // 浮島底樑，左右各有 60px 通道
+            { x: 105, y: 65, w: 10, h: 90 }   // 中央隔斷
+        ]
+    ];
+
+    function startMaze() {
+        showView('maze');
+        mazeLevel = 1;
+        initMazeGame();
+    }
+    function initMazeGame() {
+        document.getElementById('maze-touch-mask').classList.add('hidden');
+        document.getElementById('maze-level').textContent = mazeLevel;
+        mazeSeconds = 0;
+        document.getElementById('maze-time').textContent = '0';
+
+        const rect = mazeCanvas.getBoundingClientRect();
+        mazeCanvas.width = rect.width;
+        mazeCanvas.height = rect.height;
+
+        const scale = rect.width / 220;
+        mazeBall = { x: 28 * scale, y: 28 * scale, vx: 0, vy: 0, r: 8 * scale };
+        mazeGoal = { x: 192 * scale, y: 192 * scale, r: 14 * scale };
+
+        const curConf = MAZE_CONFIGS[(mazeLevel - 1) % MAZE_CONFIGS.length];
+        mazeWalls = curConf.map(w => ({
+            x: w.x * scale,
+            y: w.y * scale,
+            w: w.w * scale,
+            h: w.h * scale
+        }));
+
+        stopMaze();
+        mazeTimer = setInterval(() => {
+            mazeSeconds++;
+            document.getElementById('maze-time').textContent = mazeSeconds;
+        }, 1000);
+
+        loopMaze();
+    }
+    function stopMaze() {
+        if (mazeTimer) { clearInterval(mazeTimer); mazeTimer = null; }
+        if (mazeAnimFrame) { cancelAnimationFrame(mazeAnimFrame); mazeAnimFrame = null; }
+    }
+    function loopMaze() {
+        if (currentView !== 'maze') return;
+
+        // 重力感應平滑加速度
+        let ax = (tiltX / 10) * 0.5;
+        let ay = ((tiltY - 25) / 10) * 0.5;
+
+        mazeBall.vx = (mazeBall.vx + ax) * 0.92;
+        mazeBall.vy = (mazeBall.vy + ay) * 0.92;
+
+        let nextX = mazeBall.x + mazeBall.vx;
+        let nextY = mazeBall.y + mazeBall.vy;
+
+        // 畫布邊界彈回
+        if (nextX - mazeBall.r < 0) { nextX = mazeBall.r; mazeBall.vx = -mazeBall.vx * 0.3; }
+        if (nextX + mazeBall.r > mazeCanvas.width) { nextX = mazeCanvas.width - mazeBall.r; mazeBall.vx = -mazeBall.vx * 0.3; }
+        if (nextY - mazeBall.r < 0) { nextY = mazeBall.r; mazeBall.vy = -mazeBall.vy * 0.3; }
+        if (nextY + mazeBall.r > mazeCanvas.height) { nextY = mazeCanvas.height - mazeBall.r; mazeBall.vy = -mazeBall.vy * 0.3; }
+
+        // 牆壁碰撞偵測 (AABB 彈性阻斷)
+        for (let w of mazeWalls) {
+            let cx = Math.max(w.x, Math.min(nextX, w.x + w.w));
+            let cy = Math.max(w.y, Math.min(nextY, w.y + w.h));
+            let dist = Math.hypot(nextX - cx, nextY - cy);
+            if (dist < mazeBall.r) {
+                if (Math.abs(nextX - cx) > Math.abs(nextY - cy)) {
+                    mazeBall.vx = -mazeBall.vx * 0.2;
+                } else {
+                    mazeBall.vy = -mazeBall.vy * 0.2;
+                }
+                nextX = mazeBall.x;
+                nextY = mazeBall.y;
+            }
+        }
+
+        mazeBall.x = nextX;
+        mazeBall.y = nextY;
+
+        // 渲染迷宮畫面
+        mctx.fillStyle = '#16181f';
+        mctx.fillRect(0, 0, mazeCanvas.width, mazeCanvas.height);
+
+        // 終點 (旗標與光暈)
+        mctx.fillStyle = 'rgba(0, 230, 118, 0.22)';
+        mctx.beginPath();
+        mctx.arc(mazeGoal.x, mazeGoal.y, mazeGoal.r, 0, Math.PI * 2);
+        mctx.fill();
+        mctx.font = `${Math.floor(mazeGoal.r * 1.5)}px sans-serif`;
+        mctx.textAlign = 'center';
+        mctx.textBaseline = 'middle';
+        mctx.fillText('🏁', mazeGoal.x, mazeGoal.y);
+
+        // 迷宮牆壁
+        mctx.fillStyle = '#00897b';
+        mctx.shadowColor = '#26a69a';
+        mctx.shadowBlur = 4;
+        for (let w of mazeWalls) {
+            mctx.fillRect(w.x, w.y, w.w, w.h);
+        }
+        mctx.shadowBlur = 0;
+
+        // 滾球
+        mctx.fillStyle = '#00e676';
+        mctx.shadowColor = '#00e676';
+        mctx.shadowBlur = 8;
+        mctx.beginPath();
+        mctx.arc(mazeBall.x, mazeBall.y, mazeBall.r, 0, Math.PI * 2);
+        mctx.fill();
+        mctx.shadowBlur = 0;
+
+        // 抵達判定
+        if (Math.hypot(mazeBall.x - mazeGoal.x, mazeBall.y - mazeGoal.y) < mazeGoal.r) {
+            stopMaze();
+            document.getElementById('maze-mask-msg').textContent = `第 ${mazeLevel} 關通過！耗時 ${mazeSeconds} 秒`;
+            document.getElementById('maze-touch-mask').classList.remove('hidden');
+            return;
+        }
+
+        mazeAnimFrame = requestAnimationFrame(loopMaze);
+    }
+    function nextMazeLevel() {
+        mazeLevel++;
+        initMazeGame();
+    }
+    function handleMazeTouch(tx, ty) {
+        if (currentView !== 'maze') return;
+        const rect = mazeCanvas.getBoundingClientRect();
+        const cx = tx - rect.left;
+        const cy = ty - rect.top;
+        mazeBall.vx += (cx - mazeBall.x) * 0.08;
+        mazeBall.vy += (cy - mazeBall.y) * 0.08;
+    }
+
+    /* ================= 遊戲 7: 左右傾斜接水果 (Fruit Catcher) ================= */
+    const fruitCanvas = document.getElementById('fruit-canvas');
+    const fctx = fruitCanvas.getContext('2d');
+    let basket = { x: 100, y: 190, w: 48, h: 22, vx: 0 };
+    let fruitItems = [];
+    let fruitScore = 0;
+    let fruitTime = 30;
+    let fruitTimer = null;
+    let fruitSpawnTimer = null;
+    let fruitAnimFrame = null;
+    const FRUIT_EMOJIS = ['🍎', '🍌', '🍓', '🍇', '🥑', '🍍'];
+
+    function startFruit() {
+        showView('fruit');
+        initFruitGame();
+    }
+    function initFruitGame() {
+        document.getElementById('fruit-touch-mask').classList.add('hidden');
+        fruitScore = 0;
+        fruitTime = 30;
+        document.getElementById('fruit-score').textContent = '0';
+        document.getElementById('fruit-time').textContent = '30';
+        fruitItems = [];
+
+        const rect = fruitCanvas.getBoundingClientRect();
+        fruitCanvas.width = rect.width;
+        fruitCanvas.height = rect.height;
+
+        basket.w = fruitCanvas.width * 0.25;
+        basket.h = 24;
+        basket.x = (fruitCanvas.width - basket.w) / 2;
+        basket.y = fruitCanvas.height - 28;
+        basket.vx = 0;
+
+        stopFruit();
+        fruitTimer = setInterval(() => {
+            fruitTime--;
+            document.getElementById('fruit-time').textContent = fruitTime;
+            if (fruitTime <= 0) {
+                stopFruit();
+                document.getElementById('fruit-mask-title').textContent = '時間到！';
+                document.getElementById('fruit-mask-score').textContent = `最終收穫得分: ${fruitScore}`;
+                document.getElementById('fruit-touch-mask').classList.remove('hidden');
+            }
+        }, 1000);
+
+        spawnFruitItem();
+        loopFruit();
+    }
+    function stopFruit() {
+        if (fruitTimer) { clearInterval(fruitTimer); fruitTimer = null; }
+        if (fruitSpawnTimer) { clearTimeout(fruitSpawnTimer); fruitSpawnTimer = null; }
+        if (fruitAnimFrame) { cancelAnimationFrame(fruitAnimFrame); fruitAnimFrame = null; }
+    }
+    function spawnFruitItem() {
+        if (fruitTime <= 0) return;
+        const isBomb = Math.random() < 0.22;
+        const emoji = isBomb ? '💣' : FRUIT_EMOJIS[Math.floor(Math.random() * FRUIT_EMOJIS.length)];
+        const size = isBomb ? 24 : 26;
+        fruitItems.push({
+            x: 16 + Math.random() * (fruitCanvas.width - 32),
+            y: -10,
+            speed: 1.6 + Math.random() * 1.8,
+            emoji: emoji,
+            isBomb: isBomb,
+            size: size
+        });
+
+        const nextDelay = 550 + Math.random() * 450;
+        fruitSpawnTimer = setTimeout(spawnFruitItem, nextDelay);
+    }
+    function loopFruit() {
+        if (currentView !== 'fruit') return;
+
+        let ax = (tiltX / 10) * 0.9;
+        basket.vx = (basket.vx + ax) * 0.88;
+        basket.x += basket.vx;
+
+        if (basket.x < 2) { basket.x = 2; basket.vx = 0; }
+        if (basket.x + basket.w > fruitCanvas.width - 2) {
+            basket.x = fruitCanvas.width - basket.w - 2;
+            basket.vx = 0;
+        }
+
+        fctx.fillStyle = '#1c1d24';
+        fctx.fillRect(0, 0, fruitCanvas.width, fruitCanvas.height);
+
+        fctx.fillStyle = '#d35400';
+        fctx.beginPath();
+        fctx.roundRect(basket.x, basket.y, basket.w, basket.h, [4, 4, 10, 10]);
+        fctx.fill();
+        fctx.font = '16px sans-serif';
+        fctx.textAlign = 'center';
+        fctx.textBaseline = 'middle';
+        fctx.fillText('🧺', basket.x + basket.w / 2, basket.y + basket.h / 2);
+
+        for (let i = fruitItems.length - 1; i >= 0; i--) {
+            let item = fruitItems[i];
+            item.y += item.speed;
+
+            fctx.font = `${item.size}px sans-serif`;
+            fctx.textAlign = 'center';
+            fctx.textBaseline = 'middle';
+            fctx.fillText(item.emoji, item.x, item.y);
+
+            if (item.y + item.size / 2 >= basket.y && item.y - item.size / 2 <= basket.y + basket.h) {
+                if (item.x >= basket.x - 6 && item.x <= basket.x + basket.w + 6) {
+                    if (item.isBomb) {
+                        fruitScore = Math.max(0, fruitScore - 15);
+                        fctx.fillStyle = '#e74c3c';
+                        fctx.fillText('💥-15', basket.x + basket.w / 2, basket.y - 12);
+                    } else {
+                        fruitScore += 10;
+                        fctx.fillStyle = '#f1c40f';
+                        fctx.fillText('+10', basket.x + basket.w / 2, basket.y - 12);
+                    }
+                    document.getElementById('fruit-score').textContent = fruitScore;
+                    fruitItems.splice(i, 1);
+                    continue;
+                }
+            }
+
+            if (item.y > fruitCanvas.height + 20) {
+                fruitItems.splice(i, 1);
+            }
+        }
+
+        fruitAnimFrame = requestAnimationFrame(loopFruit);
+    }
+    function handleFruitTouch(tx) {
+        if (currentView !== 'fruit') return;
+        const rect = fruitCanvas.getBoundingClientRect();
+        const cx = tx - rect.left;
+        basket.x = cx - basket.w / 2;
+    }
+
+    window.addEventListener('resize', () => {
+        updateBoardRects();
+        if (currentView === 'snake') resetSnake();
+        if (currentView === 'maze') initMazeGame();
+        if (currentView === 'fruit') initFruitGame();
+    });
+</script>
+</body>
+</html>
