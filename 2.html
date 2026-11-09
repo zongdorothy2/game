@@ -33,7 +33,7 @@
         padding: 4px 6px;
     }
 
-    /* 浮動大按鈕 (選單 / 返回) */
+    /* 浮動返回大按鈕 */
     .floating-home-btn {
         position: absolute;
         top: 4px;
@@ -57,7 +57,7 @@
         background: #565d7c;
     }
 
-    /* 頂部標題列 (解除寫死寬度限制，滿版排列) */
+    /* 頂部標題列 */
     .top-header-bar {
         width: 100%;
         height: 24px;
@@ -87,35 +87,34 @@
         display: flex;
     }
 
-    /* === 首頁：七合一 彈性滿版撐開設定 === */
+    /* === 首頁：八宮格 (2x4 完美均分自適應撐開) === */
     #view-menu {
         justify-content: center;
         align-items: center;
         padding: 2px;
         height: calc(100% - 24px);
         width: 100%;
+        overflow-y: auto;
+        touch-action: pan-y;
+        scrollbar-width: none;
     }
+    #view-menu::-webkit-scrollbar { display: none; }
 
-    .menu-wrap {
-        display: flex;
-        flex-direction: column;
+    .menu-grid-8 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(4, 1fr);
         gap: 6px;
         width: 96%;
-        height: 95%;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .menu-row {
-        display: flex;
-        gap: 6px;
-        width: 100%;
-        flex: 1;
+        height: 96%;
         justify-content: center;
+        align-content: stretch;
     }
-    .menu-btn-square {
-        flex: 1;
+    .menu-btn {
+        width: 100%;
         height: 100%;
-        border-radius: 13px;
+        min-height: 54px;
+        border-radius: 12px;
         border: none;
         color: #fff;
         display: flex;
@@ -127,42 +126,19 @@
         box-shadow: 0 3px 6px rgba(0,0,0,0.5);
         padding: 2px;
     }
-    .menu-btn-square:active { transform: scale(0.94); filter: brightness(0.9); }
-    .menu-btn-square .btn-icon { font-size: 24px; line-height: 1; }
-    .menu-btn-square .btn-text { font-size: 12px; font-weight: 900; letter-spacing: -0.5px; }
-
-    .menu-btn-center {
-        width: 100%;
-        flex: 0.85;
-        border-radius: 12px;
-        border: none;
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        cursor: pointer;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.6);
-        padding: 2px 10px;
-        background: linear-gradient(135deg, #e91e63, #ff5722);
-        animation: glow 2.5s infinite alternate;
-    }
-    .menu-btn-center:active { transform: scale(0.95); filter: brightness(0.9); }
-    .menu-btn-center .btn-icon { font-size: 24px; line-height: 1; }
-    .menu-btn-center .btn-text { font-size: 14px; font-weight: 900; }
-
-    @keyframes glow {
-        0% { box-shadow: 0 2px 8px rgba(233, 30, 99, 0.4); }
-        100% { box-shadow: 0 4px 14px rgba(255, 87, 34, 0.8); }
-    }
+    .menu-btn:active { transform: scale(0.94); filter: brightness(0.9); }
+    .menu-btn .btn-icon { font-size: 22px; line-height: 1; }
+    .menu-btn .btn-text { font-size: 12px; font-weight: 900; letter-spacing: -0.5px; }
 
     .bg-ttt { background: linear-gradient(145deg, #2980b9, #3498db); }
     .bg-2248 { background: linear-gradient(145deg, #8e44ad, #9b59b6); }
+    .bg-memory { background: linear-gradient(145deg, #e91e63, #ff4081); }
     .bg-snake { background: linear-gradient(145deg, #229954, #27ae60); }
     .bg-mole { background: linear-gradient(145deg, #d35400, #e67e22); }
     .bg-maze { background: linear-gradient(145deg, #00897b, #26a69a); }
-    .bg-fruit { background: linear-gradient(145deg, #f39c12, #f1c40f); color: #222 !important; }
-    .bg-fruit .btn-text { color: #222 !important; }
+    .bg-flappy { background: linear-gradient(145deg, #f39c12, #f1c40f); color: #222 !important; }
+    .bg-flappy .btn-text { color: #222 !important; }
+    .bg-pinball { background: linear-gradient(145deg, #1abc9c, #16a085); }
 
     /* === 全螢幕覆蓋結算層 === */
     .touch-mask {
@@ -201,7 +177,7 @@
         50% { opacity: 0.75; transform: scale(0.96); }
     }
 
-    /* === 遊戲 1: 圈圈叉叉 (自適應滿版) === */
+    /* === 遊戲 1: 圈圈叉叉 === */
     .sub-bar {
         display: flex;
         gap: 8px;
@@ -329,10 +305,7 @@
         color: #ffffff;
         text-shadow: 0 1px 3px rgba(0,0,0,0.6);
     }
-    .cell.selected {
-        outline: 3px solid #ffffff;
-        transform: scale(0.94);
-    }
+    .cell.selected { outline: 3px solid #ffffff; transform: scale(0.94); }
     .cell.num-3 { font-size: 22px; }
     .cell.num-4 { font-size: 18px; }
     .cell.num-5 { font-size: 14px; }
@@ -432,7 +405,7 @@
         100% { transform: scale(1.08); text-shadow: 0 0 10px #ff9f1a; }
     }
 
-    /* === 遊戲 5: 翻牌對對碰 (8張牌) === */
+    /* === 遊戲 5: 翻牌對對碰 === */
     .memory-header {
         display: flex;
         justify-content: space-between;
@@ -483,7 +456,7 @@
         100% { transform: scale(1); }
     }
 
-    /* === 遊戲 6: 平衡球迷宮 (Tilt Maze) === */
+    /* === 遊戲 6: 平衡球迷宮 === */
     .maze-header {
         display: flex;
         justify-content: space-between;
@@ -509,8 +482,8 @@
         flex-shrink: 0;
     }
 
-    /* === 遊戲 7: 左右傾斜接水果 (Fruit Catcher) === */
-    .fruit-header {
+    /* === 遊戲 7: 飛跳小鳥 (Flappy Jump) === */
+    .flappy-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -520,16 +493,42 @@
         margin-bottom: 2px;
         flex-shrink: 0;
     }
-    #fruit-canvas {
-        background: #1c1d24;
+    #flappy-canvas {
+        background: #1a1e29;
         border: 2px solid #f39c12;
         border-radius: 10px;
-        width: 78vmin;
+        width: 76vmin;
         height: 76vmin;
     }
-    .fruit-tip {
+    .flappy-tip {
         font-size: 11px;
         color: #f1c40f;
+        text-align: center;
+        margin-top: 4px;
+        flex-shrink: 0;
+    }
+
+    /* === 遊戲 8: 彈珠消消樂 (Pinball / Breakout) === */
+    .pinball-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 88%;
+        font-size: 13px;
+        font-weight: bold;
+        margin-bottom: 2px;
+        flex-shrink: 0;
+    }
+    #pinball-canvas {
+        background: #151d24;
+        border: 2px solid #1abc9c;
+        border-radius: 10px;
+        width: 76vmin;
+        height: 76vmin;
+    }
+    .pinball-tip {
+        font-size: 11px;
+        color: #1abc9c;
         text-align: center;
         margin-top: 4px;
         flex-shrink: 0;
@@ -547,46 +546,44 @@
         ◀ 選單
     </button>
 
-    <!-- 首頁：七合一 彈性滿版撐開選單 -->
+    <!-- 首頁：八宮格 (2x4 完美自適應撐開) -->
     <div class="view-container active" id="view-menu">
-        <div class="menu-wrap">
-            <div class="menu-row">
-                <button class="menu-btn-square bg-ttt" onclick="startTTT()">
-                    <span class="btn-icon">⭕❌</span>
-                    <span class="btn-text">圈圈叉叉</span>
-                </button>
-                <button class="menu-btn-square bg-2248" onclick="start2248()">
-                    <span class="btn-icon">🔢</span>
-                    <span class="btn-text">2248 合成</span>
-                </button>
-            </div>
+        <div class="menu-grid-8">
+            <button class="menu-btn bg-ttt" onclick="startTTT()">
+                <span class="btn-icon">⭕❌</span>
+                <span class="btn-text">圈圈叉叉</span>
+            </button>
+            <button class="menu-btn bg-2248" onclick="start2248()">
+                <span class="btn-icon">🔢</span>
+                <span class="btn-text">2248 合成</span>
+            </button>
 
-            <button class="menu-btn-center" onclick="startMemory()">
+            <button class="menu-btn bg-memory" onclick="startMemory()">
                 <span class="btn-icon">🃏</span>
                 <span class="btn-text">翻牌對對碰</span>
             </button>
+            <button class="menu-btn bg-snake" onclick="startSnake()">
+                <span class="btn-icon">🐍</span>
+                <span class="btn-text">經典貪食蛇</span>
+            </button>
 
-            <div class="menu-row">
-                <button class="menu-btn-square bg-snake" onclick="startSnake()">
-                    <span class="btn-icon">🐍</span>
-                    <span class="btn-text">貪食蛇</span>
-                </button>
-                <button class="menu-btn-square bg-mole" onclick="startMole()">
-                    <span class="btn-icon">🐹</span>
-                    <span class="btn-text">打地鼠</span>
-                </button>
-            </div>
+            <button class="menu-btn bg-mole" onclick="startMole()">
+                <span class="btn-icon">🐹</span>
+                <span class="btn-text">瘋狂打地鼠</span>
+            </button>
+            <button class="menu-btn bg-maze" onclick="startMaze()">
+                <span class="btn-icon">🌀</span>
+                <span class="btn-text">體感迷宮</span>
+            </button>
 
-            <div class="menu-row">
-                <button class="menu-btn-square bg-maze" onclick="startMaze()">
-                    <span class="btn-icon">🌀</span>
-                    <span class="btn-text">體感迷宮</span>
-                </button>
-                <button class="menu-btn-square bg-fruit" onclick="startFruit()">
-                    <span class="btn-icon">🧺</span>
-                    <span class="btn-text">傾斜接水果</span>
-                </button>
-            </div>
+            <button class="menu-btn bg-flappy" onclick="startFlappy()">
+                <span class="btn-icon">🐦</span>
+                <span class="btn-text">飛跳小鳥</span>
+            </button>
+            <button class="menu-btn bg-pinball" onclick="startPinball()">
+                <span class="btn-icon">🏓</span>
+                <span class="btn-text">彈珠消消樂</span>
+            </button>
         </div>
     </div>
 
@@ -679,7 +676,7 @@
         </div>
     </div>
 
-    <!-- 遊戲 6: 平衡球迷宮 (Tilt Maze) -->
+    <!-- 遊戲 6: 平衡球迷宮 -->
     <div class="view-container" id="view-maze">
         <div class="maze-header">
             <span>關卡: <span id="maze-level" style="color:#00e676;">1/10</span></span>
@@ -696,19 +693,35 @@
         </div>
     </div>
 
-    <!-- 遊戲 7: 左右傾斜接水果 (Fruit Catcher) -->
-    <div class="view-container" id="view-fruit">
-        <div class="fruit-header">
-            <span>得分: <span id="fruit-score" style="color:#f1c40f; font-size:15px;">0</span></span>
-            <span>倒數: <span id="fruit-time" style="color:#e74c3c; font-size:15px;">30</span>s</span>
+    <!-- 遊戲 7: 飛跳小鳥 (Flappy Jump) -->
+    <div class="view-container" id="view-flappy">
+        <div class="flappy-header">
+            <span>得分: <span id="flappy-score" style="color:#f1c40f; font-size:15px;">0</span></span>
+            <span style="color:#888;">最高: <span id="flappy-best">0</span></span>
         </div>
-        <canvas id="fruit-canvas" width="220" height="220"></canvas>
-        <div class="fruit-tip">手腕左右傾斜接水果，避開 💣</div>
+        <canvas id="flappy-canvas" width="220" height="220"></canvas>
+        <div class="flappy-tip">點擊螢幕任一處拍翅跳躍</div>
 
-        <div class="touch-mask hidden" id="fruit-touch-mask" onclick="initFruitGame()">
-            <div class="touch-mask-title" id="fruit-mask-title">時間到！</div>
-            <div class="touch-mask-title" id="fruit-mask-score" style="font-size:14px; color:#fff; margin-bottom:8px;">得分: 0</div>
-            <div class="touch-mask-tip">👉 觸碰螢幕再接一次</div>
+        <div class="touch-mask" id="flappy-touch-mask" onclick="initFlappyGame()">
+            <div class="touch-mask-title" id="flappy-mask-title">🐦 飛跳小鳥</div>
+            <div class="touch-mask-title" id="flappy-mask-score" style="font-size:14px; color:#fff; margin-bottom:8px;">點擊開始飛行</div>
+            <div class="touch-mask-tip">👉 觸碰螢幕開始</div>
+        </div>
+    </div>
+
+    <!-- 遊戲 8: 彈珠消消樂 (Mini Pinball / Breakout) -->
+    <div class="view-container" id="view-pinball">
+        <div class="pinball-header">
+            <span>得分: <span id="pinball-score" style="color:#1abc9c; font-size:15px;">0</span></span>
+            <span>磚塊: <span id="pinball-bricks" style="color:#f1c40f; font-size:15px;">12</span></span>
+        </div>
+        <canvas id="pinball-canvas" width="220" height="220"></canvas>
+        <div class="pinball-tip">手腕傾斜移動底板反彈彈珠 (或觸碰拖曳)</div>
+
+        <div class="touch-mask" id="pinball-touch-mask" onclick="initPinballGame()">
+            <div class="touch-mask-title" id="pinball-mask-title">🏓 彈珠消消樂</div>
+            <div class="touch-mask-title" id="pinball-mask-score" style="font-size:14px; color:#fff; margin-bottom:8px;">消除所有磚塊！</div>
+            <div class="touch-mask-tip">👉 觸碰螢幕開始</div>
         </div>
     </div>
 </div>
@@ -729,7 +742,8 @@
         stopMole();
         stopMemoryTimer();
         stopMaze();
-        stopFruit();
+        stopFlappy();
+        stopPinball();
 
         if (viewId === 'menu') {
             btnBack.style.display = 'none';
@@ -738,15 +752,16 @@
             btnBack.style.display = 'flex';
             if (viewId === 'ttt') navTitle.textContent = '❌⭕ 圈圈叉叉';
             if (viewId === '2248') navTitle.textContent = '🔢 2248 3x3';
-            if (viewId === 'snake') navTitle.textContent = '🐍 貪食蛇';
-            if (viewId === 'mole') navTitle.textContent = '🐹 瘋狂打地鼠';
             if (viewId === 'memory') navTitle.textContent = '🃏 翻牌對對碰';
+            if (viewId === 'snake') navTitle.textContent = '🐍 經典貪食蛇';
+            if (viewId === 'mole') navTitle.textContent = '🐹 瘋狂打地鼠';
             if (viewId === 'maze') navTitle.textContent = '🌀 體感迷宮';
-            if (viewId === 'fruit') navTitle.textContent = '🧺 傾斜接水果';
+            if (viewId === 'flappy') navTitle.textContent = '🐦 飛跳小鳥';
+            if (viewId === 'pinball') navTitle.textContent = '🏓 彈珠消消樂';
         }
     }
 
-    /* ================= 通用重力感應傾斜監聽 (Sensor API) ================= */
+    /* ================= 重力感應傾斜監聽 ================= */
     let tiltX = 0, tiltY = 0;
     window.addEventListener('deviceorientation', e => {
         if (e.gamma !== null) tiltX = e.gamma;
@@ -1219,7 +1234,7 @@
         check2248GameOver();
     }
 
-    /* ================= 遊戲 3: 貪食蛇 ================= */
+    /* ================= 遊戲 3: 經典貪食蛇 ================= */
     const snakeCanvas = document.getElementById('snake-canvas');
     const sctx = snakeCanvas.getContext('2d');
     const SNAKE_COLS = 15;
@@ -1317,7 +1332,8 @@
         snakeSwipeHandled = false;
         if (currentView === '2248') handleG2Start(touchStartX, touchStartY);
         if (currentView === 'maze') handleMazeTouch(touchStartX, touchStartY);
-        if (currentView === 'fruit') handleFruitTouch(touchStartX);
+        if (currentView === 'flappy') handleFlappyTouch();
+        if (currentView === 'pinball') handlePinballTouch(touchStartX);
     }, { passive: false });
 
     window.addEventListener('touchmove', e => {
@@ -1327,8 +1343,8 @@
         if (currentView === 'maze') {
             handleMazeTouch(e.touches[0].clientX, e.touches[0].clientY);
         }
-        if (currentView === 'fruit') {
-            handleFruitTouch(e.touches[0].clientX);
+        if (currentView === 'pinball') {
+            handlePinballTouch(e.touches[0].clientX);
         }
         if (currentView === 'snake' && !snakeSwipeHandled) {
             const curX = e.touches[0].clientX;
@@ -1566,7 +1582,7 @@
         }
     }
 
-        /* ================= 遊戲 6: 平衡球迷宮 (10組關卡 + ⭐星星 + 🕳️黑洞 + ⏩彈簧) ================= */
+    /* ================= 遊戲 6: 平衡球迷宮 (10組關卡 + ⭐星星 + 🕳️黑洞 + ⏩彈簧) ================= */
     const mazeCanvas = document.getElementById('maze-canvas');
     const mctx = mazeCanvas.getContext('2d');
     let mazeBall = { x: 30, y: 30, vx: 0, vy: 0, r: 8 };
@@ -1583,11 +1599,8 @@
     let mazeFeedbackTimer = null;
     let mazeStartPos = { x: 28, y: 28 };
 
-
-    // 10 組保證 100% 可通關、通道寬敞 (>= 50px) 的手錶體感迷宮
-    // 支援趣味元素：⭐ 金色星星、🕳️ 黑洞陷阱、⏩ 加速彈簧
     const MAZE_CONFIGS = [
-        { // Level 1: "S 型水道" (新手入門)
+        { // Level 1: "S 型水道"
             walls: [
                 { x: 0, y: 75, w: 155, h: 10 },
                 { x: 65, y: 145, w: 155, h: 10 }
@@ -1596,7 +1609,7 @@
             holes: [],
             boosts: []
         },
-        { // Level 2: "N 型風道" (縱向轉向)
+        { // Level 2: "N 型風道"
             walls: [
                 { x: 75, y: 0, w: 10, h: 155 },
                 { x: 145, y: 65, w: 10, h: 155 }
@@ -1605,7 +1618,7 @@
             holes: [],
             boosts: []
         },
-        { // Level 3: "環形雙廊" (雙向分流)
+        { // Level 3: "環形雙廊"
             walls: [
                 { x: 60, y: 65, w: 100, h: 10 },
                 { x: 60, y: 145, w: 100, h: 10 },
@@ -1615,7 +1628,7 @@
             holes: [],
             boosts: []
         },
-        { // Level 4: "十字星陣" (交叉走道)
+        { // Level 4: "十字星陣"
             walls: [
                 { x: 70, y: 0, w: 10, h: 80 },
                 { x: 140, y: 60, w: 10, h: 100 },
@@ -1625,35 +1638,35 @@
             holes: [],
             boosts: []
         },
-        { // Level 5: "黑洞初現" (引入 🕳️ 黑洞陷阱)
+        { // Level 5: "黑洞初現"
             walls: [
                 { x: 0, y: 75, w: 150, h: 10 },
                 { x: 70, y: 145, w: 150, h: 10 }
             ],
             stars: [{ x: 185, y: 110 }],
-            holes: [{ x: 30, y: 110, r: 12 }], // 設在左轉角盲區，考驗微操
+            holes: [{ x: 30, y: 110, r: 12 }],
             boosts: []
         },
-        { // Level 6: "彈簧衝刺" (引入 ⏩ 加速彈簧)
+        { // Level 6: "彈簧衝刺"
             walls: [
                 { x: 70, y: 0, w: 10, h: 150 },
                 { x: 145, y: 70, w: 10, h: 150 }
             ],
             stars: [{ x: 35, y: 180 }, { x: 185, y: 35 }],
             holes: [{ x: 110, y: 185, r: 12 }],
-            boosts: [{ x: 110, y: 60, r: 12, vx: 0, vy: -5 }] // 向上噴射！
+            boosts: [{ x: 110, y: 60, r: 12, vx: 0, vy: -5 }]
         },
-        { // Level 7: "雙子黑洞" (已修復：底部保留 65px 通暢通道)
+        { // Level 7: "雙子黑洞" (已修復通道)
             walls: [
                 { x: 65, y: 0, w: 10, h: 130 },
                 { x: 65, y: 130, w: 90, h: 10 },
-                { x: 155, y: 70, w: 10, h: 85 } // y=70~155，底部保留 y=155..220 (65px) 寬敞開口，可自由通往右側與終點
+                { x: 155, y: 70, w: 10, h: 85 }
             ],
             stars: [{ x: 110, y: 60 }, { x: 35, y: 175 }],
-            holes: [{ x: 185, y: 45, r: 12 }, { x: 110, y: 185, r: 12 }], // 稍微下移黑洞避免擋住通道
+            holes: [{ x: 185, y: 45, r: 12 }, { x: 110, y: 185, r: 12 }],
             boosts: []
         },
-        { // Level 8: "四象星鎖" (吃滿 3 顆 ⭐ 才能解鎖 🏁)
+        { // Level 8: "四象星鎖"
             walls: [
                 { x: 105, y: 0, w: 10, h: 80 },
                 { x: 105, y: 140, w: 10, h: 80 },
@@ -1661,19 +1674,19 @@
                 { x: 140, y: 105, w: 80, h: 10 }
             ],
             stars: [{ x: 35, y: 35 }, { x: 185, y: 35 }, { x: 35, y: 185 }],
-            holes: [{ x: 105, y: 105, r: 14 }], // 中央有黑洞漩渦！
+            holes: [{ x: 105, y: 105, r: 14 }],
             boosts: []
         },
-        { // Level 9: "重力激流" (彈簧與黑洞交織)
+        { // Level 9: "重力激流"
             walls: [
                 { x: 0, y: 70, w: 155, h: 10 },
                 { x: 65, y: 145, w: 155, h: 10 }
             ],
             stars: [{ x: 110, y: 110 }, { x: 35, y: 185 }],
             holes: [{ x: 110, y: 35, r: 12 }, { x: 185, y: 185, r: 12 }],
-            boosts: [{ x: 185, y: 80, r: 12, vx: -5, vy: 0 }] // 向左彈射
+            boosts: [{ x: 185, y: 80, r: 12, vx: -5, vy: 0 }]
         },
-        { // Level 10: "迷宮大師 (Master Challenge)" (終極大考驗)
+        { // Level 10: "迷宮大師"
             walls: [
                 { x: 55, y: 45, w: 110, h: 10 },
                 { x: 55, y: 45, w: 10, h: 120 },
@@ -1682,7 +1695,7 @@
             ],
             stars: [{ x: 110, y: 25 }, { x: 110, y: 75 }, { x: 30, y: 185 }],
             holes: [{ x: 110, y: 135, r: 12 }, { x: 185, y: 135, r: 12 }],
-            boosts: [{ x: 30, y: 90, r: 12, vx: 0, vy: 5 }] // 向下彈射
+            boosts: [{ x: 30, y: 90, r: 12, vx: 0, vy: 5 }]
         }
     ];
 
@@ -1691,7 +1704,6 @@
         mazeLevel = 1;
         initMazeGame();
     }
-
     function initMazeGame() {
         document.getElementById('maze-touch-mask').classList.add('hidden');
         document.getElementById('maze-level').textContent = `${mazeLevel}/10`;
@@ -1748,7 +1760,6 @@
 
         loopMaze();
     }
-
     function updateMazeStarsHeader() {
         const total = mazeStars.length;
         const got = mazeStars.filter(s => s.collected).length;
@@ -1757,22 +1768,18 @@
             statusEl.textContent = total > 0 ? `⭐${got}/${total}` : '⭐無';
         }
     }
-
     function showMazeFeedback(msg, color = '#f1c40f') {
         mazeFeedbackText = { msg, color, alpha: 1.0, y: mazeBall.y - 12 };
         if (mazeFeedbackTimer) clearTimeout(mazeFeedbackTimer);
         mazeFeedbackTimer = setTimeout(() => { mazeFeedbackText = ''; }, 1200);
     }
-
     function stopMaze() {
         if (mazeTimer) { clearInterval(mazeTimer); mazeTimer = null; }
         if (mazeAnimFrame) { cancelAnimationFrame(mazeAnimFrame); mazeAnimFrame = null; }
     }
-
     function loopMaze() {
         if (currentView !== 'maze') return;
 
-        // 傾斜加速度計算
         let ax = (tiltX / 10) * 0.48;
         let ay = ((tiltY - 25) / 10) * 0.48;
 
@@ -1782,13 +1789,11 @@
         let nextX = mazeBall.x + mazeBall.vx;
         let nextY = mazeBall.y + mazeBall.vy;
 
-        // 邊界碰撞
         if (nextX - mazeBall.r < 0) { nextX = mazeBall.r; mazeBall.vx = -mazeBall.vx * 0.3; }
         if (nextX + mazeBall.r > mazeCanvas.width) { nextX = mazeCanvas.width - mazeBall.r; mazeBall.vx = -mazeBall.vx * 0.3; }
         if (nextY - mazeBall.r < 0) { nextY = mazeBall.r; mazeBall.vy = -mazeBall.vy * 0.3; }
         if (nextY + mazeBall.r > mazeCanvas.height) { nextY = mazeCanvas.height - mazeBall.r; mazeBall.vy = -mazeBall.vy * 0.3; }
 
-        // 牆壁碰撞 (AABB 彈性阻斷)
         for (let w of mazeWalls) {
             let cx = Math.max(w.x, Math.min(nextX, w.x + w.w));
             let cy = Math.max(w.y, Math.min(nextY, w.y + w.h));
@@ -1807,7 +1812,6 @@
         mazeBall.x = nextX;
         mazeBall.y = nextY;
 
-        // 趣味元素 1：吃星星 ⭐
         for (let star of mazeStars) {
             if (!star.collected) {
                 if (Math.hypot(mazeBall.x - star.x, mazeBall.y - star.y) < mazeBall.r + star.r) {
@@ -1818,10 +1822,8 @@
             }
         }
 
-        // 趣味元素 2：黑洞陷阱 🕳️
         for (let hole of mazeHoles) {
             if (Math.hypot(mazeBall.x - hole.x, mazeBall.y - hole.y) < hole.r * 0.75) {
-                // 被黑洞吸入，彈回起點
                 mazeBall.x = mazeStartPos.x;
                 mazeBall.y = mazeStartPos.y;
                 mazeBall.vx = 0;
@@ -1831,7 +1833,6 @@
             }
         }
 
-        // 趣味元素 3：加速彈簧 ⏩
         for (let b of mazeBoosts) {
             if (b.cooldown > 0) b.cooldown--;
             if (b.cooldown === 0 && Math.hypot(mazeBall.x - b.x, mazeBall.y - b.y) < mazeBall.r + b.r) {
@@ -1842,11 +1843,9 @@
             }
         }
 
-        // 清空背景
         mctx.fillStyle = '#16181f';
         mctx.fillRect(0, 0, mazeCanvas.width, mazeCanvas.height);
 
-        // 繪製黑洞 🕳️
         for (let hole of mazeHoles) {
             mctx.fillStyle = '#0a0a0f';
             mctx.beginPath();
@@ -1861,7 +1860,6 @@
             mctx.fillText('🕳️', hole.x, hole.y);
         }
 
-        // 繪製加速彈簧 ⏩
         for (let b of mazeBoosts) {
             mctx.fillStyle = 'rgba(0, 229, 255, 0.15)';
             mctx.beginPath();
@@ -1873,7 +1871,6 @@
             mctx.fillText('⏩', b.x, b.y);
         }
 
-        // 繪製星星 ⭐
         for (let star of mazeStars) {
             if (!star.collected) {
                 mctx.font = `${Math.floor(star.r * 1.6)}px sans-serif`;
@@ -1883,7 +1880,6 @@
             }
         }
 
-        // 終點 (旗標 🏁 或 上鎖 🔒)
         const allStarsCollected = mazeStars.every(s => s.collected);
         mctx.fillStyle = allStarsCollected ? 'rgba(0, 230, 118, 0.25)' : 'rgba(255, 255, 255, 0.08)';
         mctx.beginPath();
@@ -1894,7 +1890,6 @@
         mctx.textBaseline = 'middle';
         mctx.fillText(allStarsCollected ? '🏁' : '🔒', mazeGoal.x, mazeGoal.y);
 
-        // 繪製牆壁
         mctx.fillStyle = '#00897b';
         mctx.shadowColor = '#26a69a';
         mctx.shadowBlur = 4;
@@ -1903,7 +1898,6 @@
         }
         mctx.shadowBlur = 0;
 
-        // 繪製滾球 🟢
         mctx.fillStyle = '#00e676';
         mctx.shadowColor = '#00e676';
         mctx.shadowBlur = 8;
@@ -1912,7 +1906,6 @@
         mctx.fill();
         mctx.shadowBlur = 0;
 
-        // 浮動文字提示
         if (mazeFeedbackText) {
             mctx.font = 'bold 12px sans-serif';
             mctx.fillStyle = mazeFeedbackText.color;
@@ -1920,7 +1913,6 @@
             mctx.fillText(mazeFeedbackText.msg, mazeCanvas.width / 2, 20);
         }
 
-        // 檢查是否抵達終點
         if (Math.hypot(mazeBall.x - mazeGoal.x, mazeBall.y - mazeGoal.y) < mazeGoal.r) {
             if (allStarsCollected) {
                 stopMaze();
@@ -1934,13 +1926,11 @@
 
         mazeAnimFrame = requestAnimationFrame(loopMaze);
     }
-
     function nextMazeLevel() {
         mazeLevel++;
         if (mazeLevel > 10) mazeLevel = 1;
         initMazeGame();
     }
-
     function handleMazeTouch(tx, ty) {
         if (currentView !== 'maze') return;
         const rect = mazeCanvas.getBoundingClientRect();
@@ -1950,151 +1940,326 @@
         mazeBall.vy += (cy - mazeBall.y) * 0.08;
     }
 
-    /* ================= 遊戲 7: 左右傾斜接水果 (Fruit Catcher) ================= */
-    const fruitCanvas = document.getElementById('fruit-canvas');
-    const fctx = fruitCanvas.getContext('2d');
-    let basket = { x: 100, y: 190, w: 48, h: 22, vx: 0 };
-    let fruitItems = [];
-    let fruitScore = 0;
-    let fruitTime = 30;
-    let fruitTimer = null;
-    let fruitSpawnTimer = null;
-    let fruitAnimFrame = null;
-    const FRUIT_EMOJIS = ['🍎', '🍌', '🍓', '🍇', '🥑', '🍍'];
+    /* ================= 遊戲 7: 飛跳小鳥 (Flappy Jump) ================= */
+    const flappyCanvas = document.getElementById('flappy-canvas');
+    const fctx = flappyCanvas.getContext('2d');
+    let flappyBird = { x: 45, y: 100, vy: 0, r: 12 };
+    let flappyPipes = [];
+    let flappyScore = 0;
+    let flappyBest = parseInt(localStorage.getItem('watch_flappy_best') || '0', 10);
+    let flappyActive = false;
+    let flappyAnimFrame = null;
+    let flappySpawnTimer = null;
 
-    function startFruit() {
-        showView('fruit');
-        initFruitGame();
+    document.getElementById('flappy-best').textContent = flappyBest;
+
+    function startFlappy() {
+        showView('flappy');
+        const rect = flappyCanvas.getBoundingClientRect();
+        flappyCanvas.width = rect.width;
+        flappyCanvas.height = rect.height;
+        document.getElementById('flappy-touch-mask').classList.remove('hidden');
     }
-    function initFruitGame() {
-        document.getElementById('fruit-touch-mask').classList.add('hidden');
-        fruitScore = 0;
-        fruitTime = 30;
-        document.getElementById('fruit-score').textContent = '0';
-        document.getElementById('fruit-time').textContent = '30';
-        fruitItems = [];
 
-        const rect = fruitCanvas.getBoundingClientRect();
-        fruitCanvas.width = rect.width;
-        fruitCanvas.height = rect.height;
+    function initFlappyGame() {
+        document.getElementById('flappy-touch-mask').classList.add('hidden');
+        const rect = flappyCanvas.getBoundingClientRect();
+        flappyCanvas.width = rect.width;
+        flappyCanvas.height = rect.height;
 
-        // 籃子比例放大，更好接、手感更佳
-        basket.w = Math.max(54, fruitCanvas.width * 0.28);
-        basket.h = Math.max(26, fruitCanvas.height * 0.11);
-        basket.x = (fruitCanvas.width - basket.w) / 2;
-        basket.y = fruitCanvas.height - basket.h - 6;
-        basket.vx = 0;
+        flappyBird = { x: flappyCanvas.width * 0.25, y: flappyCanvas.height * 0.45, vy: 0, r: 12 };
+        flappyPipes = [];
+        flappyScore = 0;
+        document.getElementById('flappy-score').textContent = '0';
+        flappyActive = true;
 
-        stopFruit();
-        fruitTimer = setInterval(() => {
-            fruitTime--;
-            document.getElementById('fruit-time').textContent = fruitTime;
-            if (fruitTime <= 0) {
-                stopFruit();
-                document.getElementById('fruit-mask-title').textContent = '時間到！';
-                document.getElementById('fruit-mask-score').textContent = `最終收穫得分: ${fruitScore}`;
-                document.getElementById('fruit-touch-mask').classList.remove('hidden');
-            }
-        }, 1000);
-
-        spawnFruitItem();
-        loopFruit();
+        stopFlappy();
+        spawnFlappyPipe();
+        loopFlappy();
     }
-    function stopFruit() {
-        if (fruitTimer) { clearInterval(fruitTimer); fruitTimer = null; }
-        if (fruitSpawnTimer) { clearTimeout(fruitSpawnTimer); fruitSpawnTimer = null; }
-        if (fruitAnimFrame) { cancelAnimationFrame(fruitAnimFrame); fruitAnimFrame = null; }
+
+    function stopFlappy() {
+        flappyActive = false;
+        if (flappyAnimFrame) { cancelAnimationFrame(flappyAnimFrame); flappyAnimFrame = null; }
+        if (flappySpawnTimer) { clearTimeout(flappySpawnTimer); flappySpawnTimer = null; }
     }
-    function spawnFruitItem() {
-        if (fruitTime <= 0) return;
-        const isBomb = Math.random() < 0.22;
-        const emoji = isBomb ? '💣' : FRUIT_EMOJIS[Math.floor(Math.random() * FRUIT_EMOJIS.length)];
-        // 水果與炸彈大尺寸放大 (至少 38px ~ 44px，依畫布自適應)
-        const baseSize = Math.max(38, Math.floor(fruitCanvas.width * 0.16));
-        const size = isBomb ? Math.floor(baseSize * 0.95) : baseSize;
-        fruitItems.push({
-            x: size/2 + 6 + Math.random() * (fruitCanvas.width - size - 12),
-            y: -size/2,
-            speed: 1.6 + Math.random() * 1.8,
-            emoji: emoji,
-            isBomb: isBomb,
-            size: size
+
+    function spawnFlappyPipe() {
+        if (!flappyActive) return;
+        const gap = Math.max(68, flappyCanvas.height * 0.38); // 手錶寬通道
+        const minTop = 25;
+        const maxTop = flappyCanvas.height - gap - 25;
+        const topH = minTop + Math.random() * (maxTop - minTop);
+
+        flappyPipes.push({
+            x: flappyCanvas.width + 10,
+            w: 24,
+            topH: topH,
+            bottomY: topH + gap,
+            passed: false
         });
 
-        const nextDelay = 550 + Math.random() * 450;
-        fruitSpawnTimer = setTimeout(spawnFruitItem, nextDelay);
+        flappySpawnTimer = setTimeout(spawnFlappyPipe, 1600);
     }
-    function loopFruit() {
-        if (currentView !== 'fruit') return;
 
-        let ax = (tiltX / 10) * 0.9;
-        basket.vx = (basket.vx + ax) * 0.88;
-        basket.x += basket.vx;
+    function handleFlappyTouch() {
+        if (currentView !== 'flappy' || !flappyActive) return;
+        flappyBird.vy = -3.8; // 輕巧向上跳躍
+    }
 
-        if (basket.x < 2) { basket.x = 2; basket.vx = 0; }
-        if (basket.x + basket.w > fruitCanvas.width - 2) {
-            basket.x = fruitCanvas.width - basket.w - 2;
-            basket.vx = 0;
+    function loopFlappy() {
+        if (!flappyActive || currentView !== 'flappy') return;
+
+        // 重力下墜
+        flappyBird.vy += 0.22;
+        flappyBird.y += flappyBird.vy;
+
+        // 碰天花板或掉出底面
+        if (flappyBird.y - flappyBird.r < 0 || flappyBird.y + flappyBird.r > flappyCanvas.height) {
+            endFlappyGame();
+            return;
         }
 
-        fctx.fillStyle = '#1c1d24';
-        fctx.fillRect(0, 0, fruitCanvas.width, fruitCanvas.height);
+        // 水管移動與碰撞
+        for (let i = flappyPipes.length - 1; i >= 0; i--) {
+            let p = flappyPipes[i];
+            p.x -= 1.6;
 
-        fctx.fillStyle = '#d35400';
-        fctx.beginPath();
-        fctx.roundRect(basket.x, basket.y, basket.w, basket.h, [6, 6, 12, 12]);
-        fctx.fill();
-        fctx.font = `${Math.max(18, Math.floor(basket.h * 0.75))}px sans-serif`;
-        fctx.textAlign = 'center';
-        fctx.textBaseline = 'middle';
-        fctx.fillText('🧺', basket.x + basket.w / 2, basket.y + basket.h / 2);
-
-        for (let i = fruitItems.length - 1; i >= 0; i--) {
-            let item = fruitItems[i];
-            item.y += item.speed;
-
-            fctx.font = `${item.size}px sans-serif`;
-            fctx.textAlign = 'center';
-            fctx.textBaseline = 'middle';
-            fctx.fillText(item.emoji, item.x, item.y);
-
-            // 配合大尺寸水果的碰撞判定
-            if (item.y + item.size * 0.35 >= basket.y && item.y - item.size * 0.35 <= basket.y + basket.h) {
-                if (item.x >= basket.x - item.size * 0.3 && item.x <= basket.x + basket.w + item.size * 0.3) {
-                    if (item.isBomb) {
-                        fruitScore = Math.max(0, fruitScore - 15);
-                        fctx.fillStyle = '#e74c3c';
-                        fctx.fillText('💥-15', basket.x + basket.w / 2, basket.y - 12);
-                    } else {
-                        fruitScore += 10;
-                        fctx.fillStyle = '#f1c40f';
-                        fctx.fillText('+10', basket.x + basket.w / 2, basket.y - 12);
-                    }
-                    document.getElementById('fruit-score').textContent = fruitScore;
-                    fruitItems.splice(i, 1);
-                    continue;
+            // 碰撞判定
+            if (flappyBird.x + flappyBird.r > p.x && flappyBird.x - flappyBird.r < p.x + p.w) {
+                if (flappyBird.y - flappyBird.r < p.topH || flappyBird.y + flappyBird.r > p.bottomY) {
+                    endFlappyGame();
+                    return;
                 }
             }
 
-            if (item.y > fruitCanvas.height + 20) {
-                fruitItems.splice(i, 1);
+            // 得分
+            if (!p.passed && p.x + p.w < flappyBird.x) {
+                p.passed = true;
+                flappyScore++;
+                document.getElementById('flappy-score').textContent = flappyScore;
+            }
+
+            if (p.x + p.w < -10) flappyPipes.splice(i, 1);
+        }
+
+        // 渲染畫面
+        fctx.fillStyle = '#1a1e29';
+        fctx.fillRect(0, 0, flappyCanvas.width, flappyCanvas.height);
+
+        // 繪製水管
+        fctx.fillStyle = '#27ae60';
+        for (let p of flappyPipes) {
+            fctx.fillRect(p.x, 0, p.w, p.topH);
+            fctx.fillRect(p.x, p.bottomY, p.w, flappyCanvas.height - p.bottomY);
+        }
+
+        // 繪製小鳥 🐦
+        fctx.font = '22px sans-serif';
+        fctx.textAlign = 'center';
+        fctx.textBaseline = 'middle';
+        fctx.fillText('🐦', flappyBird.x, flappyBird.y);
+
+        flappyAnimFrame = requestAnimationFrame(loopFlappy);
+    }
+
+    function endFlappyGame() {
+        stopFlappy();
+        if (flappyScore > flappyBest) {
+            flappyBest = flappyScore;
+            localStorage.setItem('watch_flappy_best', flappyBest);
+            document.getElementById('flappy-best').textContent = flappyBest;
+        }
+        document.getElementById('flappy-mask-title').textContent = '遊戲結束';
+        document.getElementById('flappy-mask-score').textContent = `本次飛行得分: ${flappyScore}`;
+        document.getElementById('flappy-touch-mask').classList.remove('hidden');
+    }
+
+    /* ================= 遊戲 8: 彈珠消消樂 (Mini Pinball / Breakout) ================= */
+    const pinballCanvas = document.getElementById('pinball-canvas');
+    const pctx = pinballCanvas.getContext('2d');
+    let pPaddle = { x: 80, y: 195, w: 56, h: 10, vx: 0 };
+    let pBall = { x: 110, y: 150, vx: 2, vy: -2.2, r: 6 };
+    let pBricks = [];
+    let pinballScore = 0;
+    let pinballActive = false;
+    let pinballAnimFrame = null;
+
+    function startPinball() {
+        showView('pinball');
+        const rect = pinballCanvas.getBoundingClientRect();
+        pinballCanvas.width = rect.width;
+        pinballCanvas.height = rect.height;
+        document.getElementById('pinball-touch-mask').classList.remove('hidden');
+    }
+
+    function initPinballGame() {
+        document.getElementById('pinball-touch-mask').classList.add('hidden');
+        const rect = pinballCanvas.getBoundingClientRect();
+        pinballCanvas.width = rect.width;
+        pinballCanvas.height = rect.height;
+
+        pPaddle.w = Math.max(54, pinballCanvas.width * 0.28);
+        pPaddle.h = 10;
+        pPaddle.x = (pinballCanvas.width - pPaddle.w) / 2;
+        pPaddle.y = pinballCanvas.height - 18;
+        pPaddle.vx = 0;
+
+        pBall = {
+            x: pinballCanvas.width / 2,
+            y: pinballCanvas.height * 0.65,
+            vx: 1.8 * (Math.random() > 0.5 ? 1 : -1),
+            vy: -2.4,
+            r: 6
+        };
+
+        // 3排4列大磚塊 (12塊，每塊清晰好敲)
+        pBricks = [];
+        const rows = 3, cols = 4;
+        const bW = (pinballCanvas.width - 24) / cols;
+        const bH = 14;
+        const colors = ['#e74c3c', '#f39c12', '#3498db'];
+
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                pBricks.push({
+                    x: 12 + c * bW + 2,
+                    y: 20 + r * (bH + 5),
+                    w: bW - 4,
+                    h: bH,
+                    color: colors[r],
+                    alive: true
+                });
             }
         }
 
-        fruitAnimFrame = requestAnimationFrame(loopFruit);
+        pinballScore = 0;
+        document.getElementById('pinball-score').textContent = '0';
+        document.getElementById('pinball-bricks').textContent = pBricks.length;
+        pinballActive = true;
+
+        stopPinball();
+        loopPinball();
     }
-    function handleFruitTouch(tx) {
-        if (currentView !== 'fruit') return;
-        const rect = fruitCanvas.getBoundingClientRect();
+
+    function stopPinball() {
+        pinballActive = false;
+        if (pinballAnimFrame) { cancelAnimationFrame(pinballAnimFrame); pinballAnimFrame = null; }
+    }
+
+    function handlePinballTouch(tx) {
+        if (currentView !== 'pinball' || !pinballActive) return;
+        const rect = pinballCanvas.getBoundingClientRect();
         const cx = tx - rect.left;
-        basket.x = cx - basket.w / 2;
+        pPaddle.x = cx - pPaddle.w / 2;
+    }
+
+    function loopPinball() {
+        if (!pinballActive || currentView !== 'pinball') return;
+
+        // 傾斜感應控制底板 (平滑靈活)
+        let ax = (tiltX / 10) * 0.9;
+        pPaddle.vx = (pPaddle.vx + ax) * 0.86;
+        pPaddle.x += pPaddle.vx;
+
+        if (pPaddle.x < 2) { pPaddle.x = 2; pPaddle.vx = 0; }
+        if (pPaddle.x + pPaddle.w > pinballCanvas.width - 2) {
+            pPaddle.x = pinballCanvas.width - pPaddle.w - 2;
+            pPaddle.vx = 0;
+        }
+
+        // 彈珠運動
+        pBall.x += pBall.vx;
+        pBall.y += pBall.vy;
+
+        // 左右與頂部牆壁反彈
+        if (pBall.x - pBall.r < 0) { pBall.x = pBall.r; pBall.vx = -pBall.vx; }
+        if (pBall.x + pBall.r > pinballCanvas.width) { pBall.x = pinballCanvas.width - pBall.r; pBall.vx = -pBall.vx; }
+        if (pBall.y - pBall.r < 0) { pBall.y = pBall.r; pBall.vy = -pBall.vy; }
+
+        // 底板反彈
+        if (pBall.y + pBall.r >= pPaddle.y && pBall.y - pBall.r <= pPaddle.y + pPaddle.h) {
+            if (pBall.x >= pPaddle.x - 2 && pBall.x <= pPaddle.x + pPaddle.w + 2) {
+                // 依撞擊板子位置調整反彈角度
+                const hitPos = (pBall.x - (pPaddle.x + pPaddle.w / 2)) / (pPaddle.w / 2);
+                pBall.vx = hitPos * 2.8;
+                pBall.vy = -Math.abs(pBall.vy);
+            }
+        }
+
+        // 磚塊碰撞
+        let aliveCount = 0;
+        for (let b of pBricks) {
+            if (b.alive) {
+                aliveCount++;
+                if (pBall.x + pBall.r > b.x && pBall.x - pBall.r < b.x + b.w &&
+                    pBall.y + pBall.r > b.y && pBall.y - pBall.r < b.y + b.h) {
+                    b.alive = false;
+                    pBall.vy = -pBall.vy;
+                    pinballScore += 10;
+                    document.getElementById('pinball-score').textContent = pinballScore;
+                    aliveCount--;
+                }
+            }
+        }
+        document.getElementById('pinball-bricks').textContent = aliveCount;
+
+        // 全破通關
+        if (aliveCount === 0) {
+            stopPinball();
+            document.getElementById('pinball-mask-title').textContent = '🎉 完美通關！';
+            document.getElementById('pinball-mask-score').textContent = `成功擊碎所有磚塊！得分: ${pinballScore}`;
+            document.getElementById('pinball-touch-mask').classList.remove('hidden');
+            return;
+        }
+
+        // 掉落底部出界
+        if (pBall.y - pBall.r > pinballCanvas.height) {
+            stopPinball();
+            document.getElementById('pinball-mask-title').textContent = '挑戰結束';
+            document.getElementById('pinball-mask-score').textContent = `最終消除得分: ${pinballScore}`;
+            document.getElementById('pinball-touch-mask').classList.remove('hidden');
+            return;
+        }
+
+        // 繪製
+        pctx.fillStyle = '#151d24';
+        pctx.fillRect(0, 0, pinballCanvas.width, pinballCanvas.height);
+
+        // 磚塊
+        for (let b of pBricks) {
+            if (b.alive) {
+                pctx.fillStyle = b.color;
+                pctx.beginPath();
+                pctx.roundRect(b.x, b.y, b.w, b.h, 3);
+                pctx.fill();
+            }
+        }
+
+        // 底板
+        pctx.fillStyle = '#1abc9c';
+        pctx.beginPath();
+        pctx.roundRect(pPaddle.x, pPaddle.y, pPaddle.w, pPaddle.h, 5);
+        pctx.fill();
+
+        // 彈珠
+        pctx.fillStyle = '#ffffff';
+        pctx.shadowColor = '#00e5ff';
+        pctx.shadowBlur = 6;
+        pctx.beginPath();
+        pctx.arc(pBall.x, pBall.y, pBall.r, 0, Math.PI * 2);
+        pctx.fill();
+        pctx.shadowBlur = 0;
+
+        pinballAnimFrame = requestAnimationFrame(loopPinball);
     }
 
     window.addEventListener('resize', () => {
         updateBoardRects();
         if (currentView === 'snake') resetSnake();
         if (currentView === 'maze') initMazeGame();
-        if (currentView === 'fruit') initFruitGame();
+        if (currentView === 'flappy') startFlappy();
+        if (currentView === 'pinball') startPinball();
     });
 </script>
 </body>
