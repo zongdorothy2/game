@@ -1978,10 +1978,11 @@
         fruitCanvas.width = rect.width;
         fruitCanvas.height = rect.height;
 
-        basket.w = fruitCanvas.width * 0.25;
-        basket.h = 24;
+        // 籃子比例放大，更好接、手感更佳
+        basket.w = Math.max(54, fruitCanvas.width * 0.28);
+        basket.h = Math.max(26, fruitCanvas.height * 0.11);
         basket.x = (fruitCanvas.width - basket.w) / 2;
-        basket.y = fruitCanvas.height - 28;
+        basket.y = fruitCanvas.height - basket.h - 6;
         basket.vx = 0;
 
         stopFruit();
@@ -2008,10 +2009,12 @@
         if (fruitTime <= 0) return;
         const isBomb = Math.random() < 0.22;
         const emoji = isBomb ? '💣' : FRUIT_EMOJIS[Math.floor(Math.random() * FRUIT_EMOJIS.length)];
-        const size = isBomb ? 24 : 26;
+        // 水果與炸彈大尺寸放大 (至少 38px ~ 44px，依畫布自適應)
+        const baseSize = Math.max(38, Math.floor(fruitCanvas.width * 0.16));
+        const size = isBomb ? Math.floor(baseSize * 0.95) : baseSize;
         fruitItems.push({
-            x: 16 + Math.random() * (fruitCanvas.width - 32),
-            y: -10,
+            x: size/2 + 6 + Math.random() * (fruitCanvas.width - size - 12),
+            y: -size/2,
             speed: 1.6 + Math.random() * 1.8,
             emoji: emoji,
             isBomb: isBomb,
@@ -2039,9 +2042,9 @@
 
         fctx.fillStyle = '#d35400';
         fctx.beginPath();
-        fctx.roundRect(basket.x, basket.y, basket.w, basket.h, [4, 4, 10, 10]);
+        fctx.roundRect(basket.x, basket.y, basket.w, basket.h, [6, 6, 12, 12]);
         fctx.fill();
-        fctx.font = '16px sans-serif';
+        fctx.font = `${Math.max(18, Math.floor(basket.h * 0.75))}px sans-serif`;
         fctx.textAlign = 'center';
         fctx.textBaseline = 'middle';
         fctx.fillText('🧺', basket.x + basket.w / 2, basket.y + basket.h / 2);
@@ -2055,8 +2058,9 @@
             fctx.textBaseline = 'middle';
             fctx.fillText(item.emoji, item.x, item.y);
 
-            if (item.y + item.size / 2 >= basket.y && item.y - item.size / 2 <= basket.y + basket.h) {
-                if (item.x >= basket.x - 6 && item.x <= basket.x + basket.w + 6) {
+            // 配合大尺寸水果的碰撞判定
+            if (item.y + item.size * 0.35 >= basket.y && item.y - item.size * 0.35 <= basket.y + basket.h) {
+                if (item.x >= basket.x - item.size * 0.3 && item.x <= basket.x + basket.w + item.size * 0.3) {
                     if (item.isBomb) {
                         fruitScore = Math.max(0, fruitScore - 15);
                         fctx.fillStyle = '#e74c3c';
