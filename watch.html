@@ -682,8 +682,9 @@
     <!-- 遊戲 6: 平衡球迷宮 (Tilt Maze) -->
     <div class="view-container" id="view-maze">
         <div class="maze-header">
-            <span>關卡: <span id="maze-level" style="color:#00e676;">1</span></span>
-            <span>時間: <span id="maze-time" style="color:#f1c40f;">0</span>s</span>
+            <span>關卡: <span id="maze-level" style="color:#00e676;">1/10</span></span>
+            <span id="maze-stars-status" style="color:#f1c40f; font-weight:900;">⭐0/1</span>
+            <span>時間: <span id="maze-time" style="color:#3498db;">0</span>s</span>
         </div>
         <canvas id="maze-canvas" width="220" height="220"></canvas>
         <div class="maze-tip">手腕傾斜控制滾球進 🏁 (或觸碰拖曳)</div>
@@ -1565,32 +1566,124 @@
         }
     }
 
-    /* ================= 遊戲 6: 平衡球迷宮 (修正不可通關之死胡同Bug，通道保證寬敞通暢) ================= */
+        /* ================= 遊戲 6: 平衡球迷宮 (10組關卡 + ⭐星星 + 🕳️黑洞 + ⏩彈簧) ================= */
     const mazeCanvas = document.getElementById('maze-canvas');
     const mctx = mazeCanvas.getContext('2d');
     let mazeBall = { x: 30, y: 30, vx: 0, vy: 0, r: 8 };
     let mazeGoal = { x: 190, y: 190, r: 14 };
     let mazeWalls = [];
+    let mazeStars = [];
+    let mazeHoles = [];
+    let mazeBoosts = [];
     let mazeLevel = 1;
     let mazeSeconds = 0;
     let mazeTimer = null;
     let mazeAnimFrame = null;
+    let mazeFeedbackText = '';
+    let mazeFeedbackTimer = null;
+    let mazeStartPos = { x: 28, y: 28 };
 
-    // 重新設計 3 個保證 100% 可通關、通道寬敞 (>= 60px) 的手錶迷宮
+
+    // 10 組保證 100% 可通關、通道寬敞 (>= 50px) 的手錶體感迷宮
+    // 支援趣味元素：⭐ 金色星星、🕳️ 黑洞陷阱、⏩ 加速彈簧
     const MAZE_CONFIGS = [
-        [ // Level 1: S 型平滑通道 (起點在左上 (25,25)，向右繞過牆1，向左繞過牆2，抵達右下 (195,195))
-            { x: 0, y: 75, w: 155, h: 10 },   // 右側留 65px 開口 (155..220)
-            { x: 65, y: 145, w: 155, h: 10 }  // 左側留 65px 開口 (0..65)
-        ],
-        [ // Level 2: N 型縱向風道 (起點在左上，向下繞過左豎牆，向上繞過右豎牆，向右下進終點)
-            { x: 75, y: 0, w: 10, h: 155 },   // 底部留 65px 開口 (155..220)
-            { x: 145, y: 65, w: 10, h: 155 }  // 頂部留 65px 開口 (0..65)
-        ],
-        [ // Level 3: 環形雙通道 (左右皆可穿透，絕不封死)
-            { x: 60, y: 65, w: 100, h: 10 },  // 浮島橫樑，左右各有 60px 通道
-            { x: 60, y: 145, w: 100, h: 10 }, // 浮島底樑，左右各有 60px 通道
-            { x: 105, y: 65, w: 10, h: 90 }   // 中央隔斷
-        ]
+        { // Level 1: "S 型水道" (新手入門)
+            walls: [
+                { x: 0, y: 75, w: 155, h: 10 },
+                { x: 65, y: 145, w: 155, h: 10 }
+            ],
+            stars: [{ x: 190, y: 110 }],
+            holes: [],
+            boosts: []
+        },
+        { // Level 2: "N 型風道" (縱向轉向)
+            walls: [
+                { x: 75, y: 0, w: 10, h: 155 },
+                { x: 145, y: 65, w: 10, h: 155 }
+            ],
+            stars: [{ x: 110, y: 35 }],
+            holes: [],
+            boosts: []
+        },
+        { // Level 3: "環形雙廊" (雙向分流)
+            walls: [
+                { x: 60, y: 65, w: 100, h: 10 },
+                { x: 60, y: 145, w: 100, h: 10 },
+                { x: 105, y: 65, w: 10, h: 90 }
+            ],
+            stars: [{ x: 30, y: 105 }, { x: 190, y: 105 }],
+            holes: [],
+            boosts: []
+        },
+        { // Level 4: "十字星陣" (交叉走道)
+            walls: [
+                { x: 70, y: 0, w: 10, h: 80 },
+                { x: 140, y: 60, w: 10, h: 100 },
+                { x: 0, y: 140, w: 90, h: 10 }
+            ],
+            stars: [{ x: 105, y: 105 }, { x: 35, y: 185 }],
+            holes: [],
+            boosts: []
+        },
+        { // Level 5: "黑洞初現" (引入 🕳️ 黑洞陷阱)
+            walls: [
+                { x: 0, y: 75, w: 150, h: 10 },
+                { x: 70, y: 145, w: 150, h: 10 }
+            ],
+            stars: [{ x: 185, y: 110 }],
+            holes: [{ x: 30, y: 110, r: 12 }], // 設在左轉角盲區，考驗微操
+            boosts: []
+        },
+        { // Level 6: "彈簧衝刺" (引入 ⏩ 加速彈簧)
+            walls: [
+                { x: 70, y: 0, w: 10, h: 150 },
+                { x: 145, y: 70, w: 10, h: 150 }
+            ],
+            stars: [{ x: 35, y: 180 }, { x: 185, y: 35 }],
+            holes: [{ x: 110, y: 185, r: 12 }],
+            boosts: [{ x: 110, y: 60, r: 12, vx: 0, vy: -5 }] // 向上噴射！
+        },
+        { // Level 7: "雙子黑洞" (雙陷阱夾擊)
+            walls: [
+                { x: 65, y: 0, w: 10, h: 130 },
+                { x: 65, y: 130, w: 90, h: 10 },
+                { x: 155, y: 90, w: 10, h: 130 }
+            ],
+            stars: [{ x: 110, y: 60 }, { x: 35, y: 175 }],
+            holes: [{ x: 185, y: 45, r: 12 }, { x: 110, y: 175, r: 12 }],
+            boosts: []
+        },
+        { // Level 8: "四象星鎖" (吃滿 3 顆 ⭐ 才能解鎖 🏁)
+            walls: [
+                { x: 105, y: 0, w: 10, h: 80 },
+                { x: 105, y: 140, w: 10, h: 80 },
+                { x: 0, y: 105, w: 80, h: 10 },
+                { x: 140, y: 105, w: 80, h: 10 }
+            ],
+            stars: [{ x: 35, y: 35 }, { x: 185, y: 35 }, { x: 35, y: 185 }],
+            holes: [{ x: 105, y: 105, r: 14 }], // 中央有黑洞漩渦！
+            boosts: []
+        },
+        { // Level 9: "重力激流" (彈簧與黑洞交織)
+            walls: [
+                { x: 0, y: 70, w: 155, h: 10 },
+                { x: 65, y: 145, w: 155, h: 10 }
+            ],
+            stars: [{ x: 110, y: 110 }, { x: 35, y: 185 }],
+            holes: [{ x: 110, y: 35, r: 12 }, { x: 185, y: 185, r: 12 }],
+            boosts: [{ x: 185, y: 80, r: 12, vx: -5, vy: 0 }] // 向左彈射
+        },
+        { // Level 10: "迷宮大師 (Master Challenge)" (終極大考驗)
+            walls: [
+                { x: 55, y: 45, w: 110, h: 10 },
+                { x: 55, y: 45, w: 10, h: 120 },
+                { x: 165, y: 45, w: 10, h: 120 },
+                { x: 105, y: 100, w: 60, h: 10 }
+            ],
+            stars: [{ x: 110, y: 25 }, { x: 110, y: 75 }, { x: 30, y: 185 }],
+            holes: [{ x: 110, y: 135, r: 12 }, { x: 185, y: 135, r: 12 }],
+            boosts: [{ x: 30, y: 90, r: 12, vx: 0, vy: 5 }] // 向下彈射
+        }
     ];
 
     function startMaze() {
@@ -1598,27 +1691,54 @@
         mazeLevel = 1;
         initMazeGame();
     }
+
     function initMazeGame() {
         document.getElementById('maze-touch-mask').classList.add('hidden');
-        document.getElementById('maze-level').textContent = mazeLevel;
+        document.getElementById('maze-level').textContent = `${mazeLevel}/10`;
         mazeSeconds = 0;
         document.getElementById('maze-time').textContent = '0';
+        mazeFeedbackText = '';
 
         const rect = mazeCanvas.getBoundingClientRect();
         mazeCanvas.width = rect.width;
         mazeCanvas.height = rect.height;
 
         const scale = rect.width / 220;
-        mazeBall = { x: 28 * scale, y: 28 * scale, vx: 0, vy: 0, r: 8 * scale };
+        mazeStartPos = { x: 28 * scale, y: 28 * scale };
+        mazeBall = { x: mazeStartPos.x, y: mazeStartPos.y, vx: 0, vy: 0, r: 8 * scale };
         mazeGoal = { x: 192 * scale, y: 192 * scale, r: 14 * scale };
 
         const curConf = MAZE_CONFIGS[(mazeLevel - 1) % MAZE_CONFIGS.length];
-        mazeWalls = curConf.map(w => ({
+        mazeWalls = curConf.walls.map(w => ({
             x: w.x * scale,
             y: w.y * scale,
             w: w.w * scale,
             h: w.h * scale
         }));
+
+        mazeStars = curConf.stars.map(s => ({
+            x: s.x * scale,
+            y: s.y * scale,
+            r: 10 * scale,
+            collected: false
+        }));
+
+        mazeHoles = (curConf.holes || []).map(h => ({
+            x: h.x * scale,
+            y: h.y * scale,
+            r: (h.r || 12) * scale
+        }));
+
+        mazeBoosts = (curConf.boosts || []).map(b => ({
+            x: b.x * scale,
+            y: b.y * scale,
+            r: (b.r || 12) * scale,
+            vx: b.vx * scale,
+            vy: b.vy * scale,
+            cooldown: 0
+        }));
+
+        updateMazeStarsHeader();
 
         stopMaze();
         mazeTimer = setInterval(() => {
@@ -1628,16 +1748,33 @@
 
         loopMaze();
     }
+
+    function updateMazeStarsHeader() {
+        const total = mazeStars.length;
+        const got = mazeStars.filter(s => s.collected).length;
+        const statusEl = document.getElementById('maze-stars-status');
+        if (statusEl) {
+            statusEl.textContent = total > 0 ? `⭐${got}/${total}` : '⭐無';
+        }
+    }
+
+    function showMazeFeedback(msg, color = '#f1c40f') {
+        mazeFeedbackText = { msg, color, alpha: 1.0, y: mazeBall.y - 12 };
+        if (mazeFeedbackTimer) clearTimeout(mazeFeedbackTimer);
+        mazeFeedbackTimer = setTimeout(() => { mazeFeedbackText = ''; }, 1200);
+    }
+
     function stopMaze() {
         if (mazeTimer) { clearInterval(mazeTimer); mazeTimer = null; }
         if (mazeAnimFrame) { cancelAnimationFrame(mazeAnimFrame); mazeAnimFrame = null; }
     }
+
     function loopMaze() {
         if (currentView !== 'maze') return;
 
-        // 重力感應平滑加速度
-        let ax = (tiltX / 10) * 0.5;
-        let ay = ((tiltY - 25) / 10) * 0.5;
+        // 傾斜加速度計算
+        let ax = (tiltX / 10) * 0.48;
+        let ay = ((tiltY - 25) / 10) * 0.48;
 
         mazeBall.vx = (mazeBall.vx + ax) * 0.92;
         mazeBall.vy = (mazeBall.vy + ay) * 0.92;
@@ -1645,13 +1782,13 @@
         let nextX = mazeBall.x + mazeBall.vx;
         let nextY = mazeBall.y + mazeBall.vy;
 
-        // 畫布邊界彈回
+        // 邊界碰撞
         if (nextX - mazeBall.r < 0) { nextX = mazeBall.r; mazeBall.vx = -mazeBall.vx * 0.3; }
         if (nextX + mazeBall.r > mazeCanvas.width) { nextX = mazeCanvas.width - mazeBall.r; mazeBall.vx = -mazeBall.vx * 0.3; }
         if (nextY - mazeBall.r < 0) { nextY = mazeBall.r; mazeBall.vy = -mazeBall.vy * 0.3; }
         if (nextY + mazeBall.r > mazeCanvas.height) { nextY = mazeCanvas.height - mazeBall.r; mazeBall.vy = -mazeBall.vy * 0.3; }
 
-        // 牆壁碰撞偵測 (AABB 彈性阻斷)
+        // 牆壁碰撞 (AABB 彈性阻斷)
         for (let w of mazeWalls) {
             let cx = Math.max(w.x, Math.min(nextX, w.x + w.w));
             let cy = Math.max(w.y, Math.min(nextY, w.y + w.h));
@@ -1670,21 +1807,94 @@
         mazeBall.x = nextX;
         mazeBall.y = nextY;
 
-        // 渲染迷宮畫面
+        // 趣味元素 1：吃星星 ⭐
+        for (let star of mazeStars) {
+            if (!star.collected) {
+                if (Math.hypot(mazeBall.x - star.x, mazeBall.y - star.y) < mazeBall.r + star.r) {
+                    star.collected = true;
+                    updateMazeStarsHeader();
+                    showMazeFeedback('🌟 取得星星！', '#f1c40f');
+                }
+            }
+        }
+
+        // 趣味元素 2：黑洞陷阱 🕳️
+        for (let hole of mazeHoles) {
+            if (Math.hypot(mazeBall.x - hole.x, mazeBall.y - hole.y) < hole.r * 0.75) {
+                // 被黑洞吸入，彈回起點
+                mazeBall.x = mazeStartPos.x;
+                mazeBall.y = mazeStartPos.y;
+                mazeBall.vx = 0;
+                mazeBall.vy = 0;
+                showMazeFeedback('🕳️ 掉入黑洞！回起點', '#ff3838');
+                break;
+            }
+        }
+
+        // 趣味元素 3：加速彈簧 ⏩
+        for (let b of mazeBoosts) {
+            if (b.cooldown > 0) b.cooldown--;
+            if (b.cooldown === 0 && Math.hypot(mazeBall.x - b.x, mazeBall.y - b.y) < mazeBall.r + b.r) {
+                mazeBall.vx += b.vx * 2.2;
+                mazeBall.vy += b.vy * 2.2;
+                b.cooldown = 40;
+                showMazeFeedback('⚡ 彈簧加速！', '#00e5ff');
+            }
+        }
+
+        // 清空背景
         mctx.fillStyle = '#16181f';
         mctx.fillRect(0, 0, mazeCanvas.width, mazeCanvas.height);
 
-        // 終點 (旗標與光暈)
-        mctx.fillStyle = 'rgba(0, 230, 118, 0.22)';
+        // 繪製黑洞 🕳️
+        for (let hole of mazeHoles) {
+            mctx.fillStyle = '#0a0a0f';
+            mctx.beginPath();
+            mctx.arc(hole.x, hole.y, hole.r, 0, Math.PI * 2);
+            mctx.fill();
+            mctx.strokeStyle = '#4a148c';
+            mctx.lineWidth = 2;
+            mctx.stroke();
+            mctx.font = `${Math.floor(hole.r * 1.5)}px sans-serif`;
+            mctx.textAlign = 'center';
+            mctx.textBaseline = 'middle';
+            mctx.fillText('🕳️', hole.x, hole.y);
+        }
+
+        // 繪製加速彈簧 ⏩
+        for (let b of mazeBoosts) {
+            mctx.fillStyle = 'rgba(0, 229, 255, 0.15)';
+            mctx.beginPath();
+            mctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+            mctx.fill();
+            mctx.font = `${Math.floor(b.r * 1.3)}px sans-serif`;
+            mctx.textAlign = 'center';
+            mctx.textBaseline = 'middle';
+            mctx.fillText('⏩', b.x, b.y);
+        }
+
+        // 繪製星星 ⭐
+        for (let star of mazeStars) {
+            if (!star.collected) {
+                mctx.font = `${Math.floor(star.r * 1.6)}px sans-serif`;
+                mctx.textAlign = 'center';
+                mctx.textBaseline = 'middle';
+                mctx.fillText('⭐', star.x, star.y);
+            }
+        }
+
+        // 終點 (旗標 🏁 或 上鎖 🔒)
+        const allStarsCollected = mazeStars.every(s => s.collected);
+        mctx.fillStyle = allStarsCollected ? 'rgba(0, 230, 118, 0.25)' : 'rgba(255, 255, 255, 0.08)';
         mctx.beginPath();
         mctx.arc(mazeGoal.x, mazeGoal.y, mazeGoal.r, 0, Math.PI * 2);
         mctx.fill();
         mctx.font = `${Math.floor(mazeGoal.r * 1.5)}px sans-serif`;
         mctx.textAlign = 'center';
         mctx.textBaseline = 'middle';
-        mctx.fillText('🏁', mazeGoal.x, mazeGoal.y);
+        mctx.fillText(allStarsCollected ? '🏁' : '🔒', mazeGoal.x, mazeGoal.y);
 
-        // 迷宮牆壁
+        // 繪製牆壁
         mctx.fillStyle = '#00897b';
         mctx.shadowColor = '#26a69a';
         mctx.shadowBlur = 4;
@@ -1693,7 +1903,7 @@
         }
         mctx.shadowBlur = 0;
 
-        // 滾球
+        // 繪製滾球 🟢
         mctx.fillStyle = '#00e676';
         mctx.shadowColor = '#00e676';
         mctx.shadowBlur = 8;
@@ -1702,20 +1912,35 @@
         mctx.fill();
         mctx.shadowBlur = 0;
 
-        // 抵達判定
+        // 浮動文字提示
+        if (mazeFeedbackText) {
+            mctx.font = 'bold 12px sans-serif';
+            mctx.fillStyle = mazeFeedbackText.color;
+            mctx.textAlign = 'center';
+            mctx.fillText(mazeFeedbackText.msg, mazeCanvas.width / 2, 20);
+        }
+
+        // 檢查是否抵達終點
         if (Math.hypot(mazeBall.x - mazeGoal.x, mazeBall.y - mazeGoal.y) < mazeGoal.r) {
-            stopMaze();
-            document.getElementById('maze-mask-msg').textContent = `第 ${mazeLevel} 關通過！耗時 ${mazeSeconds} 秒`;
-            document.getElementById('maze-touch-mask').classList.remove('hidden');
-            return;
+            if (allStarsCollected) {
+                stopMaze();
+                document.getElementById('maze-mask-msg').textContent = `第 ${mazeLevel} 關通過！耗時 ${mazeSeconds} 秒`;
+                document.getElementById('maze-touch-mask').classList.remove('hidden');
+                return;
+            } else {
+                showMazeFeedback('🔒 先吃完所有 ⭐ 才能通關！', '#f39c12');
+            }
         }
 
         mazeAnimFrame = requestAnimationFrame(loopMaze);
     }
+
     function nextMazeLevel() {
         mazeLevel++;
+        if (mazeLevel > 10) mazeLevel = 1;
         initMazeGame();
     }
+
     function handleMazeTouch(tx, ty) {
         if (currentView !== 'maze') return;
         const rect = mazeCanvas.getBoundingClientRect();
