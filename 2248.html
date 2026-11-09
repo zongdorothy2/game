@@ -33,33 +33,47 @@
         padding: 2px 4px;
     }
 
-    /* 頂部通用導航列 */
-    .top-nav {
-        display: flex;
-        justify-content: space-between;
+    /* 浮動大按鈕 (選單 / 返回) */
+    .floating-home-btn {
+        position: absolute;
+        top: 4px;
+        right: 6px;
+        background: #3e445b;
+        border: 2px solid #6b7294;
+        color: #ffffff;
+        border-radius: 16px;
+        font-size: 12px;
+        font-weight: 900;
+        padding: 4px 10px;
+        z-index: 60;
+        cursor: pointer;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.6);
+        display: none;
         align-items: center;
+        justify-content: center;
+        gap: 3px;
+    }
+    .floating-home-btn:active {
+        transform: scale(0.92);
+        background: #565d7c;
+    }
+
+    /* 頂部極簡標題列 (留出右上角浮動按鈕空間) */
+    .top-header-bar {
         width: 100%;
         max-width: 210px;
         height: 22px;
-        padding: 0 2px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 0 4px;
         flex-shrink: 0;
     }
-    .nav-title {
+    .top-header-title {
         font-size: 13px;
         font-weight: 900;
         color: #f1c40f;
     }
-    .btn-home {
-        background: #3a3d4d;
-        border: 1px solid #5a5e75;
-        color: #fff;
-        border-radius: 4px;
-        font-size: 11px;
-        padding: 1px 6px;
-        font-weight: bold;
-        cursor: pointer;
-    }
-    .btn-home:active { background: #5a5e75; }
 
     /* 遊戲主畫面容器 */
     .view-container {
@@ -79,6 +93,7 @@
     #view-menu {
         justify-content: center;
         padding: 4px;
+        height: 100%;
     }
     .menu-grid {
         display: grid;
@@ -141,6 +156,8 @@
         font-weight: 900;
         color: #f1c40f;
         margin-bottom: 6px;
+        text-align: center;
+        padding: 0 10px;
     }
     .touch-mask-tip {
         font-size: 14px;
@@ -216,15 +233,15 @@
         justify-content: space-between;
         align-items: center;
         width: 100%;
-        max-width: 200px;
+        max-width: 195px;
         font-size: 11px;
         font-weight: bold;
         flex-shrink: 0;
-        margin-bottom: 2px;
+        margin-bottom: 1px;
     }
     #preview-box {
-        height: 14px;
-        line-height: 14px;
+        height: 15px;
+        line-height: 15px;
         font-size: 11px;
         font-weight: 900;
         color: #2ecc71;
@@ -362,11 +379,15 @@
 <body>
 
 <div id="app">
-    <!-- 頂部通用導航條 -->
-    <div class="top-nav">
-        <span class="nav-title" id="nav-title">🎮 手錶遊戲廳</span>
-        <button class="btn-home" id="btn-back-home" style="display:none;" onclick="showView('menu')">選單</button>
+    <!-- 頂部標題 -->
+    <div class="top-header-bar">
+        <span class="top-header-title" id="nav-title">🎮 手錶遊戲廳</span>
     </div>
+
+    <!-- 浮動大按鈕：易按、防按空 (在遊戲中顯示) -->
+    <button class="floating-home-btn" id="btn-back-home" onclick="showView('menu')">
+        ◀ 選單
+    </button>
 
     <!-- 首頁：2x2 方塊大按鈕選單 -->
     <div class="view-container active" id="view-menu">
@@ -424,7 +445,7 @@
             <button class="btn-tool" id="btn-hammer" onclick="toggleHammer()">🔨鐵錘</button>
         </div>
 
-        <!-- 無路可走時全螢幕覆蓋 -->
+        <!-- 真正無解結束時覆蓋 -->
         <div class="touch-mask hidden" id="g2-touch-mask" onclick="init2248Board()">
             <div class="touch-mask-title">遊戲結束</div>
             <div class="touch-mask-title" id="g2-mask-score" style="font-size:13px; color:#fff; margin-bottom:8px;">得分: 0</div>
@@ -484,7 +505,7 @@
             stopSnake();
             stopMole();
         } else {
-            btnBack.style.display = 'block';
+            btnBack.style.display = 'flex';
             if (viewId === 'ttt') navTitle.textContent = '❌⭕ 圈圈叉叉';
             if (viewId === '2248') navTitle.textContent = '🔢 2248 3x3';
             if (viewId === 'snake') navTitle.textContent = '🐍 貪食蛇';
@@ -566,56 +587,55 @@
         renderTTT();
     }
     function botTTTMove() {
-    if (!tttActive) return;
-    let emptyIndices = tttBoard.map((v, i) => v === '' ? i : null).filter(v => v !== null);
-    if (emptyIndices.length === 0) return;
+        if (!tttActive) return;
+        let emptyIndices = tttBoard.map((v, i) => v === '' ? i : null).filter(v => v !== null);
+        if (emptyIndices.length === 0) return;
 
-    let bestMove = null;
+        let bestMove = null;
 
-    // 規則 1：電腦如果有勝著（即將連成三子），90% 依然會走去獲勝
-    for (let idx of emptyIndices) {
-        let b = [...tttBoard]; b[idx] = 'O';
-        if (checkTTTWinner(b, 'O')) {
-            if (Math.random() < 0.9) { bestMove = idx; break; }
-        }
-    }
-
-    // 規則 2：防守玩家（堵玩家的連線）
-    // 加入 40% 的「放水/疏忽」機率：電腦有 40% 機率不堵人，讓玩家成功連線獲勝！
-    if (bestMove === null) {
+        // 規則 1：電腦如果有勝著，90% 依然會走去獲勝
         for (let idx of emptyIndices) {
-            let b = [...tttBoard]; b[idx] = 'X';
-            if (checkTTTWinner(b, 'X')) {
-                // 60% 智商正常去防守，30% 粗心漏看讓玩家贏
-                if (Math.random() < 0.7) {
-                    bestMove = idx;
-                }
-                break;
+            let b = [...tttBoard]; b[idx] = 'O';
+            if (checkTTTWinner(b, 'O')) {
+                if (Math.random() < 0.9) { bestMove = idx; break; }
             }
         }
-    }
 
-    // 規則 3：一般走子，50% 佔中心，其他隨機落子
-    if (bestMove === null) {
-        if (emptyIndices.includes(4) && Math.random() < 0.5) {
-            bestMove = 4;
-        } else {
-            bestMove = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+        // 規則 2：防守玩家
+        // 70% 正常防守，30% 疏忽漏看讓玩家贏
+        if (bestMove === null) {
+            for (let idx of emptyIndices) {
+                let b = [...tttBoard]; b[idx] = 'X';
+                if (checkTTTWinner(b, 'X')) {
+                    if (Math.random() < 0.7) {
+                        bestMove = idx;
+                    }
+                    break;
+                }
+            }
         }
-    }
 
-    makeTTTMove(bestMove, 'O');
-    if (checkTTTWinner(tttBoard, 'O')) {
-        finishTTT('電腦 O 獲勝！🤖');
-        return;
+        // 規則 3：一般走子，50% 佔中心，其他隨機落子
+        if (bestMove === null) {
+            if (emptyIndices.includes(4) && Math.random() < 0.5) {
+                bestMove = 4;
+            } else {
+                bestMove = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+            }
+        }
+
+        makeTTTMove(bestMove, 'O');
+        if (checkTTTWinner(tttBoard, 'O')) {
+            finishTTT('電腦 O 獲勝！🤖');
+            return;
+        }
+        if (tttBoard.every(v => v !== '')) {
+            finishTTT('平手握手！🤝');
+            return;
+        }
+        tttTurn = 'X';
+        document.getElementById('ttt-status').textContent = '輪到 X 下子';
     }
-    if (tttBoard.every(v => v !== '')) {
-        finishTTT('平手握手！🤝');
-        return;
-    }
-    tttTurn = 'X';
-    document.getElementById('ttt-status').textContent = '輪到 X 下子';
-}
     function checkTTTWinner(b, p) {
         const wins = [
             [0,1,2], [3,4,5], [6,7,8],
@@ -625,7 +645,7 @@
         return wins.some(([x, y, z]) => b[x] === p && b[y] === p && b[z] === p);
     }
 
-    /* ================= 遊戲 2: 2248 (3x3 版本) ================= */
+    /* ================= 遊戲 2: 2248 (3x3 平滑版) ================= */
     const G2_ROWS = 3, G2_COLS = 3;
     const boardElement = document.getElementById('game-board');
     const boardWrap = document.getElementById('board-wrap');
@@ -643,9 +663,9 @@
     let isDragging = false;
     let selectedCells = [];
     let isHammerMode = false;
-    let minAllowedValue = 2;
     let lastState = null;
     let cellRects = [];
+    let hasFreeRescue = true; // 每局擁有一次免費死局「消除最小數字」機會
 
     bestScoreElement.textContent = g2_bestScore;
     coinsElement.textContent = g2_coins;
@@ -672,29 +692,26 @@
     function init2248Board() {
         document.getElementById('g2-touch-mask').classList.add('hidden');
         g2_score = 0;
-        minAllowedValue = 2;
+        hasFreeRescue = true;
         lastState = null;
         scoreElement.textContent = g2_score;
+        previewBox.textContent = '';
         g2_board = [];
         for (let r = 0; r < G2_ROWS; r++) {
             let row = [];
-            for (let c = 0; c < G2_COLS; c++) row.push(generateRandomBlock());
+            for (let c = 0; c < G2_COLS; c++) row.push(generateSmoothBlock());
             g2_board.push(row);
         }
         render2248Board();
         updateBoardRects();
         updateToolsState();
     }
-    function generateRandomBlock() {
-        const base = minAllowedValue;
-        const weights = [40, 28, 18, 10, 4];
-        let rand = Math.random() * 100, sum = 0;
-        for (let i = 0; i < weights.length; i++) {
-            sum += weights[i];
-            if (rand < sum) return base * Math.pow(2, i);
-        }
-        return base;
+
+    // 數值平滑化：主要鎖定在 2 與 4（75% 生成 2，25% 生成 4），完全避免大數卡死
+    function generateSmoothBlock() {
+        return Math.random() < 0.75 ? 2 : 4;
     }
+
     function updateBoardRects() {
         if (currentView !== '2248') return;
         const wrapRect = boardWrap.getBoundingClientRect();
@@ -837,13 +854,14 @@
             for (let r = 0; r < G2_ROWS; r++) {
                 if (g2_board[r][c] !== 0) col.push(g2_board[r][c]);
             }
-            while (col.length < G2_ROWS) col.unshift(generateRandomBlock());
+            while (col.length < G2_ROWS) col.unshift(generateSmoothBlock());
             for (let r = 0; r < G2_ROWS; r++) g2_board[r][c] = col[r];
         }
         render2248Board();
         updateBoardRects();
     }
     function check2248GameOver() {
+        // 檢查是否有相鄰相同或相鄰兩倍可連
         for (let r = 0; r < G2_ROWS; r++) {
             for (let c = 0; c < G2_COLS; c++) {
                 let v = g2_board[r][c];
@@ -855,10 +873,46 @@
                 }
             }
         }
+
+        // 若無路可走，優先觸發一次免金幣「自動消除最小數字」機會
+        if (hasFreeRescue) {
+            hasFreeRescue = false;
+            triggerAutoClearMinBlock();
+            return;
+        }
+
         if (g2_coins >= 100) return;
         document.getElementById('g2-mask-score').textContent = `得分: ${g2_score}`;
         document.getElementById('g2-touch-mask').classList.remove('hidden');
     }
+
+    // 自動消除最小方塊救援機制
+    function triggerAutoClearMinBlock() {
+        let minVal = Infinity;
+        for (let r = 0; r < G2_ROWS; r++) {
+            for (let c = 0; c < G2_COLS; c++) {
+                if (g2_board[r][c] > 0 && g2_board[r][c] < minVal) {
+                    minVal = g2_board[r][c];
+                }
+            }
+        }
+        if (minVal !== Infinity) {
+            for (let r = 0; r < G2_ROWS; r++) {
+                for (let c = 0; c < G2_COLS; c++) {
+                    if (g2_board[r][c] === minVal) {
+                        g2_board[r][c] = 0;
+                    }
+                }
+            }
+            previewBox.textContent = `✨ 神救援！已免費消除 ${minVal}！`;
+            setTimeout(() => {
+                applyGravity();
+                // 再次檢查
+                check2248GameOver();
+            }, 500);
+        }
+    }
+
     function updateToolsState() {
         document.getElementById('btn-undo').disabled = !lastState || g2_coins < 50;
         document.getElementById('btn-shuffle').disabled = g2_coins < 150;
@@ -880,7 +934,7 @@
         g2_coins -= 150;
         coinsElement.textContent = g2_coins;
         for (let r = 0; r < G2_ROWS; r++) {
-            for (let c = 0; c < G2_COLS; c++) g2_board[r][c] = generateRandomBlock();
+            for (let c = 0; c < G2_COLS; c++) g2_board[r][c] = generateSmoothBlock();
         }
         render2248Board();
         updateBoardRects();
@@ -903,7 +957,7 @@
     /* ================= 遊戲 3: 貪食蛇 (Swipe 轉向) ================= */
     const snakeCanvas = document.getElementById('snake-canvas');
     const sctx = snakeCanvas.getContext('2d');
-    const SNAKE_GRID = 12; // 180 / 12 = 15 格寬高
+    const SNAKE_GRID = 12;
     const SNAKE_COLS = 15;
     let snake = [];
     let food = { x: 0, y: 0 };
