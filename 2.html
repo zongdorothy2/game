@@ -35,26 +35,29 @@
 
     /* 浮動返回大按鈕 */
     .floating-home-btn {
-        position: absolute;
-        top: 4px;
-        right: 6px;
-        background: #3e445b;
-        border: 2px solid #6b7294;
+        position: fixed;
+        top: 6px;
+        right: 8px;
+        background: #414863;
+        border: 2px solid #7881aa;
         color: #ffffff;
-        border-radius: 16px;
-        font-size: 13px;
+        border-radius: 20px;
+        font-size: 20px;
         font-weight: 900;
-        padding: 3px 9px;
-        z-index: 60;
+        padding: 6px 14px;
+        min-height: 64px;
+        min-width: 68px;
+        z-index: 200;
         cursor: pointer;
-        box-shadow: 0 3px 8px rgba(0,0,0,0.6);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.7);
         display: none;
         align-items: center;
         justify-content: center;
+        touch-action: manipulation;
     }
     .floating-home-btn:active {
         transform: scale(0.92);
-        background: #565d7c;
+        background: #5b658d;
     }
 
     /* 頂部標題列 */
@@ -133,7 +136,6 @@
     .bg-ttt { background: linear-gradient(145deg, #2980b9, #3498db); }
     .bg-2248 { background: linear-gradient(145deg, #8e44ad, #9b59b6); }
     .bg-memory { background: linear-gradient(145deg, #e91e63, #ff4081); }
-    .bg-snake { background: linear-gradient(145deg, #229954, #27ae60); }
     .bg-mole { background: linear-gradient(145deg, #d35400, #e67e22); }
     .bg-maze { background: linear-gradient(145deg, #00897b, #26a69a); }
     .bg-flappy { background: linear-gradient(145deg, #f39c12, #f1c40f); color: #222 !important; }
@@ -142,20 +144,23 @@
 
     /* === 全螢幕覆蓋結算層 === */
     .touch-mask {
-        position: absolute;
+        position: fixed;
         inset: 0;
-        background: rgba(18, 18, 20, 0.92);
+        width: 100vw;
+        height: 100vh;
+        background: rgba(18, 18, 20, 0.94);
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        z-index: 50;
+        z-index: 150;
         cursor: pointer;
-        border-radius: 8px;
+        border-radius: 0;
+        touch-action: manipulation;
     }
     .touch-mask.hidden { display: none !important; }
     .touch-mask-title {
-        font-size: 17px;
+        font-size: 18px;
         font-weight: 900;
         color: #f1c40f;
         margin-bottom: 6px;
@@ -166,8 +171,8 @@
         font-size: 14px;
         font-weight: bold;
         color: #2ecc71;
-        background: rgba(46, 204, 113, 0.15);
-        padding: 6px 14px;
+        background: rgba(46, 204, 113, 0.18);
+        padding: 7px 16px;
         border-radius: 20px;
         border: 1px solid #2ecc71;
         animation: pulse 1.5s infinite;
@@ -333,8 +338,8 @@
     .btn-tool:active { background: #3e4152; }
     .btn-tool.active { background: #c0392b; }
 
-    /* === 遊戲 3: 貪食蛇 === */
-    .snake-header {
+    /* === 遊戲 3: 彈珠消消樂 (Pinball) === */
+    .pinball-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -344,14 +349,14 @@
         margin-bottom: 2px;
         flex-shrink: 0;
     }
-    #snake-canvas {
-        background: #1a1a20;
-        border: 2px solid #333;
+    #pinball-canvas {
+        background: #151d24;
+        border: 2px solid #1abc9c;
         border-radius: 8px;
         width: 76vmin;
         height: 76vmin;
     }
-    .snake-tip {
+    .pinball-tip {
         font-size: 11px;
         color: #888;
         text-align: center;
@@ -481,6 +486,32 @@
         margin-top: 4px;
         flex-shrink: 0;
     }
+
+    /* === 遊戲 7: 飛跳小鳥 === */
+    .flappy-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 88%;
+        font-size: 13px;
+        font-weight: bold;
+        margin-bottom: 2px;
+        flex-shrink: 0;
+    }
+    #flappy-canvas {
+        background: #1a1e29;
+        border: 2px solid #f39c12;
+        border-radius: 10px;
+        width: 76vmin;
+        height: 76vmin;
+    }
+    .flappy-tip {
+        font-size: 11px;
+        color: #f1c40f;
+        text-align: center;
+        margin-top: 4px;
+        flex-shrink: 0;
+    }
 </style>
 </head>
 <body>
@@ -494,7 +525,7 @@
         ◀ 選單
     </button>
 
-    <!-- 首頁：六宮格 (2x3 完美自適應撐開) -->
+    <!-- 首頁：六宮格 (已將貪食蛇替換為彈珠消消樂) -->
     <div class="view-container active" id="view-menu">
         <div class="menu-grid-6">
             <button class="menu-btn bg-ttt" onclick="startTTT()">
@@ -510,9 +541,9 @@
                 <span class="btn-icon">🃏</span>
                 <span class="btn-text">翻牌對對碰</span>
             </button>
-            <button class="menu-btn bg-snake" onclick="startSnake()">
-                <span class="btn-icon">🐍</span>
-                <span class="btn-text">經典貪食蛇</span>
+            <button class="menu-btn bg-pinball" onclick="startPinball()">
+                <span class="btn-icon">🏓</span>
+                <span class="btn-text">彈珠消消樂</span>
             </button>
 
             <button class="menu-btn bg-mole" onclick="startMole()">
@@ -569,18 +600,19 @@
         </div>
     </div>
 
-    <!-- 遊戲 3: 貪食蛇 -->
-    <div class="view-container" id="view-snake">
-        <div class="snake-header">
-            <span>得分: <span id="snake-score" style="color:#2ecc71;">0</span></span>
-            <span style="color:#888;">最高: <span id="snake-best">0</span></span>
+    <!-- 遊戲 3: 彈珠消消樂 (Mini Pinball) -->
+    <div class="view-container" id="view-pinball">
+        <div class="pinball-header">
+            <span>得分: <span id="pinball-score" style="color:#1abc9c; font-size:15px;">0</span></span>
+            <span>磚塊: <span id="pinball-bricks" style="color:#f1c40f; font-size:15px;">0</span></span>
         </div>
-        <canvas id="snake-canvas" width="240" height="240"></canvas>
-        <div class="snake-tip">螢幕任一處滑動皆可即時轉向</div>
+        <canvas id="pinball-canvas" width="220" height="220"></canvas>
+        <div class="pinball-tip">手腕傾斜移動底板反彈彈珠 (或觸碰拖曳)</div>
 
-        <div class="touch-mask hidden" id="snake-touch-mask" onclick="resetSnake()">
-            <div class="touch-mask-title" id="snake-mask-score" style="font-size:13px; color:#fff; margin-bottom:8px;">得分: 0</div>
-            <div class="touch-mask-tip">👉 觸碰螢幕重新開始</div>
+        <div class="touch-mask hidden" id="pinball-touch-mask" onclick="initPinballGame()">
+            <div class="touch-mask-title" id="pinball-mask-title">🏓 彈珠消消樂</div>
+            <div class="touch-mask-title" id="pinball-mask-score" style="font-size:14px; color:#fff; margin-bottom:8px;">消除所有磚塊！</div>
+            <div class="touch-mask-tip">👉 觸碰螢幕再玩一次</div>
         </div>
     </div>
 
@@ -647,22 +679,6 @@
             <div class="touch-mask-tip">👉 觸碰螢幕開始</div>
         </div>
     </div>
-
-    <!-- 遊戲 8: 彈珠消消樂 (Mini Pinball / Breakout) -->
-    <div class="view-container" id="view-pinball">
-        <div class="pinball-header">
-            <span>得分: <span id="pinball-score" style="color:#1abc9c; font-size:15px;">0</span></span>
-            <span>磚塊: <span id="pinball-bricks" style="color:#f1c40f; font-size:15px;">12</span></span>
-        </div>
-        <canvas id="pinball-canvas" width="220" height="220"></canvas>
-        <div class="pinball-tip">手腕傾斜移動底板反彈彈珠 (或觸碰拖曳)</div>
-
-        <div class="touch-mask" id="pinball-touch-mask" onclick="initPinballGame()">
-            <div class="touch-mask-title" id="pinball-mask-title">🏓 彈珠消消樂</div>
-            <div class="touch-mask-title" id="pinball-mask-score" style="font-size:14px; color:#fff; margin-bottom:8px;">消除所有磚塊！</div>
-            <div class="touch-mask-tip">👉 觸碰螢幕開始</div>
-        </div>
-    </div>
 </div>
 
 <script>
@@ -677,7 +693,6 @@
         const btnBack = document.getElementById('btn-back-home');
         const navTitle = document.getElementById('nav-title');
 
-        stopSnake();
         stopMole();
         stopMemoryTimer();
         stopMaze();
@@ -692,11 +707,10 @@
             if (viewId === 'ttt') navTitle.textContent = '❌⭕ 圈圈叉叉';
             if (viewId === '2248') navTitle.textContent = '🔢 2248 3x3';
             if (viewId === 'memory') navTitle.textContent = '🃏 翻牌對對碰';
-            if (viewId === 'snake') navTitle.textContent = '🐍 經典貪食蛇';
+            if (viewId === 'pinball') navTitle.textContent = '🏓 彈珠消消樂';
             if (viewId === 'mole') navTitle.textContent = '🐹 瘋狂打地鼠';
             if (viewId === 'maze') navTitle.textContent = '🌀 體感迷宮';
             if (viewId === 'flappy') navTitle.textContent = '🐦 飛跳小鳥';
-            if (viewId === 'pinball') navTitle.textContent = '🏓 彈珠消消樂';
         }
     }
 
@@ -1173,102 +1187,190 @@
         check2248GameOver();
     }
 
-    /* ================= 遊戲 3: 經典貪食蛇 ================= */
-    const snakeCanvas = document.getElementById('snake-canvas');
-    const sctx = snakeCanvas.getContext('2d');
-    const SNAKE_COLS = 15;
-    let SNAKE_GRID = 16;
-    let snake = [];
-    let food = { x: 0, y: 0 };
-    let snakeDir = { x: 1, y: 0 };
-    let nextDir = { x: 1, y: 0 };
-    let snakeScore = 0;
-    let snakeBest = parseInt(localStorage.getItem('watch_snake_best') || '0', 10);
-    let snakeTimer = null;
+    /* ================= 遊戲 3: 彈珠消消樂 (Mini Pinball) ================= */
+    const pinballCanvas = document.getElementById('pinball-canvas');
+    const pctx = pinballCanvas.getContext('2d');
+    let pPaddle = { x: 80, y: 195, w: 56, h: 10, vx: 0 };
+    let pBall = { x: 110, y: 150, vx: 2, vy: -2.2, r: 6 };
+    let pBricks = [];
+    let pinballScore = 0;
+    let pinballActive = false;
+    let pinballAnimFrame = null;
 
-    document.getElementById('snake-best').textContent = snakeBest;
-
-    function startSnake() {
-        showView('snake');
-        resetSnake();
+    function startPinball() {
+        showView('pinball');
+        setTimeout(() => initPinballGame(), 30);
     }
-    function resetSnake() {
-        document.getElementById('snake-touch-mask').classList.add('hidden');
-        snake = [{ x: 7, y: 7 }, { x: 6, y: 7 }, { x: 5, y: 7 }];
-        snakeDir = { x: 1, y: 0 };
-        nextDir = { x: 1, y: 0 };
-        snakeScore = 0;
-        document.getElementById('snake-score').textContent = snakeScore;
+
+    function initPinballGame() {
+        stopPinball();
+        document.getElementById('pinball-touch-mask').classList.add('hidden');
         
-        const rect = snakeCanvas.getBoundingClientRect();
-        snakeCanvas.width = rect.width;
-        snakeCanvas.height = rect.height;
-        SNAKE_GRID = rect.width / SNAKE_COLS;
+        const rect = pinballCanvas.getBoundingClientRect();
+        const size = Math.max(180, Math.min(rect.width || 220, rect.height || 220));
+        pinballCanvas.width = size;
+        pinballCanvas.height = size;
 
-        spawnFood();
-        stopSnake();
-        snakeTimer = setInterval(stepSnake, 180);
-    }
-    function stopSnake() {
-        if (snakeTimer) { clearInterval(snakeTimer); snakeTimer = null; }
-    }
-    function spawnFood() {
-        while (true) {
-            food.x = Math.floor(Math.random() * SNAKE_COLS);
-            food.y = Math.floor(Math.random() * SNAKE_COLS);
-            if (!snake.some(s => s.x === food.x && s.y === food.y)) break;
-        }
-    }
-    function stepSnake() {
-        snakeDir = nextDir;
-        const head = { x: snake[0].x + snakeDir.x, y: snake[0].y + snakeDir.y };
+        pPaddle.w = Math.max(56, size * 0.28);
+        pPaddle.h = 10;
+        pPaddle.x = (size - pPaddle.w) / 2;
+        pPaddle.y = size - 16;
+        pPaddle.vx = 0;
 
-        if (head.x < 0 || head.x >= SNAKE_COLS || head.y < 0 || head.y >= SNAKE_COLS ||
-            snake.some(s => s.x === head.x && s.y === head.y)) {
-            stopSnake();
-            if (snakeScore > snakeBest) {
-                snakeBest = snakeScore;
-                localStorage.setItem('watch_snake_best', snakeBest);
-                document.getElementById('snake-best').textContent = snakeBest;
+        const speedScale = size / 220;
+        pBall = {
+            x: size / 2,
+            y: size * 0.72,
+            vx: 1.9 * speedScale * (Math.random() > 0.5 ? 1 : -1),
+            vy: -2.4 * speedScale,
+            r: Math.max(5, Math.floor(size * 0.026))
+        };
+
+        pBricks = [];
+        const padX = 8;
+        const topStartY = 14;
+        const bH = Math.max(9, Math.floor(size * 0.052));
+        const gap = 3;
+        const usableW = size - padX * 2;
+        const colorPool = ['#e74c3c', '#e67e22', '#f1c40f', '#2ecc71', '#3498db', '#9b59b6', '#1abc9c'];
+
+        const possibleCols = [4, 6, 8, 10];
+        for (let r = 0; r < 5; r++) {
+            const cols = possibleCols[Math.floor(Math.random() * possibleCols.length)];
+            const rowColor = colorPool[Math.floor(Math.random() * colorPool.length)];
+            const bW = usableW / cols;
+            const isSkipPattern = Math.random() < 0.35;
+
+            for (let c = 0; c < cols; c++) {
+                if (isSkipPattern && c % 2 === 1) continue;
+                pBricks.push({
+                    x: padX + c * bW + gap / 2,
+                    y: topStartY + r * (bH + gap),
+                    w: bW - gap,
+                    h: bH,
+                    color: rowColor,
+                    alive: true
+                });
             }
-            document.getElementById('snake-mask-score').textContent = `得分: ${snakeScore}`;
-            document.getElementById('snake-touch-mask').classList.remove('hidden');
+        }
+
+        pinballScore = 0;
+        document.getElementById('pinball-score').textContent = '0';
+        document.getElementById('pinball-bricks').textContent = pBricks.length;
+        pinballActive = true;
+        loopPinball();
+    }
+
+    function stopPinball() {
+        pinballActive = false;
+        if (pinballAnimFrame) { cancelAnimationFrame(pinballAnimFrame); pinballAnimFrame = null; }
+    }
+
+    function handlePinballTouch(tx) {
+        if (currentView !== 'pinball' || !pinballActive) return;
+        const rect = pinballCanvas.getBoundingClientRect();
+        pPaddle.x = tx - rect.left - pPaddle.w / 2;
+    }
+
+    function loopPinball() {
+        if (!pinballActive || currentView !== 'pinball') return;
+
+        let ax = (tiltX / 10) * 0.9;
+        pPaddle.vx = (pPaddle.vx + ax) * 0.86;
+        pPaddle.x += pPaddle.vx;
+
+        if (pPaddle.x < 2) { pPaddle.x = 2; pPaddle.vx = 0; }
+        if (pPaddle.x + pPaddle.w > pinballCanvas.width - 2) {
+            pPaddle.x = pinballCanvas.width - pPaddle.w - 2;
+            pPaddle.vx = 0;
+        }
+
+        pBall.x += pBall.vx;
+        pBall.y += pBall.vy;
+
+        if (pBall.x - pBall.r < 0) { pBall.x = pBall.r; pBall.vx = -pBall.vx; }
+        if (pBall.x + pBall.r > pinballCanvas.width) { pBall.x = pinballCanvas.width - pBall.r; pBall.vx = -pBall.vx; }
+        if (pBall.y - pBall.r < 0) { pBall.y = pBall.r; pBall.vy = -pBall.vy; }
+
+        if (pBall.y + pBall.r >= pPaddle.y && pBall.y - pBall.r <= pPaddle.y + pPaddle.h) {
+            if (pBall.x >= pPaddle.x - 4 && pBall.x <= pPaddle.x + pPaddle.w + 4) {
+                const hitPos = (pBall.x - (pPaddle.x + pPaddle.w / 2)) / (pPaddle.w / 2);
+                const baseSpeed = Math.hypot(pBall.vx, pBall.vy);
+                pBall.vx = hitPos * (baseSpeed * 0.88);
+                pBall.vy = -Math.max(Math.abs(pBall.vy), baseSpeed * 0.65);
+            }
+        }
+
+        let remainingBricks = 0;
+        for (let b of pBricks) {
+            if (b.alive) {
+                if (pBall.x + pBall.r > b.x && pBall.x - pBall.r < b.x + b.w &&
+                    pBall.y + pBall.r > b.y && pBall.y - pBall.r < b.y + b.h) {
+                    b.alive = false;
+                    
+                    const overlapLeft = (pBall.x + pBall.r) - b.x;
+                    const overlapRight = (b.x + b.w) - (pBall.x - pBall.r);
+                    const overlapTop = (pBall.y + pBall.r) - b.y;
+                    const overlapBottom = (b.y + b.h) - (pBall.y - pBall.r);
+                    const minOverlap = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
+
+                    if (minOverlap === overlapLeft || minOverlap === overlapRight) pBall.vx = -pBall.vx;
+                    else pBall.vy = -pBall.vy;
+
+                    pinballScore += 10;
+                    document.getElementById('pinball-score').textContent = pinballScore;
+                } else {
+                    remainingBricks++;
+                }
+            }
+        }
+        document.getElementById('pinball-bricks').textContent = remainingBricks;
+
+        if (remainingBricks === 0 && pBricks.length > 0) {
+            stopPinball();
+            document.getElementById('pinball-mask-title').textContent = '🎉 完美清空通關！';
+            document.getElementById('pinball-mask-score').textContent = `成功消除所有磚塊！得分: ${pinballScore}`;
+            document.getElementById('pinball-touch-mask').classList.remove('hidden');
             return;
         }
 
-        snake.unshift(head);
-        if (head.x === food.x && head.y === food.y) {
-            snakeScore += 10;
-            document.getElementById('snake-score').textContent = snakeScore;
-            spawnFood();
-        } else {
-            snake.pop();
+        if (pBall.y - pBall.r > pinballCanvas.height) {
+            stopPinball();
+            document.getElementById('pinball-mask-title').textContent = '挑戰結束';
+            document.getElementById('pinball-mask-score').textContent = `剩餘磚塊: ${remainingBricks} | 得分: ${pinballScore}`;
+            document.getElementById('pinball-touch-mask').classList.remove('hidden');
+            return;
         }
-        drawSnake();
+
+        pctx.fillStyle = '#151d24';
+        pctx.fillRect(0, 0, pinballCanvas.width, pinballCanvas.height);
+
+        for (let b of pBricks) {
+            if (b.alive) {
+                pctx.fillStyle = b.color;
+                pctx.fillRect(b.x, b.y, b.w, b.h);
+                pctx.fillStyle = 'rgba(255,255,255,0.2)';
+                pctx.fillRect(b.x, b.y, b.w, 2);
+            }
+        }
+
+        pctx.fillStyle = '#1abc9c';
+        pctx.fillRect(pPaddle.x, pPaddle.y, pPaddle.w, pPaddle.h);
+
+        pctx.fillStyle = '#ffffff';
+        pctx.beginPath();
+        pctx.arc(pBall.x, pBall.y, pBall.r, 0, Math.PI * 2);
+        pctx.fill();
+
+        pinballAnimFrame = requestAnimationFrame(loopPinball);
     }
-    function drawSnake() {
-        sctx.fillStyle = '#1a1a20';
-        sctx.fillRect(0, 0, snakeCanvas.width, snakeCanvas.height);
 
-        sctx.fillStyle = '#e74c3c';
-        sctx.beginPath();
-        sctx.arc(food.x * SNAKE_GRID + SNAKE_GRID/2, food.y * SNAKE_GRID + SNAKE_GRID/2, SNAKE_GRID/2 - 1, 0, Math.PI * 2);
-        sctx.fill();
-
-        snake.forEach((seg, idx) => {
-            sctx.fillStyle = idx === 0 ? '#2ecc71' : '#27ae60';
-            sctx.fillRect(seg.x * SNAKE_GRID + 1, seg.y * SNAKE_GRID + 1, SNAKE_GRID - 2, SNAKE_GRID - 2);
-        });
-    }
-
-    /* 手勢滑動判定 (全域監聽) */
+    /* 手勢滑動與觸控判定 (全域監聽) */
     let touchStartX = 0, touchStartY = 0;
-    let snakeSwipeHandled = false;
 
     window.addEventListener('touchstart', e => {
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
-        snakeSwipeHandled = false;
         if (currentView === '2248') handleG2Start(touchStartX, touchStartY);
         if (currentView === 'maze') handleMazeTouch(touchStartX, touchStartY);
         if (currentView === 'flappy') handleFlappyTouch();
@@ -1285,21 +1387,6 @@
         if (currentView === 'pinball') {
             handlePinballTouch(e.touches[0].clientX);
         }
-        if (currentView === 'snake' && !snakeSwipeHandled) {
-            const curX = e.touches[0].clientX;
-            const curY = e.touches[0].clientY;
-            const dx = curX - touchStartX;
-            const dy = curY - touchStartY;
-            if (Math.abs(dx) >= 8 || Math.abs(dy) >= 8) {
-                if (Math.abs(dx) > Math.abs(dy)) {
-                    if (dx > 0 && snakeDir.x === 0) { nextDir = { x: 1, y: 0 }; snakeSwipeHandled = true; }
-                    else if (dx < 0 && snakeDir.x === 0) { nextDir = { x: -1, y: 0 }; snakeSwipeHandled = true; }
-                } else {
-                    if (dy > 0 && snakeDir.y === 0) { nextDir = { x: 0, y: 1 }; snakeSwipeHandled = true; }
-                    else if (dy < 0 && snakeDir.y === 0) { nextDir = { x: 0, y: -1 }; snakeSwipeHandled = true; }
-                }
-            }
-        }
     }, { passive: false });
 
     window.addEventListener('touchend', e => {
@@ -1307,28 +1394,15 @@
             handleG2End();
             return;
         }
-        if (currentView === 'snake' && !snakeSwipeHandled) {
-            const dx = e.changedTouches[0].clientX - touchStartX;
-            const dy = e.changedTouches[0].clientY - touchStartY;
-            if (Math.abs(dx) >= 8 || Math.abs(dy) >= 8) {
-                if (Math.abs(dx) > Math.abs(dy)) {
-                    if (dx > 0 && snakeDir.x === 0) nextDir = { x: 1, y: 0 };
-                    else if (dx < 0 && snakeDir.x === 0) nextDir = { x: -1, y: 0 };
-                } else {
-                    if (dy > 0 && snakeDir.y === 0) nextDir = { x: 0, y: 1 };
-                    else if (dy < 0 && snakeDir.y === 0) nextDir = { x: 0, y: -1 };
-                }
-            }
-        }
     });
 
     /* ================= 遊戲 4: 瘋狂打地鼠 ================= */
     let moleScore = 0;
     let moleTime = 30;
     let moleTimer = null;
-    let moleActiveIndex = -1;
+    let activeMoles = new Map();
     let molePopTimer = null;
-    let isGoldenMole = false;
+    let moleRespawnTimer = null;
 
     function startMole() {
         showView('mole');
@@ -1348,7 +1422,7 @@
         document.getElementById('mole-time').textContent = '30';
         document.getElementById('mole-time').classList.remove('mole-frenzy-header');
         document.getElementById('mole-mask-title').textContent = '🐹 瘋狂打地鼠';
-        document.getElementById('mole-mask-sub').textContent = '限時 30 秒挑戰 (含狂暴金鼠！)';
+        document.getElementById('mole-mask-sub').textContent = '限時 30 秒挑戰 (最後15秒狂暴連出！)';
         document.getElementById('mole-touch-mask').classList.remove('hidden');
     }
     function startMoleGame() {
@@ -1364,7 +1438,7 @@
             moleTime--;
             document.getElementById('mole-time').textContent = moleTime;
 
-            if (moleTime <= 10 && moleTime > 0) {
+            if (moleTime <= 15 && moleTime > 0) {
                 document.getElementById('mole-time').classList.add('mole-frenzy-header');
             }
 
@@ -1381,6 +1455,7 @@
     function stopMole() {
         if (moleTimer) { clearInterval(moleTimer); moleTimer = null; }
         if (molePopTimer) { clearTimeout(molePopTimer); molePopTimer = null; }
+        if (moleRespawnTimer) { clearTimeout(moleRespawnTimer); moleRespawnTimer = null; }
         clearActiveMole();
     }
     function clearActiveMole() {
@@ -1389,44 +1464,52 @@
             h.textContent = ''; 
             h.classList.remove('active', 'golden'); 
         });
-        moleActiveIndex = -1;
-        isGoldenMole = false;
+        activeMoles.clear();
     }
     function popMole() {
         if (moleTime <= 0) return;
         clearActiveMole();
-        const rand = Math.floor(Math.random() * 9);
-        moleActiveIndex = rand;
-        isGoldenMole = Math.random() < 0.22;
 
+        const isFrenzy = moleTime <= 15;
+        const spawnCount = isFrenzy ? (Math.random() < 0.5 ? 2 : 3) : 1;
+        const indices = [0, 1, 2, 3, 4, 5, 6, 7, 8].sort(() => Math.random() - 0.5).slice(0, spawnCount);
         const holes = document.querySelectorAll('.mole-hole');
-        if (holes[rand]) {
-            holes[rand].textContent = isGoldenMole ? '👑' : '🐹';
-            holes[rand].classList.add('active');
-            if (isGoldenMole) holes[rand].classList.add('golden');
+
+        for (const idx of indices) {
+            const golden = Math.random() < 0.22;
+            activeMoles.set(idx, { isGolden: golden });
+            if (holes[idx]) {
+                holes[idx].textContent = golden ? '👑' : '🐹';
+                holes[idx].classList.add('active');
+                if (golden) holes[idx].classList.add('golden');
+            }
         }
 
-        let delay = moleTime <= 10 ? (380 + Math.random() * 240) : (600 + Math.random() * 320);
+        const delay = isFrenzy ? (780 + Math.random() * 260) : (600 + Math.random() * 320);
         molePopTimer = setTimeout(popMole, delay);
     }
     function onMoleHit(index) {
-        if (moleTime <= 0 || index !== moleActiveIndex) return;
+        if (moleTime <= 0 || !activeMoles.has(index)) return;
 
-        const gained = isGoldenMole ? 20 : 10;
+        const { isGolden } = activeMoles.get(index);
+        activeMoles.delete(index);
+
+        const gained = isGolden ? 20 : 10;
         moleScore += gained;
         document.getElementById('mole-score').textContent = moleScore;
 
         const holes = document.querySelectorAll('.mole-hole');
         if (holes[index]) {
-            holes[index].textContent = isGoldenMole ? '🌟+20' : '💥+10';
-            holes[index].classList.remove('active');
+            holes[index].textContent = isGolden ? '🌟+20' : '💥+10';
+            holes[index].classList.remove('active', 'golden');
         }
-        moleActiveIndex = -1;
-        isGoldenMole = false;
-        if (molePopTimer) clearTimeout(molePopTimer);
 
-        const hitPause = moleTime <= 10 ? 150 : 220;
-        setTimeout(popMole, hitPause);
+        if (activeMoles.size === 0) {
+            if (molePopTimer) clearTimeout(molePopTimer);
+            if (moleRespawnTimer) clearTimeout(moleRespawnTimer);
+            const hitPause = moleTime <= 15 ? 160 : 220;
+            moleRespawnTimer = setTimeout(popMole, hitPause);
+        }
     }
 
     /* ================= 遊戲 5: 翻牌對對碰 ================= */
@@ -1595,7 +1678,7 @@
             holes: [{ x: 110, y: 185, r: 12 }],
             boosts: [{ x: 110, y: 60, r: 12, vx: 0, vy: -5 }]
         },
-        { // Level 7: "雙子黑洞" (已修復通道)
+        { // Level 7: "雙子黑洞"
             walls: [
                 { x: 65, y: 0, w: 10, h: 130 },
                 { x: 65, y: 130, w: 90, h: 10 },
@@ -1925,7 +2008,7 @@
 
     function spawnFlappyPipe() {
         if (!flappyActive) return;
-        const gap = Math.max(68, flappyCanvas.height * 0.38); // 手錶寬通道
+        const gap = Math.max(68, flappyCanvas.height * 0.38);
         const minTop = 25;
         const maxTop = flappyCanvas.height - gap - 25;
         const topH = minTop + Math.random() * (maxTop - minTop);
@@ -1943,28 +2026,24 @@
 
     function handleFlappyTouch() {
         if (currentView !== 'flappy' || !flappyActive) return;
-        flappyBird.vy = -3.8; // 輕巧向上跳躍
+        flappyBird.vy = -3.8;
     }
 
     function loopFlappy() {
         if (!flappyActive || currentView !== 'flappy') return;
 
-        // 重力下墜
         flappyBird.vy += 0.22;
         flappyBird.y += flappyBird.vy;
 
-        // 碰天花板或掉出底面
         if (flappyBird.y - flappyBird.r < 0 || flappyBird.y + flappyBird.r > flappyCanvas.height) {
             endFlappyGame();
             return;
         }
 
-        // 水管移動與碰撞
         for (let i = flappyPipes.length - 1; i >= 0; i--) {
             let p = flappyPipes[i];
             p.x -= 1.6;
 
-            // 碰撞判定
             if (flappyBird.x + flappyBird.r > p.x && flappyBird.x - flappyBird.r < p.x + p.w) {
                 if (flappyBird.y - flappyBird.r < p.topH || flappyBird.y + flappyBird.r > p.bottomY) {
                     endFlappyGame();
@@ -1972,7 +2051,6 @@
                 }
             }
 
-            // 得分
             if (!p.passed && p.x + p.w < flappyBird.x) {
                 p.passed = true;
                 flappyScore++;
@@ -1982,18 +2060,15 @@
             if (p.x + p.w < -10) flappyPipes.splice(i, 1);
         }
 
-        // 渲染畫面
         fctx.fillStyle = '#1a1e29';
         fctx.fillRect(0, 0, flappyCanvas.width, flappyCanvas.height);
 
-        // 繪製水管
         fctx.fillStyle = '#27ae60';
         for (let p of flappyPipes) {
             fctx.fillRect(p.x, 0, p.w, p.topH);
             fctx.fillRect(p.x, p.bottomY, p.w, flappyCanvas.height - p.bottomY);
         }
 
-        // 繪製小鳥 🐦
         fctx.font = '22px sans-serif';
         fctx.textAlign = 'center';
         fctx.textBaseline = 'middle';
@@ -2014,191 +2089,19 @@
         document.getElementById('flappy-touch-mask').classList.remove('hidden');
     }
 
-    /* ================= 遊戲 8: 彈珠消消樂 (Mini Pinball / Breakout) ================= */
-    const pinballCanvas = document.getElementById('pinball-canvas');
-    const pctx = pinballCanvas.getContext('2d');
-    let pPaddle = { x: 80, y: 195, w: 56, h: 10, vx: 0 };
-    let pBall = { x: 110, y: 150, vx: 2, vy: -2.2, r: 6 };
-    let pBricks = [];
-    let pinballScore = 0;
-    let pinballActive = false;
-    let pinballAnimFrame = null;
-
-    function startPinball() {
-        showView('pinball');
-        const rect = pinballCanvas.getBoundingClientRect();
-        pinballCanvas.width = rect.width;
-        pinballCanvas.height = rect.height;
-        document.getElementById('pinball-touch-mask').classList.remove('hidden');
-    }
-
-    function initPinballGame() {
-        document.getElementById('pinball-touch-mask').classList.add('hidden');
-        const rect = pinballCanvas.getBoundingClientRect();
-        pinballCanvas.width = rect.width;
-        pinballCanvas.height = rect.height;
-
-        pPaddle.w = Math.max(54, pinballCanvas.width * 0.28);
-        pPaddle.h = 10;
-        pPaddle.x = (pinballCanvas.width - pPaddle.w) / 2;
-        pPaddle.y = pinballCanvas.height - 18;
-        pPaddle.vx = 0;
-
-        pBall = {
-            x: pinballCanvas.width / 2,
-            y: pinballCanvas.height * 0.65,
-            vx: 1.8 * (Math.random() > 0.5 ? 1 : -1),
-            vy: -2.4,
-            r: 6
-        };
-
-        // 3排4列大磚塊 (12塊，每塊清晰好敲)
-        pBricks = [];
-        const rows = 3, cols = 4;
-        const bW = (pinballCanvas.width - 24) / cols;
-        const bH = 14;
-        const colors = ['#e74c3c', '#f39c12', '#3498db'];
-
-        for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols; c++) {
-                pBricks.push({
-                    x: 12 + c * bW + 2,
-                    y: 20 + r * (bH + 5),
-                    w: bW - 4,
-                    h: bH,
-                    color: colors[r],
-                    alive: true
-                });
-            }
-        }
-
-        pinballScore = 0;
-        document.getElementById('pinball-score').textContent = '0';
-        document.getElementById('pinball-bricks').textContent = pBricks.length;
-        pinballActive = true;
-
-        stopPinball();
-        loopPinball();
-    }
-
-    function stopPinball() {
-        pinballActive = false;
-        if (pinballAnimFrame) { cancelAnimationFrame(pinballAnimFrame); pinballAnimFrame = null; }
-    }
-
-    function handlePinballTouch(tx) {
-        if (currentView !== 'pinball' || !pinballActive) return;
-        const rect = pinballCanvas.getBoundingClientRect();
-        const cx = tx - rect.left;
-        pPaddle.x = cx - pPaddle.w / 2;
-    }
-
-    function loopPinball() {
-        if (!pinballActive || currentView !== 'pinball') return;
-
-        // 傾斜感應控制底板 (平滑靈活)
-        let ax = (tiltX / 10) * 0.9;
-        pPaddle.vx = (pPaddle.vx + ax) * 0.86;
-        pPaddle.x += pPaddle.vx;
-
-        if (pPaddle.x < 2) { pPaddle.x = 2; pPaddle.vx = 0; }
-        if (pPaddle.x + pPaddle.w > pinballCanvas.width - 2) {
-            pPaddle.x = pinballCanvas.width - pPaddle.w - 2;
-            pPaddle.vx = 0;
-        }
-
-        // 彈珠運動
-        pBall.x += pBall.vx;
-        pBall.y += pBall.vy;
-
-        // 左右與頂部牆壁反彈
-        if (pBall.x - pBall.r < 0) { pBall.x = pBall.r; pBall.vx = -pBall.vx; }
-        if (pBall.x + pBall.r > pinballCanvas.width) { pBall.x = pinballCanvas.width - pBall.r; pBall.vx = -pBall.vx; }
-        if (pBall.y - pBall.r < 0) { pBall.y = pBall.r; pBall.vy = -pBall.vy; }
-
-        // 底板反彈
-        if (pBall.y + pBall.r >= pPaddle.y && pBall.y - pBall.r <= pPaddle.y + pPaddle.h) {
-            if (pBall.x >= pPaddle.x - 2 && pBall.x <= pPaddle.x + pPaddle.w + 2) {
-                // 依撞擊板子位置調整反彈角度
-                const hitPos = (pBall.x - (pPaddle.x + pPaddle.w / 2)) / (pPaddle.w / 2);
-                pBall.vx = hitPos * 2.8;
-                pBall.vy = -Math.abs(pBall.vy);
-            }
-        }
-
-        // 磚塊碰撞
-        let aliveCount = 0;
-        for (let b of pBricks) {
-            if (b.alive) {
-                aliveCount++;
-                if (pBall.x + pBall.r > b.x && pBall.x - pBall.r < b.x + b.w &&
-                    pBall.y + pBall.r > b.y && pBall.y - pBall.r < b.y + b.h) {
-                    b.alive = false;
-                    pBall.vy = -pBall.vy;
-                    pinballScore += 10;
-                    document.getElementById('pinball-score').textContent = pinballScore;
-                    aliveCount--;
-                }
-            }
-        }
-        document.getElementById('pinball-bricks').textContent = aliveCount;
-
-        // 全破通關
-        if (aliveCount === 0) {
-            stopPinball();
-            document.getElementById('pinball-mask-title').textContent = '🎉 完美通關！';
-            document.getElementById('pinball-mask-score').textContent = `成功擊碎所有磚塊！得分: ${pinballScore}`;
-            document.getElementById('pinball-touch-mask').classList.remove('hidden');
-            return;
-        }
-
-        // 掉落底部出界
-        if (pBall.y - pBall.r > pinballCanvas.height) {
-            stopPinball();
-            document.getElementById('pinball-mask-title').textContent = '挑戰結束';
-            document.getElementById('pinball-mask-score').textContent = `最終消除得分: ${pinballScore}`;
-            document.getElementById('pinball-touch-mask').classList.remove('hidden');
-            return;
-        }
-
-        // 繪製
-        pctx.fillStyle = '#151d24';
-        pctx.fillRect(0, 0, pinballCanvas.width, pinballCanvas.height);
-
-        // 磚塊
-        for (let b of pBricks) {
-            if (b.alive) {
-                pctx.fillStyle = b.color;
-                pctx.beginPath();
-                pctx.roundRect(b.x, b.y, b.w, b.h, 3);
-                pctx.fill();
-            }
-        }
-
-        // 底板
-        pctx.fillStyle = '#1abc9c';
-        pctx.beginPath();
-        pctx.roundRect(pPaddle.x, pPaddle.y, pPaddle.w, pPaddle.h, 5);
-        pctx.fill();
-
-        // 彈珠
-        pctx.fillStyle = '#ffffff';
-        pctx.shadowColor = '#00e5ff';
-        pctx.shadowBlur = 6;
-        pctx.beginPath();
-        pctx.arc(pBall.x, pBall.y, pBall.r, 0, Math.PI * 2);
-        pctx.fill();
-        pctx.shadowBlur = 0;
-
-        pinballAnimFrame = requestAnimationFrame(loopPinball);
-    }
+    /* 綁定結算層全域快碰事件 */
+    document.querySelectorAll('.touch-mask').forEach(mask => {
+        mask.addEventListener('pointerdown', function(e) {
+            e.stopPropagation();
+            this.click();
+        });
+    });
 
     window.addEventListener('resize', () => {
         updateBoardRects();
-        if (currentView === 'snake') resetSnake();
         if (currentView === 'maze') initMazeGame();
         if (currentView === 'flappy') startFlappy();
-        if (currentView === 'pinball') startPinball();
+        if (currentView === 'pinball') initPinballGame();
     });
 </script>
 </body>
